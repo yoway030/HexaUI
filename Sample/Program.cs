@@ -1,5 +1,5 @@
 ﻿using HexaUI;
-using Sample.ImVisualizer;
+using Sample.ImVisualize;
 
 namespace Sample;
 
@@ -10,13 +10,13 @@ internal class Program
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
-            ImVisualizer.ImVisualizer.Init(Backend.DirectX);
-            ImVisualizer.ImVisualizer.Instance.Run(new ImWindow());
+            ImVisualizer.Init(Backend.DirectX);
+            ImVisualizer.Instance.Run(new ImWindow());
         });
         thread.Start();
 
         Console.ReadKey();
-        ImVisualizer.ImVisualizer.Instance.Exiting = true;
+        ImVisualizer.Instance.Exiting = true;
 
         thread.Join();
 

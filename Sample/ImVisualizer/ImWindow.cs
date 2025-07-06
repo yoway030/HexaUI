@@ -11,7 +11,7 @@ using Silk.NET.Direct3D11;
 using Silk.NET.SDL;
 using HexaUI.D3D11;
 
-namespace Sample.ImVisualizer;
+namespace Sample.ImVisualize;
 
 public unsafe class ImWindow : CoreWindow
 {

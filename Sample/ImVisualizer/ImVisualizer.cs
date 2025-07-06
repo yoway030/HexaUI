@@ -2,7 +2,7 @@
 using HexaUI.Input;
 using Silk.NET.SDL;
 
-namespace Sample.ImVisualizer;
+namespace Sample.ImVisualize;
 
 public unsafe class ImVisualizer : App
 {
