@@ -18,7 +18,6 @@ public unsafe class ImWindow : CoreWindow
     private D3D11Manager d3d11Manager = null!;
 
     private ImGuiManager imGuiManager = null!;
-    private ImGuiDemo imGuiDemo = null!;
     private ImGuizmoDemo imGuizmoDemo = null!;
     private ImNodesDemo imNodesDemo = null!;
     private ImPlotDemo imPlotDemo = null!;
@@ -40,7 +39,6 @@ public unsafe class ImWindow : CoreWindow
         ImGuiImplD3D11.Init((Hexa.NET.ImGui.Backends.D3D11.ID3D11Device*)(void*)device.Handle, (Hexa.NET.ImGui.Backends.D3D11.ID3D11DeviceContext*)(void*)deviceContext.Handle);
         ImGuiImplD3D11.NewFrame();
 
-        imGuiDemo = new();
         imGuizmoDemo = new();
         imNodesDemo = new();
         imPlotDemo = new();
