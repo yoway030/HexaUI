@@ -27,7 +27,7 @@
         private static Vector2 delta;
         private static Vector2 deltaWheel;
 
-        internal static void Init()
+        public static void Init()
         {
             sdl = App.sdl;
             pos = default;
@@ -89,7 +89,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnButtonDown(MouseButtonEvent mouseButtonEvent)
+        public static void OnButtonDown(MouseButtonEvent mouseButtonEvent)
         {
             MouseButton button = (MouseButton)mouseButtonEvent.Button;
             states[button] = MouseButtonState.Down;
@@ -100,7 +100,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnButtonUp(MouseButtonEvent mouseButtonEvent)
+        public static void OnButtonUp(MouseButtonEvent mouseButtonEvent)
         {
             MouseButton button = (MouseButton)mouseButtonEvent.Button;
             states[button] = MouseButtonState.Up;
@@ -111,7 +111,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnMotion(MouseMotionEvent mouseButtonEvent)
+        public static void OnMotion(MouseMotionEvent mouseButtonEvent)
         {
             if (mouseButtonEvent.Xrel == 0 && mouseButtonEvent.Yrel == 0)
             {
@@ -127,7 +127,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnWheel(MouseWheelEvent mouseWheelEvent)
+        public static void OnWheel(MouseWheelEvent mouseWheelEvent)
         {
             deltaWheel += new Vector2(mouseWheelEvent.X, mouseWheelEvent.Y);
             wheelEventArgs.Wheel = new Vector2(mouseWheelEvent.X, mouseWheelEvent.Y);
@@ -136,7 +136,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void Flush()
+        public static void Flush()
         {
             sdl.GetMouseState(ref pos.X, ref pos.Y);
             delta = Vector2.Zero;

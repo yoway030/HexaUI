@@ -74,7 +74,7 @@
             }
         }
 
-        internal void ProcessWindowEvent(WindowEvent windowEvent)
+        public void ProcessWindowEvent(WindowEvent windowEvent)
         {
             switch ((WindowEventID)windowEvent.Event)
             {

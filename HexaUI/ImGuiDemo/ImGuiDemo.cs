@@ -6,12 +6,6 @@
 
     public class ImGuiDemo
     {
-        private ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.SpanAvailWidth;
-        private bool align_label_with_current_x_position = false;
-        private bool test_drag_and_drop = false;
-
-        private int selection_mask = 1 << 2;
-
         private void HelpMarker(string desc)
         {
             ImGui.TextDisabled("(?)");

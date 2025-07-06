@@ -29,15 +29,22 @@
 
         private ComPtr<ID3D11RenderTargetView> swapChainRTV;
 
+        public ComPtr<ID3D11Device1> GetDevice() { return this.Device; }
+        public ComPtr<ID3D11DeviceContext1> GetDeviceContext() { return this.DeviceContext; }
+
         public D3D11Manager(Window* window, bool debug)
         {
+#pragma warning disable CS0618 // 형식 또는 멤버는 사용되지 않습니다.
             DXGI = DXGI.GetApi();
+#pragma warning restore CS0618 // 형식 또는 멤버는 사용되지 않습니다.
 
             DXGI.CreateDXGIFactory2(0, out IDXGIFactory);
 
             IDXGIAdapter = GetHardwareAdapter();
 
+#pragma warning disable CS0618 // 형식 또는 멤버는 사용되지 않습니다.
             D3D11 = D3D11.GetApi();
+#pragma warning restore CS0618 // 형식 또는 멤버는 사용되지 않습니다.
             D3DFeatureLevel[] levelsArr =
             [
                 D3DFeatureLevel.Level111,

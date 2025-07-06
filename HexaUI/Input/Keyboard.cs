@@ -25,7 +25,7 @@
 
         public static IReadOnlyDictionary<Key, KeyState> States => states;
 
-        internal static unsafe void Init()
+        public static unsafe void Init()
         {
             sdl = App.sdl;
             int numkeys;
@@ -41,7 +41,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnKeyDown(KeyboardEvent keyboardEvent)
+        public static void OnKeyDown(KeyboardEvent keyboardEvent)
         {
             Key keyCode = (Key)sdl.GetKeyFromScancode(keyboardEvent.Keysym.Scancode);
             states[keyCode] = KeyState.Down;
@@ -52,7 +52,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnKeyUp(KeyboardEvent keyboardEvent)
+        public static void OnKeyUp(KeyboardEvent keyboardEvent)
         {
             Key keyCode = (Key)sdl.GetKeyFromScancode(keyboardEvent.Keysym.Scancode);
             states[keyCode] = KeyState.Up;
@@ -63,7 +63,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnTextInput(TextInputEvent textInputEvent)
+        public static void OnTextInput(TextInputEvent textInputEvent)
         {
             unsafe
             {
@@ -73,7 +73,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void Flush()
+        public static void Flush()
         {
         }
 

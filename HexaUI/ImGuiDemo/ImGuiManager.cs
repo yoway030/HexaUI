@@ -180,7 +180,7 @@
 
         public static uint DockSpaceId { get; private set; }
 
-        public event Action OnRenderDrawData;
+        public event Action OnRenderDrawData = null!;
 
         public unsafe void EndFrame()
         {

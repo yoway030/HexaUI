@@ -1,5 +1,5 @@
 ﻿using HexaUI;
-using HexaUI.D3D11;
+using Sample.ImVisualizer;
 
 namespace Sample;
 
@@ -7,7 +7,18 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        App.Init(Backend.DirectX);
-        App.Run(new DX11Window());
+        // 스레드 생성 및 시작
+        Thread thread = new Thread(() =>
+        {
+            ImVisualizer.ImVisualizer.Init(Backend.DirectX);
+            ImVisualizer.ImVisualizer.Instance.Run(new ImWindow());
+        });
+        thread.Start();
+
+        Console.ReadKey();
+        ImVisualizer.ImVisualizer.Instance.Exiting = true;
+
+        thread.Join();
+
     }
 }
