@@ -78,7 +78,7 @@ public unsafe class ImVisualizer : App
                 HandleEvent(evnt);
             }
 
-            mainWindow.Render();
+            MainWindow.Render();
 
             Keyboard.Flush();
             Mouse.Flush();
