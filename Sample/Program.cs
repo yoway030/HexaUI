@@ -1,5 +1,5 @@
-﻿using HexaUI;
-using Sample.ImVisualize;
+﻿using HexaImGui;
+using Hexa.NET.ImGui;
 
 namespace Sample;
 
@@ -7,18 +7,37 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        HexaImGuiManager hexaImGuiManager = new HexaImGuiManager();
+
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
-            ImVisualizer.Init(Backend.DirectX);
-            ImVisualizer.Instance.Run(new ImWindow());
+            hexaImGuiManager.Initialize();
+
+            while (hexaImGuiManager.IsWindowShouldClose == false)
+            {
+                hexaImGuiManager.Loop();
+            }
+
+            hexaImGuiManager.Cleanup();
         });
         thread.Start();
 
-        Console.ReadKey();
-        ImVisualizer.Instance.Exiting = true;
+        LogViewer logviewer = new LogViewer();
+
+        hexaImGuiManager.RegisterDrawCallback(() =>
+        {
+            logviewer.Draw();
+        });
+
+        int logIndex = 0;
+        while (hexaImGuiManager.IsWindowShouldClose == false)
+        {
+            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = 1, Message = $"asdafasdasdas fads {logIndex}" });
+            Thread.Sleep(100);
+            logIndex++;
+        }
 
         thread.Join();
-
     }
 }

@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		
+		<PackageReference Include="Hexa.NET.GLFW" Version="1.0.4" />
+		
+		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.7" />
+		
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.15" />
+		
+		<PackageReference Include="Hexa.NET.ImGui.Backends.GLFW" Version="1.0.15" />
+		<PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.2.13" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="font\arialuni.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="font\MaterialSymbolsRounded.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="font\NanumGothicCoding.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="font\seguiemj.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>

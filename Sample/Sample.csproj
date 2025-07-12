@@ -9,7 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HexaUI\HexaUI.csproj" />
+    <PackageReference Include="Hexa.NET.ImGui" Version="2.2.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HexaImGui\HexaImGui.csproj" />
   </ItemGroup>
 
 </Project>
