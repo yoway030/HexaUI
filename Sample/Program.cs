@@ -33,7 +33,8 @@ internal class Program
         int logIndex = 0;
         while (hexaImGuiManager.IsWindowShouldClose == false)
         {
-            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = 1, Message = $"asdafasdasdas fads {logIndex}" });
+            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
+            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
             Thread.Sleep(100);
             logIndex++;
         }
