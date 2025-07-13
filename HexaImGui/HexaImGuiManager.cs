@@ -5,6 +5,7 @@ using Hexa.NET.ImGui.Backends.OpenGL3;
 using Hexa.NET.ImGui.Utilities;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.OpenGL;
+using HexaImGui.demo;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
@@ -13,18 +14,22 @@ namespace HexaImGui;
 
 public class HexaImGuiManager
 {
-    private ImGuiContextPtr guiContext;
-    private ImGuiIOPtr io;
-    private ImGuiFontBuilder builder = null!;
-    private GLFWwindowPtr window = null!;
-    private GL GL = null!;
+    private ImGuiContextPtr _guiContext;
+    private ImGuiIOPtr _io;
+    private ImGuiFontBuilder _builder = null!;
+    private GLFWwindowPtr _window = null!;
+    private GL _gl = null!;
 
     private readonly List<Action> _drawCallbacks = new();
-
     private readonly List<Action> _menuCallbacks = new();
 
+    private HexaDemo _hexaImGuiDemo = new HexaDemo();
+    private ImGuiDemo _imGuiDemo = new ImGuiDemo();
+
     public bool IsWindowShouldClose = false;
-    public bool IsShowImGuiDemo = false;
+    public bool IsShowImGuiCppDemo = false;
+    public bool IsShowImGuiCSharpDemo = false;
+    public bool IsShowHexaDemo = false;
 
     public void RegisterDrawCallback(Action callback)
     {
@@ -50,47 +55,47 @@ public class HexaImGuiManager
         GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
         GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
 
-        window = GLFW.CreateWindow(800, 600, "GLFW Example", null, null);
-        if (window.IsNull)
+        _window = GLFW.CreateWindow(800, 600, "GLFW Example", null, null);
+        if (_window.IsNull)
         {
             Console.WriteLine("Failed to create GLFW window.");
             GLFW.Terminate();
             return;
         }
 
-        GLFW.MakeContextCurrent(window);
+        GLFW.MakeContextCurrent(_window);
 
-        guiContext = ImGui.CreateContext();
-        ImGui.SetCurrentContext(guiContext);
+        _guiContext = ImGui.CreateContext();
+        ImGui.SetCurrentContext(_guiContext);
 
         // Setup ImGui config.
-        io = ImGui.GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;         // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-        io.ConfigViewportsNoAutoMerge = false;
-        io.ConfigViewportsNoTaskBarIcon = false;
+        _io = ImGui.GetIO();
+        _io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;     // Enable Keyboard Controls
+        _io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;      // Enable Gamepad Controls
+        _io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;         // Enable Docking
+        _io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+        _io.ConfigViewportsNoAutoMerge = false;
+        _io.ConfigViewportsNoTaskBarIcon = false;
 
         // OPTIONAL: For custom fonts and icon fonts.
-        builder = new();
-        builder
+        _builder = new();
+        _builder
             .AddDefaultFont()
             .SetOption(config => { config.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor; })
             .AddFontFromFileTTF("font/NanumGothicCoding.ttf", 13.0f, [0x1, 0x1FFFF])
             .SetOption(cfg => cfg.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor)
             .Build();
 
-        ImGuiImplGLFW.SetCurrentContext(guiContext);
+        ImGuiImplGLFW.SetCurrentContext(_guiContext);
 
-        if (!ImGuiImplGLFW.InitForOpenGL(Unsafe.BitCast<GLFWwindowPtr, Hexa.NET.ImGui.Backends.GLFW.GLFWwindowPtr>(window), true))
+        if (!ImGuiImplGLFW.InitForOpenGL(Unsafe.BitCast<GLFWwindowPtr, Hexa.NET.ImGui.Backends.GLFW.GLFWwindowPtr>(_window), true))
         {
             Console.WriteLine("Failed to init ImGui Impl GLFW");
             GLFW.Terminate();
             return;
         }
 
-        ImGuiImplOpenGL3.SetCurrentContext(guiContext);
+        ImGuiImplOpenGL3.SetCurrentContext(_guiContext);
         if (!ImGuiImplOpenGL3.Init(glslVersion))
         {
             Console.WriteLine("Failed to init ImGui Impl OpenGL3");
@@ -98,7 +103,7 @@ public class HexaImGuiManager
             return;
         }
 
-        GL = new(new BindingsContext(window));
+        _gl = new(new BindingsContext(_window));
     }
 
     public void Loop()
@@ -107,17 +112,17 @@ public class HexaImGuiManager
         {
             // Poll for and process events
             GLFW.PollEvents();
-            IsWindowShouldClose = GLFW.WindowShouldClose(window) != 0;
+            IsWindowShouldClose = GLFW.WindowShouldClose(_window) != 0;
 
-            if (GLFW.GetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0)
+            if (GLFW.GetWindowAttrib(_window, GLFW.GLFW_ICONIFIED) != 0)
             {
                 ImGuiImplGLFW.Sleep(10);
                 continue;
             }
 
-            GLFW.MakeContextCurrent(window);
-            GL.ClearColor(1, 0.8f, 0.75f, 1);
-            GL.Clear(GLClearBufferMask.ColorBufferBit);
+            GLFW.MakeContextCurrent(_window);
+            _gl.ClearColor(1, 0.8f, 0.75f, 1);
+            _gl.Clear(GLClearBufferMask.ColorBufferBit);
 
             ImGuiImplOpenGL3.NewFrame();
             ImGuiImplGLFW.NewFrame();
@@ -128,8 +133,12 @@ public class HexaImGuiManager
                 if (ImGui.BeginMenu("Process"))
                 {
                     ImGui.Spacing();
-                    ImGui.Checkbox("Show ImGui Demo", ref IsShowImGuiDemo);
-                    
+                    ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
+                    ImGui.Spacing();
+                    ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
+                    ImGui.Spacing();
+                    ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
+
                     ImGui.Spacing();
                     if (ImGui.MenuItem("Exit"))
                     {
@@ -163,27 +172,37 @@ public class HexaImGuiManager
                 cb.Invoke();
             }
 
-            if (IsShowImGuiDemo == true)
+            if (IsShowImGuiCSharpDemo == true)
+            {
+                _imGuiDemo.Draw();
+            }
+
+            if (IsShowImGuiCppDemo == true)
             {
                 ImGui.ShowDemoWindow();
+            }
+
+            if (IsShowHexaDemo == true)
+            {
+                _hexaImGuiDemo.Draw();
             }
 
             ImGui.Render();
             ImGui.EndFrame();
 
-            GLFW.MakeContextCurrent(window);
+            GLFW.MakeContextCurrent(_window);
             ImGuiImplOpenGL3.RenderDrawData(ImGui.GetDrawData());
 
-            if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+            if ((_io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
             {
                 ImGui.UpdatePlatformWindows();
                 ImGui.RenderPlatformWindowsDefault();
             }
 
-            GLFW.MakeContextCurrent(window);
+            GLFW.MakeContextCurrent(_window);
 
             // Swap front and back buffers (double buffering)
-            GLFW.SwapBuffers(window);
+            GLFW.SwapBuffers(_window);
         }
     }
 
@@ -192,11 +211,11 @@ public class HexaImGuiManager
         ImGuiImplOpenGL3.Shutdown();
         ImGuiImplGLFW.Shutdown();
         ImGui.DestroyContext();
-        builder.Dispose();
-        GL.Dispose();
+        _builder.Dispose();
+        _gl.Dispose();
 
         // Clean up and terminate GLFW
-        GLFW.DestroyWindow(window);
+        GLFW.DestroyWindow(_window);
         GLFW.Terminate();
     }
 

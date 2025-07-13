@@ -1,5 +1,6 @@
 ﻿using HexaImGui;
 using Hexa.NET.ImGui;
+using HexaImGui.demo;
 
 namespace Sample;
 
