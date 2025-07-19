@@ -24,18 +24,18 @@ internal class Program
         });
         thread.Start();
 
-        LogViewer logviewer = new LogViewer();
+        LogSurfer<LogMessage> logsurfer = new();
 
         hexaImGuiManager.RegisterDrawCallback(() =>
         {
-            logviewer.Draw();
+            logsurfer.Draw();
         });
 
         int logIndex = 0;
         while (hexaImGuiManager.IsWindowShouldClose == false)
         {
-            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
-            logviewer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
+            logsurfer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
+            logsurfer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
             Thread.Sleep(100);
             logIndex++;
         }
@@ -43,3 +43,14 @@ internal class Program
         thread.Join();
     }
 }
+
+
+public record LogMessage : ILogWave
+{
+    public DateTime DateTime { get; set; } = DateTime.MinValue;
+
+    public string Level { get; set; } = string.Empty;
+
+    public string Message { get; set; } = string.Empty;
+}
+
