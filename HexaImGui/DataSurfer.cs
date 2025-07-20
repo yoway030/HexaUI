@@ -1,43 +1,38 @@
 ﻿using Hexa.NET.ImGui;
 using System.Collections.Concurrent;
-using System.Numerics;
 using System.Text;
 
 namespace HexaImGui;
 
-public interface ISurfableData
+public class DataSurfer<TData>
+    where TData : SurfableIndexingData, new()
 {
-    DateTime DateTime => DateTime.UtcNow;
-    public string Level => string.Empty;
-    public string Message => string.Empty;
-    public string ToClipboard => string.Empty;
-}
-
-public class DataSurfer<TLog>
-    where TLog : ISurfableData, new()
-{
-    public const int MaxLocalStorage = 10_000;
-
-    public DataSurfer()
+    public DataSurfer(string widgetName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 1_000)
     {
+        WidgetName = widgetName;
+        MaxLocalStorage = maxLocalStorage;
     }
 
-    private List<TLog> _localStorage = new();
+    private uint _index = 0;
+    private List<TData> _localStorage = new();
     private ImGuiSelectionBasicStorage _selection = new();
 
-    public ConcurrentQueue<TLog> Queue = new();
+    public string WidgetName { get; init; }
+    public int MaxLocalStorage { get; init; }
+    public ConcurrentQueue<TData> DataQueue = new();
     public bool Freeze = false;
 
-    public void AddMessage(TLog message)
+    public void PushData(TData data)
     {
-        Queue.Enqueue(message);
+        DataQueue.Enqueue(data);
     }
 
-    private void AdjustMessage()
+    private void AdjustData()
     {
-        while (Queue.TryDequeue(out var message) == true)
+        while (DataQueue.TryDequeue(out var data) == true)
         {
-            _localStorage.Add(message);
+            data.Index = _index++;
+            _localStorage.Add(data);
         }
 
         while (_localStorage.Count > MaxLocalStorage)
@@ -46,20 +41,20 @@ public class DataSurfer<TLog>
         }
     }
 
-    public void Draw()
+    public void DrawDataSurf()
     {
         if (Freeze == false)
         {
-            AdjustMessage();
+            AdjustData();
         }
 
-        ImGui.Begin("LogSurfer");
+        ImGui.Begin(WidgetName);
 
         ImGui.Checkbox("Freeze Log", ref Freeze);
         ImGui.SameLine();
         ImGui.Spacing();
         ImGui.SameLine();
-        ImGui.Text($"LogQueue:{Queue.Count}");
+        ImGui.Text($"LogQueue:{DataQueue.Count}");
         ImGui.SameLine();
         ImGui.Spacing();
         ImGui.SameLine();
@@ -73,32 +68,43 @@ public class DataSurfer<TLog>
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
                 var data = _selection.Storage.Data[i];
-                sb.AppendLine(_localStorage[(int)data.Key].ToClipboard);
+                sb.AppendLine(_localStorage[(int)data.Key].FieldsToString);
             }
 
             ImGui.SetClipboardText(sb.ToString());
         }
 
-        if (ImGui.BeginTable("LogTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
+        if (_localStorage.Any() == false)
+        {
+            ImGui.Text("No data available.");
+            return;
+        }
+
+        var initData = _localStorage[0];
+
+        if (ImGui.BeginTable("Datas", initData.DrawableFieldCount + 1, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             ImGui.TableSetupScrollFreeze(0, 1);
-            ImGui.TableSetupColumn("✔", ImGuiTableColumnFlags.WidthFixed, 200);
-            ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 180);
-            ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 60);
-            ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Idx", ImGuiTableColumnFlags.WidthFixed, 200);
+
+            for (int i = 0; i < initData.DrawableFieldCount; i++)
+            {
+                initData.InitDrawableField(i);
+            }
+
             ImGui.TableHeadersRow();
 
             ImGuiMultiSelectIOPtr ms_io = ImGui.BeginMultiSelect(
                 ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1D,
                 _selection.Size,
-                MaxLocalStorage);
+                _localStorage.Count);
 
             ImGuiFuncPtrHelper.SetAdapterIndexToStorageId(ref _selection,
                 (storage, index) =>
                 {
                     if (index < 0 || index >= _localStorage.Count)
                     {
-                        return 0;
+                        return unchecked((uint)-1);
                     }
                     return (uint)index;
                 });
@@ -115,35 +121,32 @@ public class DataSurfer<TLog>
 
             while (clipper.Step())
             {
-                for (int rowIdx = clipper.DisplayStart; rowIdx < clipper.DisplayEnd; rowIdx++)
+                for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
-                    if (rowIdx >= _localStorage.Count || rowIdx < 0)
+                    if (displayIndex >= _localStorage.Count || displayIndex < 0)
                     {
                         break;
                     }
 
-                    TLog log = _localStorage[rowIdx];
+                    TData data = _localStorage[displayIndex];
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     {
-                        bool item_is_selected = _selection.Contains((uint)rowIdx);
-                        ImGui.SetNextItemSelectionUserData(rowIdx);
-                        ImGui.Selectable($"{rowIdx}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        bool item_is_selected = _selection.Contains((uint)displayIndex);
+                        ImGui.SetNextItemSelectionUserData(displayIndex);
+                        ImGui.Selectable(data.Label, item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(log.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
+                    for (int i = 0; i < data.DrawableFieldCount; i++)
+                    {
+                        ImGui.TableNextColumn();
+                        data.DrawField(i);
+                    }
 
-                    ImGui.TableNextColumn();
-                    ImGui.TextColored(GetLevelColor(log.Level), log.Level);
-
-                    ImGui.TableNextColumn();
-                    float maxTextWidth = ImGui.GetColumnWidth();
-                    ImGui.TextUnformatted(log.Message);
                     if (ImGui.IsItemHovered())
                     {
-                        ImGui.SetTooltip(log.Message);
+                        data.DrawHoverTooltip();
                     }
                 }
             }
@@ -160,12 +163,4 @@ public class DataSurfer<TLog>
 
         ImGui.End();
     }
-
-    public Vector4 GetLevelColor(string level) => level switch
-    {
-        "ERROR" => new Vector4(1, 0.2f, 0.2f, 1),
-        "WARN" => new Vector4(1, 0.7f, 0.2f, 1),
-        "DEBUG" => new Vector4(0.5f, 0.7f, 1f, 1),
-        _ => new Vector4(1, 1, 1, 1),
-    };
 }
