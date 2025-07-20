@@ -5,19 +5,20 @@ using System.Text;
 
 namespace HexaImGui;
 
-public interface ILogWave
+public interface ISurfableData
 {
     DateTime DateTime => DateTime.UtcNow;
     public string Level => string.Empty;
     public string Message => string.Empty;
+    public string ToClipboard => string.Empty;
 }
 
-public class LogSurfer<TLog>
-    where TLog : ILogWave, new()
+public class DataSurfer<TLog>
+    where TLog : ISurfableData, new()
 {
     public const int MaxLocalStorage = 10_000;
 
-    public LogSurfer()
+    public DataSurfer()
     {
     }
 
@@ -72,7 +73,7 @@ public class LogSurfer<TLog>
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
                 var data = _selection.Storage.Data[i];
-                sb.AppendLine(_localStorage[(int)data.Key].Message);
+                sb.AppendLine(_localStorage[(int)data.Key].ToClipboard);
             }
 
             ImGui.SetClipboardText(sb.ToString());
@@ -132,7 +133,7 @@ public class LogSurfer<TLog>
                     }
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(log.DateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                    ImGui.TextUnformatted(log.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
 
                     ImGui.TableNextColumn();
                     ImGui.TextColored(GetLevelColor(log.Level), log.Level);

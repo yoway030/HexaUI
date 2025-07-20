@@ -24,7 +24,7 @@ internal class Program
         });
         thread.Start();
 
-        LogSurfer<LogMessage> logsurfer = new();
+        DataSurfer<LogMessage> logsurfer = new();
 
         imGuiManager.RegisterDrawCallback(() =>
         {
@@ -45,12 +45,14 @@ internal class Program
 }
 
 
-public record LogMessage : ILogWave
+public record LogMessage : ISurfableData
 {
     public DateTime DateTime { get; set; } = DateTime.MinValue;
 
     public string Level { get; set; } = string.Empty;
 
     public string Message { get; set; } = string.Empty;
+
+    public string ToClipboard => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
 }
 
