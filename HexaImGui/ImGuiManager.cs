@@ -12,7 +12,7 @@ using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
 namespace HexaImGui;
 
-public class HexaImGuiManager
+public class ImGuiManager
 {
     private ImGuiContextPtr _guiContext;
     private ImGuiIOPtr _io;

@@ -1,11 +1,7 @@
-﻿using Hexa.NET.GLFW;
-using Hexa.NET.ImGui;
-using Hexa.NET.ImGui.Widgets;
+﻿using Hexa.NET.ImGui;
 using System.Collections.Concurrent;
 using System.Numerics;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
+using System.Text;
 
 namespace HexaImGui;
 
@@ -68,6 +64,20 @@ public class LogSurfer<TLog>
         ImGui.SameLine();
         ImGui.Text($"Select:{_selection.Size} / {_localStorage.Count}");
 
+        // Check for copy to clipboard action
+        if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < _selection.Storage.Data.Size; i++)
+            {
+                var data = _selection.Storage.Data[i];
+                sb.AppendLine(_localStorage[(int)data.Key].Message);
+            }
+
+            ImGui.SetClipboardText(sb.ToString());
+        }
+
         if (ImGui.BeginTable("LogTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             ImGui.TableSetupScrollFreeze(0, 1);
@@ -82,20 +92,16 @@ public class LogSurfer<TLog>
                 _selection.Size,
                 MaxLocalStorage);
 
-            unsafe
-            {
-                AdapterIndexToStorageIdDelegate adapterIndexToStorageId = (storage, index) =>
+            ImGuiFuncPtrHelper.SetAdapterIndexToStorageId(ref _selection,
+                (storage, index) =>
                 {
                     if (index < 0 || index >= _localStorage.Count)
                     {
                         return 0;
                     }
                     return (uint)index;
-                };
+                });
 
-                // Assign the delegate directly without using pointers.
-                _selection.AdapterIndexToStorageId = Marshal.GetFunctionPointerForDelegate(adapterIndexToStorageId).ToPointer();
-            }
             _selection.ApplyRequests(ms_io);
 
             ImGuiListClipper clipper = new();

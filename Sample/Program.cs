@@ -8,31 +8,31 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        HexaImGuiManager hexaImGuiManager = new HexaImGuiManager();
+        ImGuiManager imGuiManager = new ImGuiManager();
 
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
-            hexaImGuiManager.Initialize();
+            imGuiManager.Initialize();
 
-            while (hexaImGuiManager.IsWindowShouldClose == false)
+            while (imGuiManager.IsWindowShouldClose == false)
             {
-                hexaImGuiManager.Loop();
+                imGuiManager.Loop();
             }
 
-            hexaImGuiManager.Cleanup();
+            imGuiManager.Cleanup();
         });
         thread.Start();
 
         LogSurfer<LogMessage> logsurfer = new();
 
-        hexaImGuiManager.RegisterDrawCallback(() =>
+        imGuiManager.RegisterDrawCallback(() =>
         {
             logsurfer.Draw();
         });
 
         int logIndex = 0;
-        while (hexaImGuiManager.IsWindowShouldClose == false)
+        while (imGuiManager.IsWindowShouldClose == false)
         {
             logsurfer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
             logsurfer.AddMessage(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
