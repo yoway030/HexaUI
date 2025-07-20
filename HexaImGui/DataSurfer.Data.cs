@@ -4,11 +4,11 @@ public interface ISurfableData
 {
     int DrawableFieldCount { get; }
 
-    void InitDrawableField(int field);
+    void FieldSetupColumn(int field);
 
-    void DrawField(int field);
+    void FieldDraw(int field);
 
-    void DrawHoverTooltip();
+    void TooltipDraw();
 
     string FieldsToString { get; }
 }
@@ -32,11 +32,11 @@ public abstract class SurfableIndexingData : ISurfableData
 
     public abstract int DrawableFieldCount { get; }
 
-    public abstract void InitDrawableField(int field);
+    public abstract void FieldSetupColumn(int field);
 
-    public abstract void DrawField(int field);
+    public abstract void FieldDraw(int field);
 
-    public abstract void DrawHoverTooltip();
+    public abstract void TooltipDraw();
 
     public abstract string FieldsToString { get; }
 }

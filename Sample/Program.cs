@@ -65,7 +65,7 @@ public class LogMessage : SurfableIndexingData
 
     public override string FieldsToString => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
 
-    public override void InitDrawableField(int field)
+    public override void FieldSetupColumn(int field)
     {
         switch (field)
         {
@@ -83,7 +83,7 @@ public class LogMessage : SurfableIndexingData
         }
     }
 
-    public override void DrawField(int field)
+    public override void FieldDraw(int field)
     {
         switch (field)
         {
@@ -101,7 +101,7 @@ public class LogMessage : SurfableIndexingData
         }
     }
 
-    public override void DrawHoverTooltip()
+    public override void TooltipDraw()
     {
         ImGui.BeginTooltip();
         ImGui.TextUnformatted($"{DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff")}");

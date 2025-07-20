@@ -89,7 +89,7 @@ public class DataSurfer<TData>
 
             for (int i = 0; i < initData.DrawableFieldCount; i++)
             {
-                initData.InitDrawableField(i);
+                initData.FieldSetupColumn(i);
             }
 
             ImGui.TableHeadersRow();
@@ -141,12 +141,12 @@ public class DataSurfer<TData>
                     for (int i = 0; i < data.DrawableFieldCount; i++)
                     {
                         ImGui.TableNextColumn();
-                        data.DrawField(i);
+                        data.FieldDraw(i);
                     }
 
                     if (ImGui.IsItemHovered())
                     {
-                        data.DrawHoverTooltip();
+                        data.TooltipDraw();
                     }
                 }
             }
