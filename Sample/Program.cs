@@ -25,10 +25,12 @@ internal class Program
         thread.Start();
 
         DataSurfer<LogMessage> logsurfer = new("LogSurfer");
+        JsonViewer jsonViewer = new JsonViewer();
 
         imGuiManager.RegisterDrawCallback(() =>
         {
             logsurfer.DrawDataSurf();
+            jsonViewer.Draw();
         });
 
         int logIndex = 0;
