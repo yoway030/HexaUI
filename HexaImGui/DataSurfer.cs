@@ -17,19 +17,20 @@ public class DataSurfer<TData> : IDisposable
 
     public DataSurfer(DataSurfer<TData> parentWidget, int maxLocalStorage)
     {
-        WidgetDepth = parentWidget.WidgetDepth + 1;
-        WidgetName = $"{parentWidget.WidgetName}##{WidgetDepth}";
+        WidgetName = parentWidget.WidgetName;
         MaxLocalStorage = maxLocalStorage;
+
+        WidgetDepth = parentWidget.WidgetDepth + 1;
         DataIdx = parentWidget.DataIdx;
     }
 
     public void Dispose()
     {
-        if (_filteredSurfer != null)
+        if (_duplicateSurfer != null)
         {
-            FilterWidget = false;
-            _filteredSurfer.Dispose();
-            _filteredSurfer = null;
+            DuplicateWidget = false;
+            _duplicateSurfer.Dispose();
+            _duplicateSurfer = null;
         }
     }
 
@@ -43,9 +44,10 @@ public class DataSurfer<TData> : IDisposable
     public int MaxLocalStorage { get; init; }
     public bool Freeze = false;
 
+    public bool DuplicateWidget = false;
+    private DataSurfer<TData>? _duplicateSurfer = null;
+
     public string FilterText = string.Empty;
-    public bool FilterWidget = false;
-    private DataSurfer<TData>? _filteredSurfer = null;
     private List<TData>? _filteredStorage = null;
 
     public void PushData(TData data)
@@ -59,14 +61,13 @@ public class DataSurfer<TData> : IDisposable
         {
             data.Index = DataIdx++;
             _localStorage.Add(data);
+            _duplicateSurfer?.PushData(data);
 
             if (_filteredStorage != null &&
                 data.FieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
             {
                 _filteredStorage.Add(data);
             }
-
-            _filteredSurfer?.PushData(data);
         }
 
         while (_localStorage.Count > MaxLocalStorage)
@@ -82,40 +83,40 @@ public class DataSurfer<TData> : IDisposable
             AdjustData();
         }
 
-        if (_filteredSurfer != null)
+        if (_duplicateSurfer != null)
         {
-            _filteredSurfer.DrawDataSurf();
+            _duplicateSurfer.DrawDataSurf();
         }
 
-        ImGui.Begin(WidgetName);
+        ImGui.Begin($"{WidgetName}#{WidgetDepth}");
 
         ImGui.Checkbox($"Freeze Log##{WidgetDepth}", ref Freeze);
-        ImGui.SameLine(); 
-        ImGui.Spacing();
-        ImGui.SameLine();
+        ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 출력을 정지");
+        ImGuiHelper.SpacingSameLine();
+
         ImGui.Text($"LogQueue:{DataQueue.Count}");
-        ImGui.SameLine();
-        ImGui.Spacing();
-        ImGui.SameLine();
+        ImGuiHelper.HelpMarkerSameLine("화면에 출력되지 않고 큐에 쌓인 데이터 수");
+        ImGuiHelper.SpacingSameLine();
+
         ImGui.Text($"Select:{_selection.Size} / {_localStorage.Count}");
+        ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
+
+        if (ImGui.Checkbox($"Duplicate##{WidgetDepth}", ref DuplicateWidget) == true)
+        {
+            OnDuplicateWidgetCheckChange();
+        }
+        ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출려과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
+        ImGuiHelper.SpacingSameLine();
 
         ImGui.Text("Filter:");
-        ImGui.SameLine();
-        ImGui.Spacing();
-        ImGui.SameLine();
+        ImGuiHelper.SpacingSameLine();
+
         if (ImGui.InputText($"##Filter{WidgetDepth}", ref FilterText, 256, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnFilterTextChange();
         }
+        ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용");
 
-        ImGui.SameLine();
-        ImGui.Spacing();
-        ImGui.SameLine();
-        if (ImGui.Checkbox($"FilterWidget##{WidgetDepth}", ref FilterWidget) == true)
-        {
-            OnFilterWidgetCheckChange();
-        }
-        
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
@@ -242,16 +243,16 @@ public class DataSurfer<TData> : IDisposable
         }
     }
 
-    private void OnFilterWidgetCheckChange()
+    private void OnDuplicateWidgetCheckChange()
     {
-        if (FilterWidget == true)
+        if (DuplicateWidget == true)
         {
-            _filteredSurfer = new(this, 1_000);
+            _duplicateSurfer = new(this, 1_000);
         }
         else
         {
-            _filteredSurfer?.Dispose();
-            _filteredSurfer = null;
+            _duplicateSurfer?.Dispose();
+            _duplicateSurfer = null;
         }
     }
 }

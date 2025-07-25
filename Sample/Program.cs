@@ -24,7 +24,7 @@ internal class Program
         });
         thread.Start();
 
-        DataSurfer<LogMessage> logsurfer = new("LogViewer");
+        DataSurfer<LogMessage> logsurfer = new("LogSurfer");
 
         imGuiManager.RegisterDrawCallback(() =>
         {
@@ -50,8 +50,6 @@ public class LogMessage : SurfableIndexingData
     public DateTime DateTime { get; set; } = DateTime.MinValue;
     public string Level { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
-
-    public string TTS => "adaf";
 
     public Vector4 GetLevelColor(string level) => level switch
     {
