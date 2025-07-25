@@ -1,19 +1,6 @@
 ﻿namespace HexaImGui;
 
-public interface ISurfableData
-{
-    int DrawableFieldCount { get; }
-
-    void FieldSetupColumn(int field);
-
-    void FieldDraw(int field);
-
-    void TooltipDraw();
-
-    string FieldsToString { get; }
-}
-
-public abstract class SurfableIndexingData : ISurfableData
+public abstract class SurfableIndexingData
 {
     protected uint _index;
 
