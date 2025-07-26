@@ -1,4 +1,4 @@
-﻿namespace HexaImGui;
+﻿namespace HexaImGui.Window;
 
 public abstract class SurfableIndexingData
 {

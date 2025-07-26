@@ -67,6 +67,9 @@ public class HexaDemo
 
     private static float[] arr = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
 
+    private static bool showJsonViewer;
+    private static JsonViewer? jsonViewer = null;
+
     public void Draw()
     {
         if (!ImGui.Begin("Hexa Demo"))
@@ -300,6 +303,26 @@ public class HexaDemo
             ImGui.TreePop();
         }
 
+        if (ImGui.TreeNode("Hexa Custom"u8))
+        {
+            if (ImGui.Checkbox("JsonViewer-Tree", ref showJsonViewer))
+            {
+                // Checkbox는 값이 변경될때 true를 리턴한다. 이후 어떤 값으로 변경되었는지 확인하고 처리한다.
+                if (showJsonViewer)
+                {
+                    jsonViewer = new JsonViewer();
+                }
+                else
+                {
+                    jsonViewer = null;
+                }
+            }
+
+            jsonViewer?.Draw();
+
+            ImGui.TreePop();
+        }
+        
         ImGui.End();
     }
 

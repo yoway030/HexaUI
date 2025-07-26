@@ -3,16 +3,16 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
 using Hexa.NET.ImGui.Backends.OpenGL3;
 using Hexa.NET.ImGui.Utilities;
-using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.OpenGL;
 using HexaImGui.demo;
+using HexaImGui.Utils;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
 namespace HexaImGui;
 
-public class ImGuiManager
+public class ImVisualizer
 {
     private ImGuiContextPtr _guiContext;
     private ImGuiIOPtr _io;

@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using HexaImGui.Utils;
 using System.Runtime.CompilerServices;
 
 namespace HexaImGui.demo;

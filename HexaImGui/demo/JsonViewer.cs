@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
 
-namespace HexaImGui;
+namespace HexaImGui.demo;
 
 public class JsonViewer
 {

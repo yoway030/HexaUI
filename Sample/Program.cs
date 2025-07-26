@@ -1,6 +1,7 @@
 ﻿using HexaImGui;
 using Hexa.NET.ImGui;
 using System.Numerics;
+using HexaImGui.Window;
 
 namespace Sample;
 
@@ -8,7 +9,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        ImGuiManager imGuiManager = new ImGuiManager();
+        ImVisualizer imGuiManager = new ImVisualizer();
 
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>

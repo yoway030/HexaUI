@@ -1,8 +1,9 @@
 ﻿using Hexa.NET.ImGui;
+using HexaImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace HexaImGui;
+namespace HexaImGui.Window;
 
 public class DataSurfer<TData> : IDisposable
     where TData : SurfableIndexingData, new()
