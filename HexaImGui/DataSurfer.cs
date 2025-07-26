@@ -119,9 +119,9 @@ public class DataSurfer<TData> : IDisposable
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableSetupColumn("##Idx", ImGuiTableColumnFlags.WidthFixed, 0);
 
-            for (int i = 0; i < initData.DrawableFieldCount; i++)
+            foreach (var action in initData.GetColumnSetupActions())
             {
-                initData.FieldSetupColumn(i);
+                action();
             }
 
             ImGui.TableHeadersRow();
@@ -172,10 +172,10 @@ public class DataSurfer<TData> : IDisposable
                     }
 
                     // SurfableIndexingData 필드 그리기
-                    for (int i = 0; i < data.DrawableFieldCount; i++)
+                    foreach (var drawAction in data.GetFieldDrawActions())
                     {
                         ImGui.TableNextColumn();
-                        data.FieldDraw(i);
+                        drawAction();
                     }
 
                     if (ImGui.IsItemHovered())

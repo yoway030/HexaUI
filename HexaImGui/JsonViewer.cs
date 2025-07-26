@@ -128,7 +128,7 @@ public class JsonViewer
 
                     if (open)
                     {
-                        DrawJsonTokenWithPath(prop.Value, childPath);
+                        DrawJsonTokenWithPath(prop.Value!, childPath);
                         ImGui.TreePop();
                     }
 

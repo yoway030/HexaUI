@@ -19,9 +19,9 @@ public abstract class SurfableIndexingData
 
     public abstract int DrawableFieldCount { get; }
 
-    public abstract void FieldSetupColumn(int field);
+    public abstract IEnumerable<Action> GetColumnSetupActions();
 
-    public abstract void FieldDraw(int field);
+    public abstract IEnumerable<Action> GetFieldDrawActions();
 
     public abstract void TooltipDraw();
 

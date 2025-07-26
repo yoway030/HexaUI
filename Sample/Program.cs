@@ -25,7 +25,7 @@ internal class Program
         thread.Start();
 
         DataSurfer<LogMessage> logsurfer = new("LogSurfer");
-        JsonViewer jsonViewer = new JsonViewer();
+        JsonTextViewer jsonViewer = new JsonTextViewer();
 
         imGuiManager.RegisterDrawCallback(() =>
         {
@@ -65,40 +65,20 @@ public class LogMessage : SurfableIndexingData
 
     public override string FieldsToString => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
 
-    public override void FieldSetupColumn(int field)
+    public override IEnumerable<Action> GetColumnSetupActions()
     {
-        switch (field)
-        {
-            case 0:
-                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 180);
-                break;
-            case 1:
-                ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 60);
-                break;
-            case 2:
-                ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthFixed, 1000);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(field), "Invalid field index");
-        }
+        yield return () => ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 180);
+        yield return () => ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 60);
+        yield return () => ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthFixed, 1000);
+        yield break;
     }
 
-    public override void FieldDraw(int field)
+    public override IEnumerable<Action> GetFieldDrawActions()
     {
-        switch (field)
-        {
-            case 0:
-                ImGui.TextUnformatted(DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
-                break;
-            case 1:
-                ImGui.TextColored(GetLevelColor(Level), Level);
-                break;
-            case 2:
-                ImGui.TextUnformatted(Message);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(field), "Invalid field index");
-        }
+        yield return () => ImGui.TextUnformatted(DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
+        yield return () => ImGui.TextColored(GetLevelColor(Level), Level);
+        yield return () => ImGui.TextUnformatted(Message);
+        yield break;
     }
 
     public override void TooltipDraw()
