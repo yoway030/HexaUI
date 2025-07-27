@@ -51,6 +51,7 @@ public class DataSurfer<TData> : IDisposable
     private DataSurfer<TData>? _duplicateSurfer = null;
 
     public string FilterText = string.Empty;
+    public bool FilterHighlight = true;
     private List<TData>? _filteredStorage = null;
 
     public void DrawDataSurf()
@@ -88,6 +89,7 @@ public class DataSurfer<TData> : IDisposable
         // Selection info
         ImGui.Text($"Select:{_selection.Size} / {_localStorage.Count}");
         ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
+        ImGuiHelper.SpacingSameLine();
 
         // Duplicate widget checkbox
         if (ImGui.Checkbox($"Duplicate##{WidgetDepth}", ref DuplicateWidget) == true)
@@ -95,16 +97,25 @@ public class DataSurfer<TData> : IDisposable
             OnDuplicateWidgetCheckChange();
         }
         ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출력과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
-        ImGuiHelper.SpacingSameLine();
 
         // filter input
         ImGui.Text("Filter:");
         ImGuiHelper.SpacingSameLine();
-        if (ImGui.InputText($"##Filter{WidgetDepth}", ref FilterText, 256, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+
+        ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
+        if (ImGui.InputText($"##Filter{WidgetDepth}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
-            OnFilterTextChange();
+            OnFilteringChange();
         }
-        ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용");
+        ImGuiHelper.SpacingSameLine();
+
+        if (ImGui.Checkbox($"FilterHighlight##{WidgetDepth}", ref FilterHighlight) == true)
+        {
+            OnFilteringChange();
+        }
+        ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용",
+            "필터링된 데이터 강조 표시 여부, 필터링이 동작하는데",
+            "강조표시를 사용하지 않는 경우, 필터링 된 데이터만 보여주는 형태로 동작함");
 
         if (_showStorage.Any() == false)
         {
@@ -114,6 +125,7 @@ public class DataSurfer<TData> : IDisposable
         }
 
         var initData = _showStorage[0];
+        bool usingHighlight = FilterHighlight && string.IsNullOrWhiteSpace(FilterText) == false;
 
         if (ImGui.BeginTable("Datas", initData.DrawableFieldCount + 1, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
@@ -162,6 +174,16 @@ public class DataSurfer<TData> : IDisposable
                     }
 
                     TData data = _showStorage[displayIndex];
+                    var fieldsToString = data.FieldsToString;
+                    bool highlighted = false;
+
+                    // 필터링된 데이터 백그라운드 강조 표시
+                    if (usingHighlight == true &&
+                        fieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.TableRowBg, new System.Numerics.Vector4(0.8f, 0.8f, 1.0f, 0.5f));
+                        highlighted = true;
+                    }
 
                     // row구분 인덱스값 별도 처리
                     ImGui.TableNextRow();
@@ -177,6 +199,11 @@ public class DataSurfer<TData> : IDisposable
                     {
                         ImGui.TableNextColumn();
                         drawAction();
+                    }
+
+                    if (highlighted == true)
+                    {
+                        ImGui.PopStyleColor();
                     }
 
                     if (ImGui.IsItemHovered())
@@ -225,9 +252,9 @@ public class DataSurfer<TData> : IDisposable
         }
     }
 
-    private void OnFilterTextChange()
+    private void OnFilteringChange()
     {
-        if (string.IsNullOrWhiteSpace(FilterText))
+        if (string.IsNullOrWhiteSpace(FilterText) || FilterHighlight == true)
         {
             _filteredStorage = null;
         }
