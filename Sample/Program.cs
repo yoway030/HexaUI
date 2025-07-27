@@ -26,7 +26,30 @@ internal class Program
         thread.Start();
 
         DataSurfer<LogMessage> logsurfer = new("LogSurfer");
-        JsonTextViewer jsonViewer = new JsonTextViewer();
+
+        string jsonString = 
+"""
+{           
+    "name": "John \"Johnny\" Smith",
+    "age": 32,
+    "email": null,
+    "isActive": true,
+    "roles": ["admin", "editor", "user"],
+    "profile": {
+    "address": {
+        "street": "123 Main St",
+        "city": "New York",
+        "zipcode": "10001"
+    },
+    "phone": "+1-800-555-0199"
+    },
+    "loginHistory": [
+    { "date": "2023-12-01T10:00:00Z", "ip": "192.168.1.1" },
+    { "date": "2023-12-05T14:22:13Z", "ip": "192.168.1.23" }
+    ]
+}
+""";
+        TextViewer jsonViewer = new TextViewer("ASDF", jsonString, false);
 
         imGuiManager.RegisterDrawCallback(() =>
         {
