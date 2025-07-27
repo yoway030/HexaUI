@@ -87,7 +87,7 @@ public class DataSurfer<TData> : IDisposable
         ImGuiHelper.SpacingSameLine();
 
         // Selection info
-        ImGui.Text($"Select:{_selection.Size} / {_localStorage.Count}");
+        ImGui.Text($"Select:{_selection.Size}/{_localStorage.Count}");
         ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
         ImGuiHelper.SpacingSameLine();
 
