@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using HexaImGui.Utils;
 using System.Numerics;
 
 namespace HexaImGui.demo;
@@ -15,6 +16,11 @@ public class MouseDragRect
     public void Draw()
     {
         ImGui.BeginChild($"MouseDragRectDemo", ImGuiWindowFlags.NoMove);
+        ImGuiHelper.HelpMarkerSameLine(
+            "마우스 왼쪽 버튼을 클릭하고 드래그하여 사각형을 그릴 수 있습니다.\n" +
+            "드래그 중인 상태와 시작/끝 위치를 표시합니다.\n" +
+            "좌표처리가 전체 스크린 기준인지 스크롤을 해도 사각형은 그대로 있습니다."
+        );
 
         var drawList = ImGui.GetWindowDrawList();
         var io = ImGui.GetIO();

@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using HexaImGui.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
@@ -36,6 +37,11 @@ public class JsonViewer
         
         if (ImGui.CollapsingHeader("JSON Viewer"))
         {
+            ImGuiHelper.HelpMarkerSameLine(
+                "이곳에 JSON 문자열을 입력하면, 구조를 트리 형태로 표시합니다.",
+                "JSON 포맷이 잘못된 경우 오류 메시지를 표시합니다.",
+                "뭔가 있어 보이지만 크게 쓸데는 없는것 같습니다."
+            );
             DrawJsonPretty(jsonText);
         }
 

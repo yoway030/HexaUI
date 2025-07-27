@@ -34,6 +34,12 @@ namespace HexaImGui.Utils
             }
         }
 
+        // string을 여러 개 받을 수 있는 인자 형태 예시 (params 사용)
+        static public void HelpMarkerSameLine(params string[] descs)
+        {
+            HelpMarkerSameLine(string.Join("\n", descs));
+        }
+
         static public void SpacingSameLine()
         {
             ImGui.SameLine();
