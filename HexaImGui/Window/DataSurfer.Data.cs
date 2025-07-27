@@ -2,16 +2,17 @@
 
 public abstract class SurfableIndexingData
 {
-    protected uint _index;
+    protected uint _insertedIndex;
 
     protected string _cachedLabel = string.Empty;
 
-    public uint Index
+    public uint InsertedIndex
     {
-        get => _index; set
+        get => _insertedIndex;
+        set
         {
-            _index = value;
-            _cachedLabel = $"{_index}";
+            _insertedIndex = value;
+            _cachedLabel = $"{_insertedIndex}";
         }
     }
 

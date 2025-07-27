@@ -151,7 +151,7 @@ public class DataSurfer<TData> : IDisposable
                     {
                         return unchecked((uint)-1);
                     }
-                    return (uint)index;
+                    return (uint)_showStorage[index].InsertedIndex;
                 });
 
             _selection.ApplyRequests(ms_io);
@@ -189,7 +189,7 @@ public class DataSurfer<TData> : IDisposable
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     {
-                        bool item_is_selected = _selection.Contains((uint)displayIndex);
+                        bool item_is_selected = _selection.Contains(data.InsertedIndex);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
                         ImGui.Selectable($"##{data.Label}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
@@ -235,7 +235,7 @@ public class DataSurfer<TData> : IDisposable
     {
         while (DataQueue.TryDequeue(out var data) == true)
         {
-            data.Index = DataIdx++;
+            data.InsertedIndex = DataIdx++;
             _localStorage.Add(data);
             _duplicateSurfer?.PushData(data);
 
@@ -288,8 +288,16 @@ public class DataSurfer<TData> : IDisposable
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                var data = _selection.Storage.Data[i];
-                sb.AppendLine(_showStorage[(int)data.Key].FieldsToString);
+                var surfableDataIndex = _selection.Storage.Data[i].Key;
+                var showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
+                var surfableDataIndexInShowStorage = surfableDataIndex - showStorageStartIndex;
+
+                if (surfableDataIndexInShowStorage < 0 || surfableDataIndexInShowStorage >= _showStorage.Count)
+                {
+                    continue;
+                }
+
+                sb.AppendLine(_showStorage[(int)surfableDataIndexInShowStorage].FieldsToString);
             }
 
             ImGui.SetClipboardText(sb.ToString());
