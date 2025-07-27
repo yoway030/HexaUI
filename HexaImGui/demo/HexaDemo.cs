@@ -23,52 +23,55 @@ public class HexaDemo
         }
     }
 
-    private static int clicked = 0;
-    private static bool check = true;
-    private static int e = 0;
+    private int clicked = 0;
+    private bool check = true;
+    private int e = 0;
 
-    private static int counter = 0;
+    private int counter = 0;
 
-    private static int item_current = 0;
+    private int item_current = 0;
 
-    private static string str0 = "Hello, world!";
+    private string str0 = "Hello, world!";
 
-    private static string str1 = "";
+    private string str1 = "";
 
-    private static int i0 = 123;
+    private int i0 = 123;
 
-    private static float f0 = 0.001f;
+    private float f0 = 0.001f;
 
-    private static double d0 = 999999.00000001;
+    private double d0 = 999999.00000001;
 
-    private static float f1 = 1.0E-9f;
+    private float f1 = 1.0E-9f;
 
-    private static int i1 = 50, i2 = 42;
+    private int i1 = 50, i2 = 42;
 
     private static Vector3 vec4a = new(0.10f, 0.20f, 0.30f);
 
-    private static float f2 = 1.00f, f3 = 0.0067f;
+    private float f2 = 1.00f, f3 = 0.0067f;
 
-    private static int i3 = 0;
+    private int i3 = 0;
 
-    private static float f4 = 0.123f, f5 = 0.0f;
+    private float f4 = 0.123f, f5 = 0.0f;
 
-    private static float angle = 0.0f;
+    private float angle = 0.0f;
 
     private enum Element
     { Fire, Earth, Air, Water, COUNT };
 
-    private static int elem = (int)Element.Fire;
+    private int elem = (int)Element.Fire;
 
-    private static Vector3 col1 = new(1.0f, 0.0f, 0.2f);
-    private static Vector4 col2 = new(0.4f, 0.7f, 0.0f, 0.5f);
+    private Vector3 col1 = new(1.0f, 0.0f, 0.2f);
+    private Vector4 col2 = new(0.4f, 0.7f, 0.0f, 0.5f);
 
-    private static int item_current0 = 1;
+    private int item_current0 = 1;
 
-    private static float[] arr = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+    private float[] arr = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
 
-    private static bool showJsonViewer;
-    private static JsonViewer? jsonViewer = null;
+    private bool showJsonViewer = false;
+    private JsonViewer? jsonViewer = null;
+
+    private bool showMouseDragRect = false;
+    private MouseDragRect? mouseDragRect = null;
 
     public void Draw()
     {
@@ -317,8 +320,21 @@ public class HexaDemo
                     jsonViewer = null;
                 }
             }
-
             jsonViewer?.Draw();
+
+            if (ImGui.Checkbox("MouseDragRect", ref showMouseDragRect))
+            {
+                // Checkbox는 값이 변경될때 true를 리턴한다. 이후 어떤 값으로 변경되었는지 확인하고 처리한다.
+                if (showMouseDragRect)
+                {
+                    mouseDragRect = new MouseDragRect();
+                }
+                else
+                {
+                    mouseDragRect = null;
+                }
+            }
+            mouseDragRect?.Draw();
 
             ImGui.TreePop();
         }
