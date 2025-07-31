@@ -9,19 +9,19 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        ImVisualizer imGuiManager = new ImVisualizer();
+        ImVisualizer visualizer = new ImVisualizer();
 
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
-            imGuiManager.Initialize();
+            visualizer.Initialize();
 
-            while (imGuiManager.IsWindowShouldClose == false)
+            while (visualizer.IsWindowShouldClose == false)
             {
-                imGuiManager.Loop();
+                visualizer.Loop();
             }
 
-            imGuiManager.Cleanup();
+            visualizer.Cleanup();
         });
         thread.Start();
 
@@ -49,16 +49,22 @@ internal class Program
     ]
 }
 """;
-        TextViewer jsonViewer = new TextViewer("ASDF", jsonString, false);
+        TextViewer jsonViewer = new TextViewer("TextViewer", jsonString, false);
 
-        imGuiManager.RegisterDrawCallback(() =>
+        DataSurfer<DataSample> dataViwer = new("DataViewer");
+        dataViwer.PushData(new() { Column1 = "Daatatadata1", Column2 = "111111111111" });
+        dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
+        dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
+
+        visualizer.RegisterDrawCallback(() =>
         {
             logsurfer.DrawDataSurf();
             jsonViewer.Draw();
+            dataViwer.DrawDataSurf();
         });
 
         int logIndex = 0;
-        while (imGuiManager.IsWindowShouldClose == false)
+        while (visualizer.IsWindowShouldClose == false)
         {
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
@@ -84,8 +90,6 @@ public class LogMessage : SurfableIndexingData
         "DEBUG" => new Vector4(0.5f, 0.7f, 1f, 1),
         _ => new Vector4(1, 1, 1, 1),
     };
-
-    public override int DrawableFieldCount => 3;    // DateTime, Level, Message
 
     public override string FieldsToString => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
 
@@ -117,6 +121,29 @@ public class LogMessage : SurfableIndexingData
         ImGui.TextUnformatted(Message);
         ImGui.PopTextWrapPos();
         ImGui.EndTooltip();
+    }
+}
+
+public class DataSample : SurfableIndexingData
+{
+    public string Column1 { get; set; } = "DataSample";
+
+    public string Column2 { get; set; } = "1111333,4444,55666";
+
+    public override string FieldsToString => $"{Column1}, {Column2}";
+
+    public override IEnumerable<Action> GetColumnSetupActions()
+    {
+        yield return () => ImGui.TableSetupColumn($"{nameof(Column1)}", ImGuiTableColumnFlags.WidthFixed, 180);
+        yield return () => ImGui.TableSetupColumn($"{nameof(Column2)}", ImGuiTableColumnFlags.WidthFixed, 180);
+        yield break;
+    }
+
+    public override IEnumerable<Action> GetFieldDrawActions()
+    {
+        yield return () => ImGui.TextUnformatted(Column1);
+        yield return () => ImGui.TextUnformatted(Column2);
+        yield break;
     }
 }
 

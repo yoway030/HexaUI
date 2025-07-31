@@ -18,13 +18,11 @@ public abstract class SurfableIndexingData
 
     public string Label => _cachedLabel;
 
-    public abstract int DrawableFieldCount { get; }
-
     public abstract IEnumerable<Action> GetColumnSetupActions();
 
     public abstract IEnumerable<Action> GetFieldDrawActions();
 
-    public abstract void TooltipDraw();
+    public virtual void TooltipDraw() { }
 
     public abstract string FieldsToString { get; }
 }
