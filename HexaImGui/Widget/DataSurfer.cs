@@ -253,11 +253,11 @@ public class DataSurfer<TData> : IDisposable
             }
 
             // 선택한 데이터가 있는 경우 MaxLocalStorage 적용을 유예시키는 이유는 MultiSelect중 앞의 데이터가 삭제될때,
-            // 선택된 데이터가 삭제될수도 있기 때문이고(크래시등의 문제가 생기지는 않음)
+            // 선택된 데이터가 삭제될수도 있기 때문이고(크래시등의 문제 확인 필요)
             // 선택이 정상적으로 유지되지 않는 버그 스러운 문제 때문.
         }
 
-        // 선택한 데이터가 있는 경우, 선택된 데이터의 범위가 MaxLocalStorage * 2를 초과하면 선택된 데이터를 초기화
+        // 선택한 데이터가 있는 경우라도, 현재 데이터의 범위가 MaxLocalStorage * 2를 초과하면 선택된 데이터를 초기화시키고, 삭제될수 있도록 처리
         if (_localStorage.Count > MaxLocalStorage * 2)
         {
             _selection.Clear();
