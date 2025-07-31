@@ -1,11 +1,9 @@
 ﻿using Hexa.NET.ImGui;
 using HexaImGui.Utils;
 using System.Collections.Concurrent;
-using System.Reflection.PortableExecutable;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace HexaImGui.Window;
+namespace HexaImGui.Widget;
 
 public class DataSurfer<TData> : IDisposable
     where TData : SurfableIndexingData, new()
@@ -79,12 +77,12 @@ public class DataSurfer<TData> : IDisposable
         }
 
         // Freeze check box
-        ImGui.Checkbox($"Freeze Log##{WidgetName}#{WidgetDepth}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{WidgetName}#{WidgetDepth}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
-        // Log Queue size
-        ImGui.Text($"LogQueue:{DataQueue.Count}");
+        // Queue size
+        ImGui.Text($"Queue:{DataQueue.Count}");
         ImGuiHelper.HelpMarkerSameLine("화면에 출력되지 않고 큐에 쌓인 데이터 수");
         ImGuiHelper.SpacingSameLine();
 
@@ -131,7 +129,7 @@ public class DataSurfer<TData> : IDisposable
 
         if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
-            // Header 고정
+            // 새로운 데이터 추가시 스크롤 고정
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
@@ -158,7 +156,7 @@ public class DataSurfer<TData> : IDisposable
                     {
                         return unchecked((uint)-1);
                     }
-                    return (uint)_showStorage[index].InsertedIndex;
+                    return (uint)_showStorage[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
 
@@ -192,9 +190,9 @@ public class DataSurfer<TData> : IDisposable
                     ImGui.TableNextColumn();
                     {
                         // 선택기능을 위한 첫번째 컬럼
-                        bool item_is_selected = _selection.Contains(data.InsertedIndex);
+                        bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.Label}#{WidgetName}#{WidgetDepth}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.IndexString}#{WidgetName}#{WidgetDepth}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
@@ -234,7 +232,7 @@ public class DataSurfer<TData> : IDisposable
     {
         while (DataQueue.TryDequeue(out var data) == true)
         {
-            data.InsertedIndex = DataIdx++;
+            data.Index = DataIdx++;
             _localStorage.Add(data);
             _duplicateSurfer?.PushData(data);
 

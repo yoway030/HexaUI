@@ -6,7 +6,7 @@ using System.Text;
 using HexaImGui.Utils;
 using Hexa.NET.ImGui.Widgets;
 
-namespace HexaImGui.Window;
+namespace HexaImGui.Widget;
 
 public class TextViewer
 {

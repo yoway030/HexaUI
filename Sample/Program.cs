@@ -1,7 +1,7 @@
 ﻿using HexaImGui;
 using Hexa.NET.ImGui;
 using System.Numerics;
-using HexaImGui.Window;
+using HexaImGui.Widget;
 
 namespace Sample;
 
@@ -51,7 +51,7 @@ internal class Program
 """;
         TextViewer jsonViewer = new TextViewer("TextViewer", jsonString, false);
 
-        DataSurfer<DataSample> dataViwer = new("DataViewer");
+        DataViewer<DataSample> dataViwer = new("SomeData");
         dataViwer.PushData(new() { Column1 = "Daatatadata1", Column2 = "111111111111" });
         dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
         dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
@@ -124,7 +124,7 @@ public class LogMessage : SurfableIndexingData
     }
 }
 
-public class DataSample : SurfableIndexingData
+public class DataSample : ViewableData
 {
     public string Column1 { get; set; } = "DataSample";
 

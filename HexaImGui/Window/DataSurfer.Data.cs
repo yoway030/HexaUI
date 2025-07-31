@@ -1,28 +1,19 @@
-﻿namespace HexaImGui.Window;
+﻿namespace HexaImGui.Widget;
 
-public abstract class SurfableIndexingData
+public abstract class SurfableIndexingData : ViewableData
 {
-    protected uint _insertedIndex;
+    protected uint _index;
+    protected string _cachedIndexString = string.Empty;
 
-    protected string _cachedLabel = string.Empty;
-
-    public uint InsertedIndex
+    public uint Index
     {
-        get => _insertedIndex;
+        get => _index;
         set
         {
-            _insertedIndex = value;
-            _cachedLabel = $"{_insertedIndex}";
+            _index = value;
+            _cachedIndexString = $"{_index}";
         }
     }
 
-    public string Label => _cachedLabel;
-
-    public abstract IEnumerable<Action> GetColumnSetupActions();
-
-    public abstract IEnumerable<Action> GetFieldDrawActions();
-
-    public virtual void TooltipDraw() { }
-
-    public abstract string FieldsToString { get; }
+    public string IndexString => _cachedIndexString;
 }
