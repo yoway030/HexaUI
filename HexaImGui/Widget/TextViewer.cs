@@ -129,25 +129,17 @@ public class TextViewer
             {
                 string line = Lines[i];
                 bool item_is_selected = _selection.Contains((uint)i);
-                bool highlighted = _highlightedLines?.Contains(i) == true;
 
                 ImGui.SetNextItemSelectionUserData(i);
 
                 ImGui.Selectable($"##{i}", item_is_selected);
                 ImGui.SameLine();
                 
-                if (highlighted)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.5f, 0.0f, 1.0f));
-                }
-                
-                // 실제 텍스트 출력
-                ImGui.TextUnformatted(line);
-
-                if (highlighted)
-                {
-                    ImGui.PopStyleColor();
-                }
+                ImGui.TextColored(
+                    _highlightedLines?.Contains(i) == true
+                        ? new Vector4(1.0f, 0.5f, 0.0f, 1.0f) // Highlight color
+                        : ImGui.GetStyle().Colors[(int)ImGuiCol.Text], // Default text color
+                    line);
             }
 
             ms_io = ImGui.EndMultiSelect();
