@@ -27,6 +27,8 @@ internal class Program
 
         DataSurfer<LogMessage> logsurfer = new("LogSurfer");
 
+        ProcessMonitor processMonitor = new();
+
         string jsonString = 
 """
 {           
@@ -61,6 +63,7 @@ internal class Program
             logsurfer.DrawDataSurf();
             jsonViewer.Draw();
             dataViwer.DrawDataSurf();
+            processMonitor.Draw();
         });
 
         int logIndex = 0;

@@ -1,7 +1,4 @@
-﻿using Hexa.NET.ImGui;
-using System.Runtime.CompilerServices;
-
-namespace HexaImGui.Utils;
+﻿namespace HexaImGui.Utils;
 
 public static class ImVectorExtensions
 {
