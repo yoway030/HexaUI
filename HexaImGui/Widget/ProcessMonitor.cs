@@ -11,7 +11,8 @@ public class ProcessMonitor
 {
     private readonly int _historySize = 600;
 
-    private readonly List<float> _cpu = new(600);
+    private readonly List<float> _cpuValues = new(600);
+    private readonly List<float> _memoryValues = new(600);
 
     private readonly Process _process = Process.GetCurrentProcess();
     private TimeSpan _lastTotalProcessorTime;
@@ -35,10 +36,17 @@ public class ProcessMonitor
             EnsureXAxis();
 
             // Plot CPU
-            if (_cpu.Any())
+            if (_cpuValues.Any())
             {
-                Span<float> cpuSpan = CollectionsMarshal.AsSpan(_cpu);
-                ImPlot.PlotLine("CPU (%)", ref MemoryMarshal.GetReference(cpuSpan), cpuSpan.Length);
+                Span<float> span = CollectionsMarshal.AsSpan(_cpuValues);
+                ImPlot.PlotLine("CPU (%)", ref MemoryMarshal.GetReference(span), span.Length);
+            }
+
+            // Plot Memory
+            if (_memoryValues.Count > 0)
+            {
+                Span<float> span = CollectionsMarshal.AsSpan(_memoryValues);
+                ImPlot.PlotLine("Memory (MB)", ref MemoryMarshal.GetReference(span), span.Length);
             }
 
             ImPlot.EndPlot();
@@ -61,8 +69,12 @@ public class ProcessMonitor
             var elapsed = (currentTime - _lastSampleTime).TotalSeconds;
             var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
             float cpuPercent = (float)((cpuUsed / elapsed) * 100 / _processorCount);
-            AddSample(_cpu, cpuPercent);
+            AddSample(_cpuValues, cpuPercent);
         }
+
+        // 메모리
+        float memMB = _process.WorkingSet64 / (1024f * 1024f);
+        AddSample(_memoryValues, memMB);
 
         _lastSampleTime = currentTime;
         _lastTotalProcessorTime = currentTotalProcessorTime;
@@ -79,7 +91,7 @@ public class ProcessMonitor
 
     private void EnsureXAxis()
     {
-        int count = _cpu.Count;
+        int count = _cpuValues.Count;
         if (_xAxis.Length != count)
         {
             _xAxis = new float[count];
