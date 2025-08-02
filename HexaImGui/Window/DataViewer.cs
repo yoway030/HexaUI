@@ -4,18 +4,18 @@ using HexaImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace HexaImGui.Widget;
+namespace HexaImGui.Window;
 
 public class DataViewer<TData>
     where TData : ViewableData, new()
 {
-    public DataViewer(string widgetName = $"{nameof(DataViewer<TData>)}")
+    public DataViewer(string windowName = $"{nameof(DataViewer<TData>)}")
     {
-        WidgetName = widgetName;
+        WindowName = windowName;
         _dataIdx = -1;
     }
 
-    public string WidgetName { get; init; }
+    public string WindowName { get; init; }
 
     public int MaxLocalStorage { get; init; }
     public ConcurrentDictionary<int, TData> DataQueue = new();
@@ -28,7 +28,7 @@ public class DataViewer<TData>
     {
         int dataCount = DataQueue.Count;
 
-        ImGui.Begin($"{WidgetName}");
+        ImGui.Begin($"{WindowName}");
 
         // input
         if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
@@ -46,7 +46,7 @@ public class DataViewer<TData>
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        ImGui.InputText($"##Filter{WidgetName}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        ImGui.InputText($"##Filter{WindowName}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
         ImGuiHelper.SpacingSameLine();
 
         ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용");
@@ -63,7 +63,7 @@ public class DataViewer<TData>
         if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx{WidgetName}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx{WindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -122,7 +122,7 @@ public class DataViewer<TData>
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains((uint)displayIndex);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{displayIndex}#{WidgetName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{displayIndex}#{WindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력

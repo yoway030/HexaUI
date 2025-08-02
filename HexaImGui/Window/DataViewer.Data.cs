@@ -1,4 +1,4 @@
-﻿namespace HexaImGui.Widget;
+﻿namespace HexaImGui.Window;
 
 public abstract class ViewableData
 {

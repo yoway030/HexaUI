@@ -1,18 +1,15 @@
 ﻿using Hexa.NET.ImGui;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using System.Numerics;
 using System.Text;
 using HexaImGui.Utils;
-using Hexa.NET.ImGui.Widgets;
 
-namespace HexaImGui.Widget;
+namespace HexaImGui.Window;
 
 public class TextViewer
 {
-    public TextViewer(string widgetName, string textOrPath, bool isPath)
+    public TextViewer(string windowName, string textOrPath, bool isPath)
     {
-        WidgetName = widgetName;
+        WindowName = windowName;
 
         if (isPath == true)
         {
@@ -55,8 +52,8 @@ public class TextViewer
         Lines = Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
     }
 
-    public string WidgetName { get; init; } = "TextViewer";
-    public int WidgetDepth { get; init; } = 0;
+    public string WindowName { get; init; } = "TextViewer";
+    public int WindowDepth { get; init; } = 0;
     public string? ErrorText { get; private set; } = null;
     public string Text { get; private set; } = string.Empty;
     public List<string> Lines { get; private set; } = null!;
@@ -68,7 +65,7 @@ public class TextViewer
 
     public void Draw()
     {
-        ImGui.Begin($"{WidgetName}#{WidgetDepth}");
+        ImGui.Begin($"{WindowName}#{WindowDepth}");
 
         if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
         {
@@ -83,7 +80,7 @@ public class TextViewer
     {
         int lineCount = Lines.Count;
 
-        if (ImGui.BeginChild($"{WidgetName}Panel#{WidgetDepth}", ImGuiChildFlags.AutoResizeY))
+        if (ImGui.BeginChild($"{WindowName}Panel#{WindowDepth}", ImGuiChildFlags.AutoResizeY))
         {
             ImGui.Text($"FromFile: {Path ?? "null"}");
             ImGuiHelper.SpacingSameLine();
@@ -94,7 +91,7 @@ public class TextViewer
             ImGuiHelper.SpacingSameLine();
 
             ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-            if (ImGui.InputText($"##{WidgetName}Highlight{WidgetDepth}", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+            if (ImGui.InputText($"##{WindowName}Highlight{WindowDepth}", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
             {
                 OnHighlightChange();
             }
@@ -103,7 +100,7 @@ public class TextViewer
             ImGui.EndChild();
         }
         
-        ImGui.BeginChild($"{WidgetName}Text#{WidgetDepth}");
+        ImGui.BeginChild($"{WindowName}Text#{WindowDepth}");
         if (ErrorText != null)
         {
             ImGui.TextColored(new Vector4(1, 0, 0, 1), $"Error : {ErrorText}");

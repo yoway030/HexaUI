@@ -5,15 +5,15 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace HexaImGui.Widget;
+namespace HexaImGui.Window;
 
 public class ProcessMonitor
 {
     public const int SampleIntervalMilliseconds = 2000;
 
-    public ProcessMonitor(string widgetName, int storageTimeSec = 3600)
+    public ProcessMonitor(string windowName, int storageTimeSec = 3600)
     {
-        WidgetName = widgetName;
+        WindowName = windowName;
         StorageTimeSec = storageTimeSec;
 
         // 초기화
@@ -24,7 +24,7 @@ public class ProcessMonitor
         _memoryUsage.Capacity = _historySize;
     }
 
-    public string WidgetName { get; init; }
+    public string WindowName { get; init; }
     public int StorageTimeSec { get; init; }
 
     private readonly int _historySize = 600;
@@ -51,10 +51,10 @@ public class ProcessMonitor
     {
         UpdateMetrics();
 
-        ImGui.Begin(WidgetName);
+        ImGui.Begin(WindowName);
 
         ImPlot.SetNextAxesToFit();
-        if (ImPlot.BeginPlot($"{WidgetName}Plot", new Vector2(-1, 0), ImPlotFlags.NoInputs))
+        if (ImPlot.BeginPlot($"{WindowName}Plot", new Vector2(-1, 0), ImPlotFlags.NoInputs))
         {
             ImPlot.SetupAxes("Time", "Metric");
 

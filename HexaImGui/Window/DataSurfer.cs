@@ -3,40 +3,40 @@ using HexaImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace HexaImGui.Widget;
+namespace HexaImGui.Window;
 
 public class DataSurfer<TData> : IDisposable
     where TData : SurfableIndexingData, new()
 {
-    public DataSurfer(string widgetName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int widgetDepth = 0)
+    public DataSurfer(string windowName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
     {
-        WidgetName = widgetName;
+        WindowName = windowName;
         MaxLocalStorage = maxLocalStorage;
-        WidgetDepth = widgetDepth;
+        WindowDepth = windowDepth;
         DataIdx = 1;
     }
 
-    public DataSurfer(DataSurfer<TData> parentWidget, int maxLocalStorage)
+    public DataSurfer(DataSurfer<TData> parentWnd, int maxLocalStorage)
     {
-        WidgetName = parentWidget.WidgetName;
+        WindowName = parentWnd.WindowName;
         MaxLocalStorage = maxLocalStorage;
 
-        WidgetDepth = parentWidget.WidgetDepth + 1;
-        DataIdx = parentWidget.DataIdx;
+        WindowDepth = parentWnd.WindowDepth + 1;
+        DataIdx = parentWnd.DataIdx;
     }
 
     public void Dispose()
     {
         if (_duplicateSurfer != null)
         {
-            DuplicateWidget = false;
+            DuplicateWindow = false;
             _duplicateSurfer.Dispose();
             _duplicateSurfer = null;
         }
     }
 
-    public string WidgetName { get; init; }
-    public int WidgetDepth { get; init; }
+    public string WindowName { get; init; }
+    public int WindowDepth { get; init; }
 
     public bool Freeze = false;
     public int MaxLocalStorage { get; init; }
@@ -47,7 +47,7 @@ public class DataSurfer<TData> : IDisposable
     public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
     
-    public bool DuplicateWidget = false;
+    public bool DuplicateWindow = false;
     private DataSurfer<TData>? _duplicateSurfer = null;
 
     public string FilterText = string.Empty;
@@ -68,7 +68,7 @@ public class DataSurfer<TData> : IDisposable
 
         _showStorage = _filteredStorage != null ? _filteredStorage : _localStorage;
 
-        ImGui.Begin($"{WidgetName}#{WidgetDepth}");
+        ImGui.Begin($"{WindowName}#{WindowDepth}");
 
         // input
         if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
@@ -77,7 +77,7 @@ public class DataSurfer<TData> : IDisposable
         }
 
         // Freeze check box
-        ImGui.Checkbox($"Freeze##{WidgetName}#{WidgetDepth}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{WindowName}#{WindowDepth}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
@@ -91,10 +91,10 @@ public class DataSurfer<TData> : IDisposable
         ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
         ImGuiHelper.SpacingSameLine();
 
-        // Duplicate widget checkbox
-        if (ImGui.Checkbox($"Duplicate##{WidgetName}#{WidgetDepth}", ref DuplicateWidget) == true)
+        // Duplicate window checkbox
+        if (ImGui.Checkbox($"Duplicate##{WindowName}#{WindowDepth}", ref DuplicateWindow) == true)
         {
-            OnDuplicateWidgetCheckChange();
+            OnDuplicateWindowCheckChange();
         }
         ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출력과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
 
@@ -103,13 +103,13 @@ public class DataSurfer<TData> : IDisposable
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##Filter{WidgetName}#{WidgetDepth}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        if (ImGui.InputText($"##Filter{WindowName}#{WindowDepth}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnFilteringChange();
         }
         ImGuiHelper.SpacingSameLine();
 
-        if (ImGui.Checkbox($"Highlight##{WidgetName}#{WidgetDepth}", ref FilterHighlight) == true)
+        if (ImGui.Checkbox($"Highlight##{WindowName}#{WindowDepth}", ref FilterHighlight) == true)
         {
             OnFilteringChange();
         }
@@ -133,7 +133,7 @@ public class DataSurfer<TData> : IDisposable
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx{WidgetName}#{WidgetDepth}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx{WindowName}#{WindowDepth}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -192,7 +192,7 @@ public class DataSurfer<TData> : IDisposable
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.IndexString}#{WidgetName}#{WidgetDepth}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.IndexString}#{WindowName}#{WindowDepth}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
@@ -278,9 +278,9 @@ public class DataSurfer<TData> : IDisposable
         }
     }
 
-    private void OnDuplicateWidgetCheckChange()
+    private void OnDuplicateWindowCheckChange()
     {
-        if (DuplicateWidget == true)
+        if (DuplicateWindow == true)
         {
             _duplicateSurfer = new(this, 1_000);
         }
