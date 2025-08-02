@@ -9,122 +9,133 @@ namespace HexaImGui.Window;
 
 public class ProcessMonitor
 {
-    public const int SampleIntervalMilliseconds = 2000;
-
-    public ProcessMonitor(string windowName, int storageTimeSec = 3600)
+    public ProcessMonitor(string windowName, double intervalSec = 0.1f, double simpleShowSec = 10f, double maxStorageSec = 3600f)
     {
         WindowName = windowName;
-        StorageTimeSec = storageTimeSec;
+        IntervalSec = intervalSec;
+        SimpleShowSec = simpleShowSec;
+        MaxStorageSec = maxStorageSec;
 
-        // 초기화
-        _lastSampleTime = DateTime.Now;
+        SimpleShowCount = (int)(SimpleShowSec / IntervalSec);
+        StorageCount = (int)(MaxStorageSec / IntervalSec);
+
+        _cpuUsage = Enumerable.Repeat(0d, StorageCount).ToList();
+        _memoryUsage = Enumerable.Repeat(0f, StorageCount).ToList();
+        _xAxis = new(StorageCount);
+
+        _lastSampleTick = Stopwatch.GetTimestamp();
         _lastTotalProcessorTime = _process.TotalProcessorTime;
-        // CPU, 메모리 값 초기화
-        _cpuUsage.Capacity = _historySize;
-        _memoryUsage.Capacity = _historySize;
     }
 
     public string WindowName { get; init; }
-    public int StorageTimeSec { get; init; }
+    public int SimpleShowCount { get; init; }
+    public int StorageCount { get; init; }
+    public double IntervalSec { get; init; }
+    public double SimpleShowSec { get; init; }
+    public double MaxStorageSec { get; init; }
 
-    private readonly int _historySize = 600;
-
-    private DateTime _lastSampleTime;
+    private long _lastSampleTick = 0;
+    private readonly List<int> _xAxis;
 
     // cpu usage
     private readonly Process _process = Process.GetCurrentProcess();
     private readonly int _processorCount = Environment.ProcessorCount;
     private TimeSpan _lastTotalProcessorTime;
-
-    private readonly List<float> _cpuUsage = new(600);
+    private readonly List<double> _cpuUsage;
+    private double _cpuUsageMax = 30.0;
 
     // memory usage
-    private readonly List<float> _memoryUsage = new(600);
-
-    
-    
-    
-
-    private float[] _xAxis = Array.Empty<float>();
+    private readonly List<float> _memoryUsage;
+    private double _memoryUsageMax = 200.0;
 
     public void Draw()
     {
-        UpdateMetrics();
+        Update();
 
-        ImGui.Begin(WindowName);
+        var windowStyle = ImGui.GetStyle();
+        var oldWindowPadding = windowStyle.WindowPadding;
 
-        ImPlot.SetNextAxesToFit();
-        if (ImPlot.BeginPlot($"{WindowName}Plot", new Vector2(-1, 0), ImPlotFlags.NoInputs))
+        windowStyle.WindowPadding = new System.Numerics.Vector2(1, 1); // 창 내부 여백 제거
+
+        if (ImGui.Begin(WindowName))
         {
-            ImPlot.SetupAxes("Time", "Metric");
+            Vector2 windowSize = ImGui.GetContentRegionAvail();
 
-            // X축 시간
-            EnsureXAxis();
+            var plotStyle = ImPlot.GetStyle();
+            var oldPlotPadding = plotStyle.PlotPadding;
+            var oldFitPadding = plotStyle.FitPadding;
+            var oldLabelPadding = plotStyle.LabelPadding;
+            var oldLegendPadding = plotStyle.LegendPadding;
 
-            // Plot CPU
-            if (_cpuUsage.Any())
+            // 최소 여백 설정
+            plotStyle.PlotPadding = new System.Numerics.Vector2(0, 0);      // plot 내부 여백
+            plotStyle.FitPadding = new System.Numerics.Vector2(0, 0);       // 플롯 외부 여백?
+            plotStyle.LabelPadding = new System.Numerics.Vector2(2, 2);     // 축 레이블 간격
+            plotStyle.LegendPadding = new System.Numerics.Vector2(2, 2);    // 범례 간격
+
+            ImPlot.SetNextAxesToFit();
+            if (ImPlot.BeginPlot($"##{WindowName}CpuPlot", windowSize, ImPlotFlags.NoInputs))
             {
-                Span<float> span = CollectionsMarshal.AsSpan(_cpuUsage);
-                ImPlot.PlotLine("CPU(%)", ref MemoryMarshal.GetReference(span), span.Length);
+                ImPlot.SetupAxis(ImAxis.Y1);
+                ImPlot.SetupAxis(ImAxis.Y2, ImPlotAxisFlags.Opposite);
+
+                ImPlot.SetupAxisLimits(ImAxis.Y1, 0, _cpuUsageMax, ImPlotCond.Always);
+                ImPlot.SetupAxisLimits(ImAxis.Y2, 0, _memoryUsageMax, ImPlotCond.Always);
+
+                // Plot CPU
+                {
+                    int startIndex = Math.Max(0, _cpuUsage.Count - SimpleShowCount);
+                    var span = CollectionsMarshal.AsSpan(_cpuUsage).Slice(startIndex);
+                    ImPlot.PlotLine("CPU(%)", ref MemoryMarshal.GetReference(span), SimpleShowCount);
+                }
+
+                {
+                    int startIndex = Math.Max(0, _memoryUsage.Count - SimpleShowCount);
+                    var span = CollectionsMarshal.AsSpan(_memoryUsage).Slice(startIndex);
+                    
+                    ImPlot.SetAxis(ImAxis.Y2);
+                    ImPlot.PlotLine("Memory(MB)", ref MemoryMarshal.GetReference(span), SimpleShowCount);
+                }
+
+                ImPlot.EndPlot();
             }
 
-            // Plot Memory
-            if (_memoryUsage.Count > 0)
-            {
-                Span<float> span = CollectionsMarshal.AsSpan(_memoryUsage);
-                ImPlot.PlotLine("Memory(MB)", ref MemoryMarshal.GetReference(span), span.Length);
-            }
+            plotStyle.PlotPadding = oldPlotPadding;
+            plotStyle.FitPadding = oldFitPadding;
+            plotStyle.LabelPadding = oldLabelPadding;
+            plotStyle.LegendPadding = oldLegendPadding;
 
-            ImPlot.EndPlot();
+            ImGui.End();
         }
 
-        ImGui.End();
+        windowStyle.WindowPadding = oldWindowPadding;
     }
 
-
-    private void UpdateMetrics()
+    private void Update()
     {
-        _process.Refresh();
-
-        // CPU 사용률
-        var currentTime = DateTime.Now;
-        var currentTotalProcessorTime = _process.TotalProcessorTime;
-
-        if (_lastSampleTime != default)
+        var currentTick = Stopwatch.GetTimestamp();
+        var deltaSec = (float)(currentTick - _lastSampleTick) / Stopwatch.Frequency;
+        if (deltaSec < IntervalSec)
         {
-            var elapsed = (currentTime - _lastSampleTime).TotalSeconds;
-            var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
-            float cpuPercent = (float)((cpuUsed / elapsed) * 100 / _processorCount);
-            AddSample(_cpuUsage, cpuPercent);
+            return;
         }
+        
+        // CPU 사용률
+        _process.Refresh();
+        var currentTotalProcessorTime = _process.TotalProcessorTime;
+        var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
+        var cpuPercent = ((cpuUsed / deltaSec) * 100 / _processorCount);
+        _cpuUsage.Add(cpuPercent);
+        _cpuUsage.RemoveAt(0);
+        _cpuUsageMax = Math.Max(_cpuUsageMax, cpuPercent);
 
         // 메모리
         float memMB = _process.WorkingSet64 / (1024f * 1024f);
-        AddSample(_memoryUsage, memMB);
+        _memoryUsage.Add(memMB);
+        _memoryUsage.RemoveAt(0);
+        _memoryUsageMax = Math.Max(_memoryUsageMax, memMB);
 
-        _lastSampleTime = currentTime;
+        _lastSampleTick = currentTick;
         _lastTotalProcessorTime = currentTotalProcessorTime;
-    }
-
-    private void AddSample(List<float> list, float value)
-    {
-        list.Add(value);
-        if (list.Count > _historySize)
-        {
-            list.RemoveAt(0);
-        }
-    }
-
-    private void EnsureXAxis()
-    {
-        int count = _cpuUsage.Count;
-        if (_xAxis.Length != count)
-        {
-            _xAxis = new float[count];
-            for (int i = 0; i < count; i++)
-            {
-                _xAxis[i] = i;
-            }
-        }
     }
 }

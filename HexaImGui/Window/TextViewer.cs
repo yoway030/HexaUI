@@ -65,7 +65,11 @@ public class TextViewer
 
     public void Draw()
     {
-        ImGui.Begin($"{WindowName}#{WindowDepth}");
+        if (ImGui.Begin($"{WindowName}#{WindowDepth}") == false)
+        {
+            ImGui.End();
+            return;
+        }
 
         if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
         {
@@ -80,35 +84,44 @@ public class TextViewer
     {
         int lineCount = Lines.Count;
 
-        if (ImGui.BeginChild($"{WindowName}Panel#{WindowDepth}", ImGuiChildFlags.AutoResizeY))
+        if (ImGui.BeginChild($"{WindowName}Panel#{WindowDepth}", ImGuiChildFlags.AutoResizeY) == false)
         {
-            ImGui.Text($"FromFile: {Path ?? "null"}");
-            ImGuiHelper.SpacingSameLine();
-            ImGui.Text($"Lines: {lineCount}");
-
-            // filter input
-            ImGui.Text("Highlight:");
-            ImGuiHelper.SpacingSameLine();
-
-            ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-            if (ImGui.InputText($"##{WindowName}Highlight{WindowDepth}", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
-            {
-                OnHighlightChange();
-            }
-
-            ImGui.SeparatorText("Text");
-            ImGui.EndChild();
-        }
-        
-        ImGui.BeginChild($"{WindowName}Text#{WindowDepth}");
-        if (ErrorText != null)
-        {
-            ImGui.TextColored(new Vector4(1, 0, 0, 1), $"Error : {ErrorText}");
             ImGui.EndChild();
             return;
         }
 
-        if (lineCount > 0)
+        ImGui.Text($"FromFile: {Path ?? "null"}");
+        ImGuiHelper.SpacingSameLine();
+        ImGui.Text($"Lines: {lineCount}");
+
+        // filter input
+        ImGui.Text("Highlight:");
+        ImGuiHelper.SpacingSameLine();
+
+        ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
+        if (ImGui.InputText($"##{WindowName}Highlight{WindowDepth}", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        {
+            OnHighlightChange();
+        }
+
+        ImGui.SeparatorText("Text");
+        ImGui.EndChild();
+        
+        if (ImGui.BeginChild($"{WindowName}Text#{WindowDepth}") == false)
+        {
+            ImGui.EndChild();
+            return;
+        }
+
+        if (ErrorText != null)
+        {
+            ImGui.TextColored(new Vector4(1, 0, 0, 1), $"Error : {ErrorText}");
+        }
+        else if (lineCount == 0)
+        {
+            ImGui.Text("No text to display.");
+        }
+        else
         {
             ImGuiMultiSelectIOPtr ms_io = ImGui.BeginMultiSelect(
                 ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1D,
@@ -121,7 +134,7 @@ public class TextViewer
                     return (uint)index;
                 });
             _selection.ApplyRequests(ms_io);
-            
+
             for (int i = 0; i < lineCount; i++)
             {
                 string line = Lines[i];
@@ -131,7 +144,7 @@ public class TextViewer
 
                 ImGui.Selectable($"##{i}", item_is_selected);
                 ImGui.SameLine();
-                
+
                 ImGui.TextColored(
                     _highlightedLines?.Contains(i) == true
                         ? new Vector4(1.0f, 0.5f, 0.0f, 1.0f) // Highlight color
@@ -141,10 +154,6 @@ public class TextViewer
 
             ms_io = ImGui.EndMultiSelect();
             _selection.ApplyRequests(ms_io);
-        }
-        else
-        {
-            ImGui.Text("No text to display.");
         }
 
         ImGui.EndChild();
