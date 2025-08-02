@@ -8,7 +8,7 @@ namespace HexaImGui.Widget;
 public class DataSurfer<TData> : IDisposable
     where TData : SurfableIndexingData, new()
 {
-    public DataSurfer(string widgetName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 100, int widgetDepth = 0)
+    public DataSurfer(string widgetName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int widgetDepth = 0)
     {
         WidgetName = widgetName;
         MaxLocalStorage = maxLocalStorage;

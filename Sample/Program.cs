@@ -27,7 +27,7 @@ internal class Program
 
         DataSurfer<LogMessage> logsurfer = new("LogSurfer");
 
-        ProcessMonitor processMonitor = new();
+        ProcessMonitor processMonitor = new("ProcessMonitor");
 
         string jsonString = 
 """

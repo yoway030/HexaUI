@@ -9,15 +9,41 @@ namespace HexaImGui.Widget;
 
 public class ProcessMonitor
 {
+    public const int SampleIntervalMilliseconds = 2000;
+
+    public ProcessMonitor(string widgetName, int storageTimeSec = 3600)
+    {
+        WidgetName = widgetName;
+        StorageTimeSec = storageTimeSec;
+
+        // 초기화
+        _lastSampleTime = DateTime.Now;
+        _lastTotalProcessorTime = _process.TotalProcessorTime;
+        // CPU, 메모리 값 초기화
+        _cpuUsage.Capacity = _historySize;
+        _memoryUsage.Capacity = _historySize;
+    }
+
+    public string WidgetName { get; init; }
+    public int StorageTimeSec { get; init; }
+
     private readonly int _historySize = 600;
 
-    private readonly List<float> _cpuValues = new(600);
-    private readonly List<float> _memoryValues = new(600);
-
-    private readonly Process _process = Process.GetCurrentProcess();
-    private TimeSpan _lastTotalProcessorTime;
     private DateTime _lastSampleTime;
+
+    // cpu usage
+    private readonly Process _process = Process.GetCurrentProcess();
     private readonly int _processorCount = Environment.ProcessorCount;
+    private TimeSpan _lastTotalProcessorTime;
+
+    private readonly List<float> _cpuUsage = new(600);
+
+    // memory usage
+    private readonly List<float> _memoryUsage = new(600);
+
+    
+    
+    
 
     private float[] _xAxis = Array.Empty<float>();
 
@@ -25,10 +51,10 @@ public class ProcessMonitor
     {
         UpdateMetrics();
 
-        ImGui.Begin("Process Monitor - ImPlot");
+        ImGui.Begin(WidgetName);
 
         ImPlot.SetNextAxesToFit();
-        if (ImPlot.BeginPlot("Process Stats", new Vector2(-1, 0), ImPlotFlags.NoInputs))
+        if (ImPlot.BeginPlot($"{WidgetName}Plot", new Vector2(-1, 0), ImPlotFlags.NoInputs))
         {
             ImPlot.SetupAxes("Time", "Metric");
 
@@ -36,17 +62,17 @@ public class ProcessMonitor
             EnsureXAxis();
 
             // Plot CPU
-            if (_cpuValues.Any())
+            if (_cpuUsage.Any())
             {
-                Span<float> span = CollectionsMarshal.AsSpan(_cpuValues);
-                ImPlot.PlotLine("CPU (%)", ref MemoryMarshal.GetReference(span), span.Length);
+                Span<float> span = CollectionsMarshal.AsSpan(_cpuUsage);
+                ImPlot.PlotLine("CPU(%)", ref MemoryMarshal.GetReference(span), span.Length);
             }
 
             // Plot Memory
-            if (_memoryValues.Count > 0)
+            if (_memoryUsage.Count > 0)
             {
-                Span<float> span = CollectionsMarshal.AsSpan(_memoryValues);
-                ImPlot.PlotLine("Memory (MB)", ref MemoryMarshal.GetReference(span), span.Length);
+                Span<float> span = CollectionsMarshal.AsSpan(_memoryUsage);
+                ImPlot.PlotLine("Memory(MB)", ref MemoryMarshal.GetReference(span), span.Length);
             }
 
             ImPlot.EndPlot();
@@ -69,12 +95,12 @@ public class ProcessMonitor
             var elapsed = (currentTime - _lastSampleTime).TotalSeconds;
             var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
             float cpuPercent = (float)((cpuUsed / elapsed) * 100 / _processorCount);
-            AddSample(_cpuValues, cpuPercent);
+            AddSample(_cpuUsage, cpuPercent);
         }
 
         // 메모리
         float memMB = _process.WorkingSet64 / (1024f * 1024f);
-        AddSample(_memoryValues, memMB);
+        AddSample(_memoryUsage, memMB);
 
         _lastSampleTime = currentTime;
         _lastTotalProcessorTime = currentTotalProcessorTime;
@@ -91,7 +117,7 @@ public class ProcessMonitor
 
     private void EnsureXAxis()
     {
-        int count = _cpuValues.Count;
+        int count = _cpuUsage.Count;
         if (_xAxis.Length != count)
         {
             _xAxis = new float[count];
