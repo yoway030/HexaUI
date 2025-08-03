@@ -6,16 +6,14 @@ using System.Text;
 
 namespace HexaImGui.Window;
 
-public class DataViewer<TData>
+public class DataViewer<TData> : BaseWindow
     where TData : ViewableData, new()
 {
     public DataViewer(string windowName = $"{nameof(DataViewer<TData>)}")
+        :base(windowName, 0)
     {
-        WindowName = windowName;
         _dataIdx = -1;
     }
-
-    public string WindowName { get; init; }
 
     public int MaxLocalStorage { get; init; }
     public ConcurrentDictionary<int, TData> DataQueue = new();
@@ -24,17 +22,9 @@ public class DataViewer<TData>
 
     public string FilterText = string.Empty;
 
-    public void DrawDataSurf()
+    public override void OnRender()
     {
         int dataCount = DataQueue.Count;
-
-        ImGui.Begin($"{WindowName}");
-
-        // input
-        if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
-        {
-            OnWindowFocused();
-        }
 
         // Selection info
         ImGui.Text($"Select:{_selection.Size}/{DataQueue.Count}");
@@ -46,7 +36,7 @@ public class DataViewer<TData>
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        ImGui.InputText($"##Filter{WindowName}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        ImGui.InputText($"##Filter{WindowId}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
         ImGuiHelper.SpacingSameLine();
 
         ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용");
@@ -63,7 +53,7 @@ public class DataViewer<TData>
         if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx{WindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -122,7 +112,7 @@ public class DataViewer<TData>
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains((uint)displayIndex);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{displayIndex}#{WindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{displayIndex}#{WindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
@@ -144,8 +134,10 @@ public class DataViewer<TData>
 
             ImGui.EndTable();
         }
+    }
 
-        ImGui.End();
+    public override void OnUpdate()
+    {
     }
 
     public void PushData(TData data)
@@ -154,7 +146,7 @@ public class DataViewer<TData>
         DataQueue.TryAdd(idx, data);
     }
 
-    private void OnWindowFocused()
+    public override void OnWindowFocused()
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))

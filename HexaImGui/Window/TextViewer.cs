@@ -5,7 +5,7 @@ using HexaImGui.Utils;
 
 namespace HexaImGui.Window;
 
-public class TextViewer
+public class TextViewer : IImGuiWindow
 {
     public TextViewer(string windowName, string textOrPath, bool isPath)
     {
@@ -63,7 +63,8 @@ public class TextViewer
     public string HighlightText = string.Empty;
     private HashSet<int>? _highlightedLines = null;
 
-    public void Draw()
+
+    public void RenderWindow()
     {
         if (ImGui.Begin($"{WindowName}#{WindowDepth}") == false)
         {
@@ -76,11 +77,15 @@ public class TextViewer
             OnWindowFocused();
         }
 
-        DrawChild();
+        RenderChild();
         ImGui.End();
     }
 
-    private void DrawChild()
+    public void UpdateWindow()
+    {
+    }
+
+    private void RenderChild()
     {
         int lineCount = Lines.Count;
 

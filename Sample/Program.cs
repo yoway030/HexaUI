@@ -60,10 +60,13 @@ internal class Program
 
         visualizer.RegisterDrawCallback(() =>
         {
-            logsurfer.DrawDataSurf();
-            jsonViewer.Draw();
-            dataViwer.DrawDataSurf();
-            processMonitor.Draw();
+            logsurfer.UpdateWindow();
+            logsurfer.RenderWindow();
+            jsonViewer.RenderWindow();
+            dataViwer.RenderWindow();
+
+            processMonitor.UpdateWindow();
+            processMonitor.RenderWindow();
         });
 
         int logIndex = 0;
