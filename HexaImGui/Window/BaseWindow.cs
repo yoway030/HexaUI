@@ -4,8 +4,8 @@ namespace HexaImGui.Window;
 
 public interface IImGuiWindow
 {
-    void RenderWindow();
-    void UpdateWindow();
+    void RenderWindow(DateTime utcNow, double deltaSec);
+    void UpdateWindow(DateTime utcNow, double deltaSec);
 }
 
 public abstract class BaseWindow : IImGuiWindow
@@ -21,9 +21,9 @@ public abstract class BaseWindow : IImGuiWindow
     public int WindowDepth { get; init; }
     public string WindowId { get; init; }
 
-    public void RenderWindow()
+    public void RenderWindow(DateTime utcNow, double deltaSec)
     {
-        OnPrevRender();
+        OnPrevRender(utcNow, deltaSec);
 
         if (ImGui.Begin(WindowId))
         {
@@ -32,30 +32,30 @@ public abstract class BaseWindow : IImGuiWindow
                 OnWindowFocused();
             }
 
-            OnRender();
+            OnRender(utcNow, deltaSec);
         }
 
         // ImGui.Begin의 반환값과 무관하게 ImGui.End를 호출해야 한다.
         ImGui.End();
 
-        OnAfterRender();
+        OnAfterRender(utcNow, deltaSec);
     }
 
-    public void UpdateWindow()
+    public void UpdateWindow(DateTime utcNow, double deltaSec)
     {
-        OnUpdate();
+        OnUpdate(utcNow, deltaSec);
     }
 
-    public abstract void OnRender();
-    public abstract void OnUpdate();
+    public abstract void OnRender(DateTime utcNow, double deltaSec);
+    public abstract void OnUpdate(DateTime utcNow, double deltaSec);
     public virtual void OnWindowFocused()
     {
     }
-    public virtual void OnPrevRender()
+    public virtual void OnPrevRender(DateTime utcNow, double deltaSec)
     {
     }
 
-    public virtual void OnAfterRender()
+    public virtual void OnAfterRender(DateTime utcNow, double deltaSec)
     {
     }
 }

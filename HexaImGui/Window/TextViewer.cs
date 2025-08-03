@@ -64,24 +64,22 @@ public class TextViewer : IImGuiWindow
     private HashSet<int>? _highlightedLines = null;
 
 
-    public void RenderWindow()
+    public void RenderWindow(DateTime utcNow, double deltaSec)
     {
-        if (ImGui.Begin($"{WindowName}#{WindowDepth}") == false)
+        if (ImGui.Begin($"{WindowName}#{WindowDepth}"))
         {
-            ImGui.End();
-            return;
-        }
 
-        if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
-        {
-            OnWindowFocused();
-        }
+            if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+            {
+                OnWindowFocused();
+            }
 
-        RenderChild();
+            RenderChild();
+        }
         ImGui.End();
     }
 
-    public void UpdateWindow()
+    public void UpdateWindow(DateTime utcNow, double deltaSec)
     {
     }
 
@@ -158,7 +156,15 @@ public class TextViewer : IImGuiWindow
             }
 
             ms_io = ImGui.EndMultiSelect();
-            _selection.ApplyRequests(ms_io);
+
+            try
+            {
+                _selection.ApplyRequests(ms_io);
+            }
+            catch (Exception)
+            {
+                _selection.Clear();
+            }
         }
 
         ImGui.EndChild();

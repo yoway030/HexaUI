@@ -18,6 +18,7 @@ namespace HexaImGui;
 
 public class ImVisualizer
 {
+    private const int _checkPointRenewCount = 1000;
     private DateTime _checkPointTime = DateTime.UtcNow;
     private long _checkPointTick = Stopwatch.GetTimestamp();
     private long _lastTick = Stopwatch.GetTimestamp();
@@ -51,7 +52,7 @@ public class ImVisualizer
         GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
         GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
 
-        _window = GLFW.CreateWindow(800, 600, "GLFW Example", null, null);
+        _window = GLFW.CreateWindow(1024, 768, "GLFW Example", null, null);
         if (_window.IsNull)
         {
             Console.WriteLine("Failed to create GLFW window.");
@@ -111,10 +112,20 @@ public class ImVisualizer
 
     public void Loop()
     {
+        int loopCount = 0;
+
         while (IsWindowShouldClose == false)
         {
+            if (loopCount % _checkPointRenewCount == 0)
+            {
+                _checkPointTime = DateTime.UtcNow;
+                _checkPointTick = Stopwatch.GetTimestamp();
+            }
+
             var currentTick = Stopwatch.GetTimestamp();
             var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
+            var deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
+            _lastTick = currentTick;
 
             // Poll for and process events
             GLFW.PollEvents();
@@ -134,61 +145,21 @@ public class ImVisualizer
             ImGuiImplGLFW.NewFrame();
             ImGui.NewFrame();
 
-            if (ImGui.BeginMainMenuBar())
-            {
-                if (ImGui.BeginMenu("Process"))
-                {
-                    ImGui.Text("이모지 테스트: 😀 😃 😄 🐱‍🏍 🍕 🚀 💻");
-                    ImGui.Spacing();
-                    ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
-                    ImGui.Spacing();
-                    ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
-                    ImGui.Spacing();
-                    ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
-
-                    ImGui.Spacing();
-                    if (ImGui.MenuItem("Exit"))
-                    {
-                        IsWindowShouldClose = true;
-                    }
-                    ImGui.Spacing();
-                    ImGui.EndMenu();
-                }
-
-                ImGui.EndMainMenuBar();
-            }
+            RenderMainMenu();
 
             ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
             ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
             ImGui.PopStyleColor(1);
 
             RenderBackground();
+            RenderDemo();
 
-            // 추가된 UI 윈도우처리
+            // UI 윈도우처리
             var uiWindowArray = UiWindows.Values.ToArray();
             foreach (var uiWindow in uiWindowArray)
             {
-                uiWindow.UpdateWindow();
-            }
-
-            foreach (var uiWindow in uiWindowArray)
-            {
-                uiWindow.RenderWindow();
-            }
-
-            if (IsShowImGuiCSharpDemo == true)
-            {
-                _imGuiDemo.Draw();
-            }
-
-            if (IsShowImGuiCppDemo == true)
-            {
-                ImGui.ShowDemoWindow();
-            }
-
-            if (IsShowHexaDemo == true)
-            {
-                _hexaImGuiDemo.Draw();
+                uiWindow.UpdateWindow(currentTime, deltaSec);
+                uiWindow.RenderWindow(currentTime, deltaSec);
             }
 
             ImGui.Render();
@@ -207,6 +178,9 @@ public class ImVisualizer
 
             // Swap front and back buffers (double buffering)
             GLFW.SwapBuffers(_window);
+
+            loopCount++;
+            Thread.Sleep(10);
         }
     }
 
@@ -228,6 +202,50 @@ public class ImVisualizer
         // Clean up and terminate GLFW
         GLFW.DestroyWindow(_window);
         GLFW.Terminate();
+    }
+
+    private void RenderDemo()
+    {
+        if (IsShowImGuiCSharpDemo == true)
+        {
+            _imGuiDemo.Draw();
+        }
+
+        if (IsShowImGuiCppDemo == true)
+        {
+            ImGui.ShowDemoWindow();
+        }
+
+        if (IsShowHexaDemo == true)
+        {
+            _hexaImGuiDemo.Draw();
+        }
+    }
+
+    private void RenderMainMenu()
+    {
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenu("Process"))
+            {
+                ImGui.Spacing();
+                ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
+                ImGui.Spacing();
+                ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
+                ImGui.Spacing();
+                ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
+
+                ImGui.Spacing();
+                if (ImGui.MenuItem("Exit"))
+                {
+                    IsWindowShouldClose = true;
+                }
+                ImGui.Spacing();
+                ImGui.EndMenu();
+            }
+
+            ImGui.EndMainMenuBar();
+        }
     }
 
     private void RenderBackground()

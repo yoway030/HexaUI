@@ -1,5 +1,4 @@
 ﻿using Hexa.NET.ImGui;
-using HexaGen.Runtime;
 using HexaImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
@@ -22,7 +21,7 @@ public class DataViewer<TData> : BaseWindow
 
     public string FilterText = string.Empty;
 
-    public override void OnRender()
+    public override void OnRender(DateTime utcNow, double deltaSec)
     {
         int dataCount = DataQueue.Count;
 
@@ -44,7 +43,6 @@ public class DataViewer<TData> : BaseWindow
         if (dataCount == 0)
         {
             ImGui.Text("No data available.");
-            ImGui.End();
             return;
         }
 
@@ -130,13 +128,21 @@ public class DataViewer<TData> : BaseWindow
             }
 
             ms_io = ImGui.EndMultiSelect();
-            _selection.ApplyRequests(ms_io);
+
+            try
+            {
+                _selection.ApplyRequests(ms_io);
+            }
+            catch (Exception)
+            {
+                _selection.Clear();
+            }
 
             ImGui.EndTable();
         }
     }
 
-    public override void OnUpdate()
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
     }
 

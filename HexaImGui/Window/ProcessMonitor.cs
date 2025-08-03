@@ -22,7 +22,7 @@ public class ProcessMonitor : BaseWindow
         _memoryUsage = Enumerable.Repeat(0f, StorageCount).ToList();
         _xAxis = new(StorageCount);
 
-        _lastSampleTick = Stopwatch.GetTimestamp();
+        _lastSampleTime = DateTime.UtcNow;
         _lastTotalProcessorTime = _process.TotalProcessorTime;
     }
 
@@ -32,7 +32,7 @@ public class ProcessMonitor : BaseWindow
     public double SimpleShowSec { get; init; }
     public double MaxStorageSec { get; init; }
 
-    private long _lastSampleTick = 0;
+    private DateTime _lastSampleTime;
     private readonly List<int> _xAxis;
 
     // cpu usage
@@ -49,20 +49,20 @@ public class ProcessMonitor : BaseWindow
     // style
     private Vector2 _oldWindowPadding = new(0, 0);
 
-    public override void OnPrevRender()
+    public override void OnPrevRender(DateTime utcNow, double deltaSec)
     {
         var windowStyle = ImGui.GetStyle();
         _oldWindowPadding = windowStyle.WindowPadding;
         windowStyle.WindowPadding = new Vector2(1, 1); // 창 내부 여백 제거
     }
 
-    public override void OnAfterRender()
+    public override void OnAfterRender(DateTime utcNow, double deltaSec)
     {
         var windowStyle = ImGui.GetStyle();
         windowStyle.WindowPadding = _oldWindowPadding;
     }
 
-    public override void OnRender()
+    public override void OnRender(DateTime utcNow, double deltaSec)
     {
         Vector2 windowSize = ImGui.GetContentRegionAvail();
 
@@ -113,11 +113,10 @@ public class ProcessMonitor : BaseWindow
         plotStyle.LegendPadding = oldLegendPadding;
     }
 
-    public override void OnUpdate()
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
-        var currentTick = Stopwatch.GetTimestamp();
-        var deltaSec = (float)(currentTick - _lastSampleTick) / Stopwatch.Frequency;
-        if (deltaSec < IntervalSec)
+        var timeSpan = utcNow - _lastSampleTime;
+        if (timeSpan.TotalSeconds < IntervalSec)
         {
             return;
         }
@@ -126,7 +125,7 @@ public class ProcessMonitor : BaseWindow
         _process.Refresh();
         var currentTotalProcessorTime = _process.TotalProcessorTime;
         var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
-        var cpuPercent = ((cpuUsed / deltaSec) * 100 / _processorCount);
+        var cpuPercent = ((cpuUsed / timeSpan.TotalSeconds) * 100 / _processorCount);
         _cpuUsage.Add(cpuPercent);
         _cpuUsage.RemoveAt(0);
         _cpuUsageMax = Math.Max(_cpuUsageMax, cpuPercent);
@@ -137,7 +136,7 @@ public class ProcessMonitor : BaseWindow
         _memoryUsage.RemoveAt(0);
         _memoryUsageMax = Math.Max(_memoryUsageMax, memMB);
 
-        _lastSampleTick = currentTick;
+        _lastSampleTime = utcNow;
         _lastTotalProcessorTime = currentTotalProcessorTime;
     }
 }

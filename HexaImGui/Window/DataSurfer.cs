@@ -2,7 +2,6 @@
 using HexaImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HexaImGui.Window;
 
@@ -49,15 +48,12 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     public bool FilterHighlight = true;
     private List<TData>? _filteredStorage = null;
 
-    public override void OnPrevRender()
+    public override void OnPrevRender(DateTime utcNow, double deltaSec)
     {
-        if (_duplicateSurfer != null)
-        {
-            _duplicateSurfer.RenderWindow();
-        }
+        _duplicateSurfer?.RenderWindow(utcNow, deltaSec);
     }
 
-    public override void OnRender()
+    public override void OnRender(DateTime utcNow, double deltaSec)
     {
         // Freeze check box
         ImGui.Checkbox($"Freeze##{WindowId}", ref Freeze);
@@ -103,7 +99,6 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         if (_showStorage.Any() == false)
         {
             ImGui.Text("No data available.");
-            ImGui.End();
             return;
         }
 
@@ -198,13 +193,21 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             }
 
             ms_io = ImGui.EndMultiSelect();
-            _selection.ApplyRequests(ms_io);
+
+            try
+            {
+                _selection.ApplyRequests(ms_io);
+            }
+            catch (Exception)
+            {
+                _selection.Clear();
+            }
 
             ImGui.EndTable();
         }
     }
 
-    public override void OnUpdate()
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
         if (Freeze == false)
         {
@@ -212,7 +215,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
 
         _showStorage = _filteredStorage == null ? _localStorage : _filteredStorage;
-        _duplicateSurfer?.OnUpdate();
+        _duplicateSurfer?.OnUpdate(utcNow, deltaSec);
     }
 
     public void PushData(TData data)
