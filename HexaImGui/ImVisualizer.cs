@@ -7,6 +7,9 @@ using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
 using HexaImGui.demo;
 using HexaImGui.Utils;
+using HexaImGui.Window;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
@@ -15,35 +18,26 @@ namespace HexaImGui;
 
 public class ImVisualizer
 {
+    private DateTime _checkPointTime = DateTime.UtcNow;
+    private long _checkPointTick = Stopwatch.GetTimestamp();
+    private long _lastTick = Stopwatch.GetTimestamp();
+
     private ImGuiContextPtr _guiContext;
     private ImPlotContextPtr _plotContext;
     private ImGuiIOPtr _io;
     private ImGuiFontBuilder _builder = null!;
     private GLFWwindowPtr _window = null!;
     private GL _gl = null!;
-
-    private readonly List<Action> _drawCallbacks = new();
-    private readonly List<Action> _menuCallbacks = new();
-
+    
     private HexaDemo _hexaImGuiDemo = new HexaDemo();
     private ImGuiDemo _imGuiDemo = new ImGuiDemo();
+
+    public ConcurrentDictionary<string /*windowId*/, IImGuiWindow> UiWindows = new();
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
     public bool IsShowImGuiCSharpDemo = false;
     public bool IsShowHexaDemo = false;
-
-    public void RegisterDrawCallback(Action callback)
-    {
-        if (callback != null)
-            _drawCallbacks.Add(callback);
-    }
-
-    public void RegisterMenuCallback(Action callback)
-    {
-        if (callback != null)
-            _menuCallbacks.Add(callback);
-    }
 
     public void Initialize()
     {
@@ -119,6 +113,9 @@ public class ImVisualizer
     {
         while (IsWindowShouldClose == false)
         {
+            var currentTick = Stopwatch.GetTimestamp();
+            var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
+
             // Poll for and process events
             GLFW.PollEvents();
             IsWindowShouldClose = GLFW.WindowShouldClose(_window) != 0;
@@ -158,15 +155,6 @@ public class ImVisualizer
                     ImGui.EndMenu();
                 }
 
-                // 외부 등록 매뉴
-                _menuCallbacks.ForEach(cb =>
-                {
-                    if (cb != null)
-                    {
-                        cb.Invoke();
-                    }
-                });
-
                 ImGui.EndMainMenuBar();
             }
 
@@ -174,12 +162,18 @@ public class ImVisualizer
             ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
             ImGui.PopStyleColor(1);
 
-            DrawBackground();
+            RenderBackground();
 
-            // 외부 콜백 UI
-            foreach (var cb in _drawCallbacks)
+            // 추가된 UI 윈도우처리
+            var uiWindowArray = UiWindows.Values.ToArray();
+            foreach (var uiWindow in uiWindowArray)
             {
-                cb.Invoke();
+                uiWindow.UpdateWindow();
+            }
+
+            foreach (var uiWindow in uiWindowArray)
+            {
+                uiWindow.RenderWindow();
             }
 
             if (IsShowImGuiCSharpDemo == true)
@@ -236,7 +230,7 @@ public class ImVisualizer
         GLFW.Terminate();
     }
 
-    private void DrawBackground()
+    private void RenderBackground()
     {
         // 전체 화면 덮기
         var viewport = ImGui.GetMainViewport();

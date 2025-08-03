@@ -51,23 +51,17 @@ internal class Program
     ]
 }
 """;
-        TextViewer jsonViewer = new TextViewer("TextViewer", jsonString, false);
+        TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
 
         DataViewer<DataSample> dataViwer = new("SomeData");
         dataViwer.PushData(new() { Column1 = "Daatatadata1", Column2 = "111111111111" });
         dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
         dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
 
-        visualizer.RegisterDrawCallback(() =>
-        {
-            logsurfer.UpdateWindow();
-            logsurfer.RenderWindow();
-            jsonViewer.RenderWindow();
-            dataViwer.RenderWindow();
-
-            processMonitor.UpdateWindow();
-            processMonitor.RenderWindow();
-        });
+        visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
+        visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
+        visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
+        visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
 
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
