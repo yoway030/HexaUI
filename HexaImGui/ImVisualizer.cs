@@ -91,6 +91,7 @@ public class ImVisualizer
             .AddDefaultFont()
             .SetOption(config => { config.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor; })
             .AddFontFromFileTTF("font/NanumGothicCoding.ttf", 13.0f, [0x1, 0x1FFFF])
+            .AddFontFromFileTTF("font/seguiemj.ttf", 13.0f, [0x1F300, 0x1F6FF])
             .SetOption(cfg => cfg.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor)
             .Build();
 
@@ -140,6 +141,7 @@ public class ImVisualizer
             {
                 if (ImGui.BeginMenu("Process"))
                 {
+                    ImGui.Text("이모지 테스트: 😀 😃 😄 🐱‍🏍 🍕 🚀 💻");
                     ImGui.Spacing();
                     ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
                     ImGui.Spacing();
