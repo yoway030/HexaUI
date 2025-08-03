@@ -40,7 +40,7 @@ public class ProcessMonitor : BaseWindow
     private readonly int _processorCount = Environment.ProcessorCount;
     private TimeSpan _lastTotalProcessorTime;
     private readonly List<double> _cpuUsage;
-    private double _cpuUsageMax = 30.0;
+    private double _cpuUsageMax = 100.0;
 
     // memory usage
     private readonly List<float> _memoryUsage;
@@ -128,7 +128,6 @@ public class ProcessMonitor : BaseWindow
         var cpuPercent = ((cpuUsed / timeSpan.TotalSeconds) * 100 / _processorCount);
         _cpuUsage.Add(cpuPercent);
         _cpuUsage.RemoveAt(0);
-        _cpuUsageMax = Math.Max(_cpuUsageMax, cpuPercent);
 
         // 메모리
         float memMB = _process.WorkingSet64 / (1024f * 1024f);
