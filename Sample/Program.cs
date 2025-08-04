@@ -2,6 +2,7 @@
 using Hexa.NET.ImGui;
 using System.Numerics;
 using HexaImGui.Window;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Sample;
 
@@ -58,18 +59,28 @@ internal class Program
         dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
         dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
 
+        RecentDataViewer rankedCounterWindow = new RecentDataViewer("RankedCounter");
+
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
         visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
         visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
+        visualizer.UiWindows.TryAdd(rankedCounterWindow.WindowId, rankedCounterWindow);
 
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
-            Thread.Sleep(200);
+            Thread.Sleep(100);
             logIndex++;
+
+            //if (logIndex % 2 == 0)
+            {
+                string key = $"SampleKey{logIndex%100}";
+                string value = $"SampleValue{logIndex%100}";
+                rankedCounterWindow.PushData(key, new DataSample { Column1 = key, Column2 = value });
+            }
         }
 
         thread.Join();

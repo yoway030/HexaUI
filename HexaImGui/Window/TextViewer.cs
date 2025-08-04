@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Text;
 using HexaImGui.Utils;
+using System.Net.Http.Headers;
 
 namespace HexaImGui.Window;
 

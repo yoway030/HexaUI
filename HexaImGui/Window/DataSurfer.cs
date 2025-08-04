@@ -107,7 +107,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
         if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
-            // 새로운 데이터 추가시 스크롤 고정
+            // 헤더 고정
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼

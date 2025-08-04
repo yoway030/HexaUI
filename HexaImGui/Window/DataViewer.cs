@@ -14,7 +14,6 @@ public class DataViewer<TData> : BaseWindow
         _dataIdx = -1;
     }
 
-    public int MaxLocalStorage { get; init; }
     public ConcurrentDictionary<int, TData> DataQueue = new();
     private int _dataIdx;
     private ImGuiSelectionBasicStorage _selection = new();
@@ -48,7 +47,7 @@ public class DataViewer<TData> : BaseWindow
 
         var initData = DataQueue.First().Value;
 
-        if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
+        if (ImGui.BeginTable($"##Table{WindowId}", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             // 선택기능을 위한 첫번째 컬럼
             ImGui.TableSetupColumn($"##Idx{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
