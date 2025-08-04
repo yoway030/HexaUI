@@ -182,7 +182,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
                     if (ImGui.IsItemHovered())
                     {
-                        data.TooltipDraw();
+                        data.RenderTooltip();
                     }
                 }
             }

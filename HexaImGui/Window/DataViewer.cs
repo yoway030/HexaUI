@@ -122,7 +122,7 @@ public class DataViewer<TData> : BaseWindow
 
                     if (ImGui.IsItemHovered())
                     {
-                        data.TooltipDraw();
+                        data.RenderTooltip();
                     }
                 }
             }

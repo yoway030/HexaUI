@@ -109,7 +109,7 @@ public class LogMessage : SurfableIndexingData
         yield break;
     }
 
-    public override void TooltipDraw()
+    public override void RenderTooltip()
     {
         ImGui.BeginTooltip();
         ImGui.TextUnformatted($"{DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff")}");

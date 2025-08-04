@@ -6,7 +6,7 @@ public abstract class ViewableData
 
     public abstract IEnumerable<Action> GetFieldDrawActions();
 
-    public virtual void TooltipDraw() { }
+    public virtual void RenderTooltip() { }
 
     public abstract string FieldsToString { get; }
 }
