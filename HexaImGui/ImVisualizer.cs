@@ -33,7 +33,8 @@ public class ImVisualizer
     private HexaDemo _hexaImGuiDemo = new HexaDemo();
     private ImGuiDemo _imGuiDemo = new ImGuiDemo();
 
-    public ConcurrentDictionary<string /*windowId*/, IImGuiWindow> UiWindows = new();
+    public ConcurrentDictionary<string /*windowId*/, ImVisualizerWindow> UiWindows = new();
+    public ConcurrentDictionary<string, ImVisualizerObject> UiMenus = new();
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -145,7 +146,7 @@ public class ImVisualizer
             ImGuiImplGLFW.NewFrame();
             ImGui.NewFrame();
 
-            RenderMainMenu();
+            RenderMainMenu(currentTime, deltaSec);
 
             ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
             ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
@@ -155,12 +156,7 @@ public class ImVisualizer
             RenderDemo();
 
             // UI 윈도우처리
-            var uiWindowArray = UiWindows.Values.ToArray();
-            foreach (var uiWindow in uiWindowArray)
-            {
-                uiWindow.UpdateWindow(currentTime, deltaSec);
-                uiWindow.RenderWindow(currentTime, deltaSec);
-            }
+            RenderWindows(currentTime, deltaSec);
 
             ImGui.Render();
             ImGui.EndFrame();
@@ -222,7 +218,17 @@ public class ImVisualizer
         }
     }
 
-    private void RenderMainMenu()
+    private void RenderWindows(DateTime utcNow, double deltaSec)
+    {
+        var uiWindows = UiWindows.Values.ToArray();
+        foreach (var uiWindow in uiWindows)
+        {
+            uiWindow.UpdateVisualizer(utcNow, deltaSec);
+            uiWindow.RenderVisualizer(utcNow, deltaSec);
+        }
+    }
+
+    private void RenderMainMenu(DateTime utcNow, double deltaSec)
     {
         if (ImGui.BeginMainMenuBar())
         {
@@ -242,6 +248,30 @@ public class ImVisualizer
                 }
                 ImGui.Spacing();
                 ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Windows"))
+            {
+                var uiWindows = UiWindows.Values.ToArray();
+                foreach (var uiWindow in uiWindows)
+                {
+                    ImGui.Spacing();
+
+                    bool isVisible = uiWindow.IsVisible;
+                    if (ImGui.Checkbox($"{uiWindow.WindowName}##MainMenu", ref isVisible))
+                    {
+                        uiWindow.IsVisible = isVisible;
+                    }
+                }
+                ImGui.EndMenu();
+            }
+
+
+            var uiMenus = UiMenus.Values.ToArray();
+            foreach (var uiMenu in uiMenus)
+            {
+                uiMenu.UpdateVisualizer(utcNow, deltaSec);
+                uiMenu.RenderVisualizer(utcNow, deltaSec);
             }
 
             ImGui.EndMainMenuBar();

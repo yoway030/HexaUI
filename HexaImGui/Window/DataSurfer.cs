@@ -50,7 +50,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
     public override void OnPrevRender(DateTime utcNow, double deltaSec)
     {
-        _duplicateSurfer?.RenderWindow(utcNow, deltaSec);
+        _duplicateSurfer?.RenderVisualizer(utcNow, deltaSec);
     }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
@@ -187,7 +187,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                 }
             }
 
-            if (Freeze == false)
+            if (Freeze == false && _selection.Size == 0)
             {
                 ImGui.SetScrollHereY(1.0f);
             }

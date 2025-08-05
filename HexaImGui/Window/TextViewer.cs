@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 
 namespace HexaImGui.Window;
 
-public class TextViewer : IImGuiWindow
+public class TextViewer : ImVisualizerObject
 {
     public TextViewer(string windowName, string textOrPath, bool isPath)
     {
@@ -64,8 +64,7 @@ public class TextViewer : IImGuiWindow
     public string HighlightText = string.Empty;
     private HashSet<int>? _highlightedLines = null;
 
-
-    public void RenderWindow(DateTime utcNow, double deltaSec)
+    public void RenderVisualizer(DateTime utcNow, double deltaSec)
     {
         if (ImGui.Begin($"{WindowName}#{WindowDepth}"))
         {
@@ -80,7 +79,7 @@ public class TextViewer : IImGuiWindow
         ImGui.End();
     }
 
-    public void UpdateWindow(DateTime utcNow, double deltaSec)
+    public void UpdateVisualizer(DateTime utcNow, double deltaSec)
     {
     }
 

@@ -2,7 +2,6 @@
 using Hexa.NET.ImGui;
 using System.Numerics;
 using HexaImGui.Window;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Sample;
 
@@ -64,9 +63,10 @@ internal class Program
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
         visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
-        visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
+        //visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
         visualizer.UiWindows.TryAdd(rankedCounterWindow.WindowId, rankedCounterWindow);
 
+        Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
@@ -75,10 +75,10 @@ internal class Program
             Thread.Sleep(100);
             logIndex++;
 
-            //if (logIndex % 2 == 0)
             {
-                string key = $"SampleKey{logIndex%100}";
-                string value = $"SampleValue{logIndex%100}";
+                int rnd = random.Next();
+                string key = $"SampleKey{rnd % 100}";
+                string value = $"SampleValue{rnd % 100}";
                 rankedCounterWindow.PushData(key, new DataSample { Column1 = key, Column2 = value });
             }
         }

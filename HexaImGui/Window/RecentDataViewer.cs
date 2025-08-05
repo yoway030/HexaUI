@@ -1,11 +1,13 @@
 ﻿using Hexa.NET.ImGui;
 using System.Collections.Concurrent;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.Emit;
 
 namespace HexaImGui.Window;
 
 public class RecentDataViewer : BaseWindow
 {
+    public const int HighlightTimeMs = 2000;
+
     private class Entry
     {
         public DateTime UpdateTime;
@@ -27,10 +29,10 @@ public class RecentDataViewer : BaseWindow
     {
     }
 
-    public readonly ConcurrentQueue<(string Key, ViewableData Data)> DataQueue = new();
-
     private readonly Dictionary<string, Entry> _entries = new();
     private readonly List<Entry> _sortedEntries = new();
+
+    public readonly ConcurrentQueue<(string Key, ViewableData Data)> DataQueue = new();
 
     public void PushData(string key, ViewableData data)
     {
@@ -42,7 +44,7 @@ public class RecentDataViewer : BaseWindow
         DataQueue.Enqueue((key, data));
     }
 
-    private void AdjustData()
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
         bool needSort = false;
 
@@ -56,7 +58,7 @@ public class RecentDataViewer : BaseWindow
             if (_entries.TryGetValue(item.Key, out var entry))
             {
                 entry.Data = item.Data;
-                entry.UpdateTime = DateTime.UtcNow;
+                entry.UpdateTime = utcNow;
                 entry.Count++;
             }
             else
@@ -74,51 +76,74 @@ public class RecentDataViewer : BaseWindow
             _sortedEntries.AddRange(_entries.Values);
             _sortedEntries.Sort((a, b) =>
             {
-                var count = b.Count - a.Count;
-                if (count == 0)
+                var time = b.UpdateTime.CompareTo(a.UpdateTime);
+                if (time == 0)
                 {
-                    return b.UpdateTime.CompareTo(a.UpdateTime);
+                    var count = b.Count - a.Count;
+                    return count;
                 }
-                return count;
+                return time;
             });
         }
     }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        var initEntry = _sortedEntries.First();
+        if (_sortedEntries.Any() == false)
+        {
+            ImGui.Text("No data available.");
+            return;
+        }
 
-        if (ImGui.BeginTable($"##Table{WindowId}", 2 + initEntry.Data.GetColumnSetupActions().Count(), ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
+        var initEntry = _sortedEntries.First();
+        if (ImGui.BeginTable($"##Table{WindowId}", 2 + initEntry.Data.GetColumnSetupActions().Count(), ImGuiTableFlags.Borders))
         {
             ImGui.TableSetupColumn($"Time##Column{WindowId}", ImGuiTableColumnFlags.WidthFixed, 60);
-
+            ImGui.TableSetupColumn($"Count##Column{WindowId}", ImGuiTableColumnFlags.WidthFixed, 60);
             foreach (var action in initEntry.Data.GetColumnSetupActions())
             {
                 action();
             }
-
-            ImGui.TableSetupColumn($"Count##Column{WindowId}", ImGuiTableColumnFlags.WidthFixed, 60);
-
             ImGui.TableHeadersRow();
 
             foreach (var entry in _sortedEntries)
             {
                 var data = entry.Data;
 
+                // row시작
+                ImGui.TableNextRow();
+
+                // row bgcolor highlight
+                {
+                    var span = utcNow - entry.UpdateTime;
+                    if (span <= TimeSpan.FromMilliseconds(HighlightTimeMs))
+                    {
+                        float color = 1.0f - (float)span.TotalMilliseconds / HighlightTimeMs;
+
+                        var bgColor = new System.Numerics.Vector4(color, color, 0.0f, 0.7f);
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(bgColor));
+                    }
+                }
+
                 ImGui.TableNextColumn();
                 {
-                    ImGui.TextUnformatted(entry.UpdateTime.ToString());
+                    bool selected = ImGui.Selectable($"{entry.UpdateTime:yyyy-MM-dd HH:mm:ss.fff}##{entry.Key}", 
+                        ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick);
+
+                    if (selected)
+                    {
+                        Console.WriteLine($"Selected: {entry.Key} at {entry.UpdateTime:yyyy-MM-dd HH:mm:ss.fff}");
+                    }
+                }
+                ImGui.TableNextColumn();
+                {
+                    ImGui.TextUnformatted(entry.Count.ToString());
                 }
 
                 foreach (var drawAction in data.GetFieldDrawActions())
                 {
                     ImGui.TableNextColumn();
                     drawAction();
-                }
-
-                ImGui.TableNextColumn();
-                {
-                    ImGui.TextUnformatted(entry.Count.ToString());
                 }
 
                 if (ImGui.IsItemHovered())
@@ -129,10 +154,5 @@ public class RecentDataViewer : BaseWindow
 
             ImGui.EndTable();
         }
-    }
-
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
-    {
-        AdjustData();
     }
 }
