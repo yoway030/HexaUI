@@ -42,6 +42,7 @@ public class RecentDataViewer : BaseWindow
     private bool _filterChanged = false;
 
     private string? _selectedKey;
+    private BaseWindow? _selectedWindow;
 
     public void PushData(string key, ViewableData data)
     {
@@ -115,6 +116,7 @@ public class RecentDataViewer : BaseWindow
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         _filterWidget.RenderWidget(utcNow, deltaSec);
+        _selectedWindow?.RenderVisualizer(utcNow, deltaSec);
 
         if (_sortedEntries.Any() == false)
         {
@@ -170,7 +172,12 @@ public class RecentDataViewer : BaseWindow
                         ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick);
                     if (selected && ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
+                        // 더블클릭처리 샘플
                         _selectedKey = entry.Key;
+                        _selectedWindow = new TextViewer($"{WindowId}#{entry.Key}", entry.Data.FieldsToString, false)
+                        {
+                            WindowPoistion = ImGui.GetWindowPos()
+                        };
                     }
                 }
                 ImGui.TableNextColumn();

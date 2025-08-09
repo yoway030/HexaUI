@@ -1,23 +1,33 @@
 ﻿using Hexa.NET.ImGui;
+using System.Numerics;
 
 namespace HexaImGui.Window;
 
 public abstract class BaseWindow : ImVisualizerWindow
 {
-    public BaseWindow(string windowName, int windowDepth = 0)
+    public BaseWindow(string windowName, int windowDepth = 0, Vector2? parentPosition = null)
     {
         WindowName = windowName;
         WindowDepth = windowDepth;
         WindowId = windowDepth == 0 ? $"{WindowName}" : $"{WindowName}#{WindowDepth}";
         IsVisible = true;
+        _windowSize = new Vector2(300, 200);
+        _windowPosition = parentPosition != null ?
+            new Vector2(parentPosition.Value.X, parentPosition.Value.Y) :
+            new Vector2(400, 400);
     }
 
     private bool _isVisible = true;
+    private Vector2 _windowSize;
+    private Vector2 _windowPosition;
 
     public string WindowName { get; init; }
     public int WindowDepth { get; init; }
     public string WindowId { get; init; }
     public bool IsVisible { get => _isVisible; set => _isVisible = value; }
+
+    public Vector2 WindowSize { get => _windowSize; set => _windowSize = value; }
+    public Vector2 WindowPoistion { get => _windowPosition; set => _windowPosition = value; }
 
     public void RenderVisualizer(DateTime utcNow, double deltaSec)
     {
@@ -28,8 +38,14 @@ public abstract class BaseWindow : ImVisualizerWindow
 
         OnPrevRender(utcNow, deltaSec);
 
+        ImGui.SetNextWindowPos(_windowPosition, ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(_windowSize, ImGuiCond.FirstUseEver);
+
         if (ImGui.Begin(WindowId, ref _isVisible))
         {
+            _windowSize = ImGui.GetWindowSize();
+            _windowPosition = ImGui.GetWindowPos();
+
             if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {
                 OnWindowFocused();

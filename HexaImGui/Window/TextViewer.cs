@@ -6,9 +6,10 @@ using System.Net.Http.Headers;
 
 namespace HexaImGui.Window;
 
-public class TextViewer : ImVisualizerObject
+public class TextViewer : BaseWindow
 {
     public TextViewer(string windowName, string textOrPath, bool isPath)
+        : base(windowName, 0)
     {
         WindowName = windowName;
 
@@ -53,8 +54,6 @@ public class TextViewer : ImVisualizerObject
         Lines = Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
     }
 
-    public string WindowName { get; init; } = "TextViewer";
-    public int WindowDepth { get; init; } = 0;
     public string? ErrorText { get; private set; } = null;
     public string Text { get; private set; } = string.Empty;
     public List<string> Lines { get; private set; } = null!;
@@ -64,26 +63,7 @@ public class TextViewer : ImVisualizerObject
     public string HighlightText = string.Empty;
     private HashSet<int>? _highlightedLines = null;
 
-    public void RenderVisualizer(DateTime utcNow, double deltaSec)
-    {
-        if (ImGui.Begin($"{WindowName}#{WindowDepth}"))
-        {
-
-            if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
-            {
-                OnWindowFocused();
-            }
-
-            RenderChild();
-        }
-        ImGui.End();
-    }
-
-    public void UpdateVisualizer(DateTime utcNow, double deltaSec)
-    {
-    }
-
-    private void RenderChild()
+    public override void OnRender(DateTime utcNow, double deltaSec)
     {
         int lineCount = Lines.Count;
 
@@ -109,7 +89,7 @@ public class TextViewer : ImVisualizerObject
 
         ImGui.SeparatorText("Text");
         ImGui.EndChild();
-        
+
         if (ImGui.BeginChild($"{WindowName}Text#{WindowDepth}") == false)
         {
             ImGui.EndChild();
@@ -170,7 +150,11 @@ public class TextViewer : ImVisualizerObject
         ImGui.EndChild();
     }
 
-    private void OnWindowFocused()
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    {
+    }
+
+    public  override void OnWindowFocused()
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
