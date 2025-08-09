@@ -41,6 +41,8 @@ public class RecentDataViewer : BaseWindow
     private FilterWidget _filterWidget;
     private bool _filterChanged = false;
 
+    private string? _selectedKey;
+
     public void PushData(string key, ViewableData data)
     {
         if (string.IsNullOrWhiteSpace(key) || data == null)
@@ -163,12 +165,12 @@ public class RecentDataViewer : BaseWindow
 
                 ImGui.TableNextColumn();
                 {
-                    bool selected = ImGui.Selectable($"{entry.UpdateTime:yyyy-MM-dd HH:mm:ss.fff}##{entry.Key}", 
+                    bool selected = ImGui.Selectable($"{entry.UpdateTime:yyyy-MM-dd HH:mm:ss.fff}##{entry.Key}",
+                        _selectedKey == entry.Key,
                         ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick);
-
-                    if (selected)
+                    if (selected && ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
-                        Console.WriteLine($"Selected: {entry.Key} at {entry.UpdateTime:yyyy-MM-dd HH:mm:ss.fff}");
+                        _selectedKey = entry.Key;
                     }
                 }
                 ImGui.TableNextColumn();
