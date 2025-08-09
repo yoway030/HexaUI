@@ -5,6 +5,8 @@ namespace HexaImGui.Window;
 
 public abstract class BaseWindow : ImVisualizerWindow
 {
+    public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
+
     public BaseWindow(string windowName, int windowDepth = 0, Vector2? parentPosition = null)
     {
         WindowName = windowName;

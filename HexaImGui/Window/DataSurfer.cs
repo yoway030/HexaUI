@@ -145,16 +145,15 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                 {
                     TData data = _showStorage[displayIndex];
                     var fieldsToString = data.FieldsToString;
+                    bool isHighlighted = _filterWidget.IsFiltering &&
+                        fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
                     // row시작
                     ImGui.TableNextRow();
 
-                    // 필터링된 데이터 백그라운드 강조 표시
-                    if (_filterWidget.IsHighlighting &&
-                        fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true)
+                    if (isHighlighted)
                     {
-                        // ImGui.TableSetBgColor 는 ImGui.TableNextRow 이후 호출 필요
-                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 0.5f)));
+                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ColorTextHighLight));
                     }
 
                     ImGui.TableNextColumn();
@@ -170,6 +169,11 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                     {
                         ImGui.TableNextColumn();
                         drawAction();
+                    }
+
+                    if (isHighlighted)
+                    {
+                        ImGui.PopStyleColor();
                     }
 
                     if (ImGui.IsItemHovered())

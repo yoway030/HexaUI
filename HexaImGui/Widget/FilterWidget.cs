@@ -17,7 +17,6 @@ class FilterWidget : BaseWidget
 
     public string FilterText { get => _filterText; }
     public bool IsFiltering { get => string.IsNullOrWhiteSpace(_filterText) == false; }
-    public bool IsHighlighting { get => IsFiltering && _viewOnlyFiltered == false; }
     public bool IsOnlyFileterd { get => IsFiltering && _viewOnlyFiltered == true; }
 
     public Action? FilterChangingFunc;

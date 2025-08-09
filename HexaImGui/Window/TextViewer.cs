@@ -130,7 +130,7 @@ public class TextViewer : BaseWindow
 
                 ImGui.TextColored(
                     _highlightedLines?.Contains(i) == true
-                        ? new Vector4(1.0f, 0.5f, 0.0f, 1.0f) // Highlight color
+                        ? ColorTextHighLight
                         : ImGui.GetStyle().Colors[(int)ImGuiCol.Text], // Default text color
                     line);
             }

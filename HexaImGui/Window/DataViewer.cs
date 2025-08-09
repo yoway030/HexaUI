@@ -92,16 +92,16 @@ public class DataViewer<TData> : BaseWindow
                 {
                     TData data = DataQueue[displayIndex];
                     var fieldsToString = data.FieldsToString;
+                    bool isHighlighted = string.IsNullOrWhiteSpace(FilterText) == false &&
+                        fieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
                     // row시작
                     ImGui.TableNextRow();
 
-                    // 필터링된 데이터 백그라운드 강조 표시
-                    if (string.IsNullOrWhiteSpace(FilterText) == false &&
-                        fieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase) == true)
+                    // 필터링 표시
+                    if (isHighlighted)
                     {
-                        // ImGui.TableSetBgColor 는 ImGui.TableNextRow 이후 호출 필요
-                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 0.5f)));
+                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ColorTextHighLight));
                     }
 
                     ImGui.TableNextColumn();
@@ -117,6 +117,11 @@ public class DataViewer<TData> : BaseWindow
                     {
                         ImGui.TableNextColumn();
                         drawAction();
+                    }
+
+                    if (isHighlighted)
+                    {
+                        ImGui.PopStyleColor();
                     }
 
                     if (ImGui.IsItemHovered())

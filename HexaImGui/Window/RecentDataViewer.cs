@@ -141,28 +141,25 @@ public class RecentDataViewer : BaseWindow
             foreach (var entry in _sortedEntries)
             {
                 var data = entry.Data;
+                bool isHighlighted = _filterWidget.IsFiltering &&
+                        entry.Data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
                 // row시작
                 ImGui.TableNextRow();
 
                 // row bgcolor highlight
+                var span = utcNow - entry.UpdateTime;
+                if (span <= TimeSpan.FromMilliseconds(HighlightTimeMs))
                 {
-                    var span = utcNow - entry.UpdateTime;
-                    if (span <= TimeSpan.FromMilliseconds(HighlightTimeMs))
-                    {
-                        var alpha = (1.0 - (span.TotalMilliseconds/HighlightTimeMs)) * 0.7;
-                        recentBgColorBase.W = (float)alpha;
+                    var alpha = (1.0 - (span.TotalMilliseconds/HighlightTimeMs)) * 0.7;
+                    recentBgColorBase.W = (float)alpha;
 
-                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(recentBgColorBase));
-                    }
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(recentBgColorBase));
+                }
 
-                    if (_filterWidget.IsHighlighting)
-                    {
-                        if (entry.Data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
-                        {
-                            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FilterWidget.HighLightColor));
-                        }
-                    }
+                if (isHighlighted)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ColorTextHighLight));
                 }
 
                 ImGui.TableNextColumn();
@@ -189,6 +186,11 @@ public class RecentDataViewer : BaseWindow
                 {
                     ImGui.TableNextColumn();
                     drawAction();
+                }
+
+                if (isHighlighted)
+                {
+                    ImGui.PopStyleColor();
                 }
 
                 if (ImGui.IsItemHovered())
