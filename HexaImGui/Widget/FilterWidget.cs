@@ -13,14 +13,14 @@ class FilterWidget : BaseWidget
     }
 
     private string _filterText = string.Empty;
-    private bool _filterHighlight = true;
+    private bool _viewOnlyFiltered = false;
 
     public string FilterText { get => _filterText; }
-    public bool FilterHighlight {  get => _filterHighlight; }
-    public bool NowHighlighting { get => _filterHighlight && NowFiltering; }
-    public bool NowFiltering { get => string.IsNullOrWhiteSpace(_filterText) == false; }
+    public bool IsFiltering { get => string.IsNullOrWhiteSpace(_filterText) == false; }
+    public bool IsHighlighting { get => IsFiltering && _viewOnlyFiltered == false; }
+    public bool IsOnlyFileterd { get => IsFiltering && _viewOnlyFiltered == true; }
 
-    public Action? FilteringChangeFunc;
+    public Action? FilterChangingFunc;
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
@@ -34,9 +34,19 @@ class FilterWidget : BaseWidget
         }
         ImGuiHelper.SpacingSameLine();
 
-        if (ImGui.Checkbox($"Highlight##{WidgetName}#{WindowId}", ref _filterHighlight) == true)
+        if (IsFiltering == false)
+        {
+            ImGui.BeginDisabled();
+        }
+
+        if (ImGui.Checkbox($"ViewOnlyFiltered##{WidgetName}#{WindowId}", ref _viewOnlyFiltered) == true)
         {
             OnFilteringChange();
+        }
+
+        if (IsFiltering == false)
+        {
+            ImGui.EndDisabled();
         }
     }
 
@@ -46,6 +56,6 @@ class FilterWidget : BaseWidget
 
     public virtual void OnFilteringChange()
     {
-        FilteringChangeFunc?.Invoke();
+        FilterChangingFunc?.Invoke();
     }
 }

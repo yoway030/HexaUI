@@ -30,7 +30,7 @@ public class RecentDataViewer : BaseWindow
         : base(windowName, 0)
     {
         _filterWidget = new("Filter", WindowId);
-        _filterWidget.FilteringChangeFunc += OnFilteringChange;
+        _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
     private readonly Dictionary<string, Entry> _entries = new();
@@ -82,11 +82,7 @@ public class RecentDataViewer : BaseWindow
             _filterChanged = false;
             _sortedEntries.Clear();
 
-            if (_filterWidget.NowFiltering == false || _filterWidget.NowHighlighting == true)
-            {
-                _sortedEntries.AddRange(_entries.Values);
-            }
-            else
+            if (_filterWidget.IsOnlyFileterd == true)
             {
                 foreach (var entry in _entries.Values)
                 {
@@ -95,6 +91,10 @@ public class RecentDataViewer : BaseWindow
                         _sortedEntries.Add(entry);
                     }
                 }
+            }
+            else
+            {
+                _sortedEntries.AddRange(_entries.Values);
             }
 
             _sortedEntries.Sort((a, b) =>
@@ -152,7 +152,7 @@ public class RecentDataViewer : BaseWindow
                         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(recentBgColorBase));
                     }
 
-                    if (_filterWidget.NowHighlighting)
+                    if (_filterWidget.IsHighlighting)
                     {
                         if (entry.Data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                         {
@@ -192,7 +192,7 @@ public class RecentDataViewer : BaseWindow
         }
     }
 
-    private void OnFilteringChange()
+    private void OnFilterChanging()
     {
         _filterChanged = true;
     }

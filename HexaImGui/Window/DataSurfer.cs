@@ -16,7 +16,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         DataIdx = 1;
 
         _filterWidget = new("Filter", WindowId);
-        _filterWidget.FilteringChangeFunc += OnFilteringChange;
+        _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
     public DataSurfer(DataSurfer<TData> parentWnd, int maxLocalStorage)
@@ -26,7 +26,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         DataIdx = parentWnd.DataIdx;
 
         _filterWidget = new("Filter", WindowId);
-        _filterWidget.FilteringChangeFunc += OnFilteringChange;
+        _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
     public void Dispose()
@@ -150,7 +150,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                     ImGui.TableNextRow();
 
                     // 필터링된 데이터 백그라운드 강조 표시
-                    if (_filterWidget.NowHighlighting &&
+                    if (_filterWidget.IsHighlighting &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true)
                     {
                         // ImGui.TableSetBgColor 는 ImGui.TableNextRow 이후 호출 필요
@@ -251,17 +251,17 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
     }
 
-    private void OnFilteringChange()
+    private void OnFilterChanging()
     {
-        if (_filterWidget.NowFiltering == false || _filterWidget.NowHighlighting)
-        {
-            _filteredStorage = null;
-        }
-        else
+        if (_filterWidget.IsOnlyFileterd == true)
         {
             _filteredStorage = [ .. _localStorage
                 .Where(data => data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                 .ToList(), ];
+        }
+        else
+        {
+            _filteredStorage = null;
         }
     }
 
