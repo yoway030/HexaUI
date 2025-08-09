@@ -58,13 +58,13 @@ internal class Program
         dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
         dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
 
-        RecentDataViewer rankedCounterWindow = new RecentDataViewer("RankedCounter");
+        RecentDataViewer recentDataViewer = new RecentDataViewer("RecentDataViewer");
 
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
         visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
         //visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
-        visualizer.UiWindows.TryAdd(rankedCounterWindow.WindowId, rankedCounterWindow);
+        visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
 
         Random random = new Random();
         int logIndex = 0;
@@ -79,7 +79,7 @@ internal class Program
                 int rnd = random.Next();
                 string key = $"SampleKey{rnd % 100}";
                 string value = $"SampleValue{rnd % 100}";
-                rankedCounterWindow.PushData(key, new DataSample { Column1 = key, Column2 = value });
+                recentDataViewer.PushData(key, new DataSample { Column1 = key, Column2 = value });
             }
         }
 

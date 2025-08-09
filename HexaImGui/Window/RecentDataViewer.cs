@@ -1,12 +1,14 @@
 ﻿using Hexa.NET.ImGui;
+using HexaImGui.Widget;
 using System.Collections.Concurrent;
-using System.Reflection.Emit;
+using System.Numerics;
 
 namespace HexaImGui.Window;
 
 public class RecentDataViewer : BaseWindow
 {
     public const int HighlightTimeMs = 2000;
+    public static readonly Vector4 RecentHighlightColor = new(1.0f, 1.0f, 0.0f, 0.0f);
 
     private class Entry
     {
@@ -27,12 +29,17 @@ public class RecentDataViewer : BaseWindow
     public RecentDataViewer(string windowName)
         : base(windowName, 0)
     {
+        _filterWidget = new("Filter", WindowId);
+        _filterWidget.FilteringChangeFunc += OnFilteringChange;
     }
 
     private readonly Dictionary<string, Entry> _entries = new();
     private readonly List<Entry> _sortedEntries = new();
 
     public readonly ConcurrentQueue<(string Key, ViewableData Data)> DataQueue = new();
+
+    private FilterWidget _filterWidget;
+    private bool _filterChanged = false;
 
     public void PushData(string key, ViewableData data)
     {
@@ -70,10 +77,26 @@ public class RecentDataViewer : BaseWindow
             needSort = true;
         }
 
-        if (needSort == true)
+        if (needSort == true || _filterChanged == true)
         {
+            _filterChanged = false;
             _sortedEntries.Clear();
-            _sortedEntries.AddRange(_entries.Values);
+
+            if (_filterWidget.NowFiltering == false || _filterWidget.NowHighlighting == true)
+            {
+                _sortedEntries.AddRange(_entries.Values);
+            }
+            else
+            {
+                foreach (var entry in _entries.Values)
+                {
+                    if (entry.Data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _sortedEntries.Add(entry);
+                    }
+                }
+            }
+
             _sortedEntries.Sort((a, b) =>
             {
                 var time = b.UpdateTime.CompareTo(a.UpdateTime);
@@ -89,11 +112,16 @@ public class RecentDataViewer : BaseWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
+        _filterWidget.RenderWidget(utcNow, deltaSec);
+
         if (_sortedEntries.Any() == false)
         {
             ImGui.Text("No data available.");
             return;
         }
+
+        var recentBgColorBase = RecentHighlightColor;
+        var filterBgColorBase = FilterWidget.HighLightColor;
 
         var initEntry = _sortedEntries.First();
         if (ImGui.BeginTable($"##Table{WindowId}", 2 + initEntry.Data.GetColumnSetupActions().Count(), ImGuiTableFlags.Borders))
@@ -118,10 +146,18 @@ public class RecentDataViewer : BaseWindow
                     var span = utcNow - entry.UpdateTime;
                     if (span <= TimeSpan.FromMilliseconds(HighlightTimeMs))
                     {
-                        float color = 1.0f - (float)span.TotalMilliseconds / HighlightTimeMs;
+                        var alpha = (1.0 - (span.TotalMilliseconds/HighlightTimeMs)) * 0.7;
+                        recentBgColorBase.W = (float)alpha;
 
-                        var bgColor = new System.Numerics.Vector4(color, color, 0.0f, 0.7f);
-                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(bgColor));
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(recentBgColorBase));
+                    }
+
+                    if (_filterWidget.NowHighlighting)
+                    {
+                        if (entry.Data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FilterWidget.HighLightColor));
+                        }
                     }
                 }
 
@@ -154,5 +190,10 @@ public class RecentDataViewer : BaseWindow
 
             ImGui.EndTable();
         }
+    }
+
+    private void OnFilteringChange()
+    {
+        _filterChanged = true;
     }
 }

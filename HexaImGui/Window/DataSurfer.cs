@@ -1,5 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using HexaImGui.Utils;
+using HexaImGui.Widget;
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -13,6 +14,9 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
+
+        _filterWidget = new("Filter", WindowId);
+        _filterWidget.FilteringChangeFunc += OnFilteringChange;
     }
 
     public DataSurfer(DataSurfer<TData> parentWnd, int maxLocalStorage)
@@ -20,6 +24,9 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = parentWnd.DataIdx;
+
+        _filterWidget = new("Filter", WindowId);
+        _filterWidget.FilteringChangeFunc += OnFilteringChange;
     }
 
     public void Dispose()
@@ -44,8 +51,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     public bool DuplicateWindow = false;
     private DataSurfer<TData>? _duplicateSurfer = null;
 
-    public string FilterText = string.Empty;
-    public bool FilterHighlight = true;
+    private FilterWidget _filterWidget;
     private List<TData>? _filteredStorage = null;
 
     public override void OnPrevRender(DateTime utcNow, double deltaSec)
@@ -77,21 +83,8 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
         ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출력과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
 
-        // filter input
-        ImGui.Text("Filter:");
-        ImGuiHelper.SpacingSameLine();
-
-        ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##Filter{WindowId}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
-        {
-            OnFilteringChange();
-        }
-        ImGuiHelper.SpacingSameLine();
-
-        if (ImGui.Checkbox($"Highlight##{WindowId}", ref FilterHighlight) == true)
-        {
-            OnFilteringChange();
-        }
+        // Filter
+        _filterWidget.RenderWidget(utcNow, deltaSec);
         ImGuiHelper.HelpMarkerSameLine(
             "엔터키로 필터링 적용",
             "Highlight를 끌 경우 필터링된 데이터만 출력");
@@ -103,7 +96,6 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
 
         var initData = _showStorage[0];
-        bool usingHighlight = FilterHighlight && string.IsNullOrWhiteSpace(FilterText) == false;
 
         if (ImGui.BeginTable("Datas", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
@@ -111,7 +103,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx#{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -158,8 +150,8 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                     ImGui.TableNextRow();
 
                     // 필터링된 데이터 백그라운드 강조 표시
-                    if (usingHighlight == true &&
-                        fieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase) == true)
+                    if (_filterWidget.NowHighlighting &&
+                        fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true)
                     {
                         // ImGui.TableSetBgColor 는 ImGui.TableNextRow 이후 호출 필요
                         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 0.5f)));
@@ -232,7 +224,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             _duplicateSurfer?.PushData(data);
 
             if (_filteredStorage != null &&
-                data.FieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
+                data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
             {
                 _filteredStorage.Add(data);
             }
@@ -261,14 +253,14 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
     private void OnFilteringChange()
     {
-        if (string.IsNullOrWhiteSpace(FilterText) || FilterHighlight == true)
+        if (_filterWidget.NowFiltering == false || _filterWidget.NowHighlighting)
         {
             _filteredStorage = null;
         }
         else
         {
             _filteredStorage = [ .. _localStorage
-                .Where(data => data.FieldsToString.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
+                .Where(data => data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                 .ToList(), ];
         }
     }

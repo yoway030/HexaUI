@@ -44,15 +44,16 @@ public abstract class BaseWindow : ImVisualizerWindow
         OnAfterRender(utcNow, deltaSec);
     }
 
+    public abstract void OnRender(DateTime utcNow, double deltaSec);
+    public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
+    public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
+
     public void UpdateVisualizer(DateTime utcNow, double deltaSec)
     {
         OnUpdate(utcNow, deltaSec);
     }
 
-    public abstract void OnRender(DateTime utcNow, double deltaSec);
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);
 
     public virtual void OnWindowFocused() {}
-    public virtual void OnPrevRender(DateTime utcNow, double deltaSec) {}
-    public virtual void OnAfterRender(DateTime utcNow, double deltaSec) {}
 }
