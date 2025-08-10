@@ -68,6 +68,9 @@ internal class Program
         visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
         visualizer.UiWindows.TryAdd(console.WindowId, console);
 
+        NetworkNodeView networkNodeView = new NetworkNodeView();
+        visualizer.RenderDelegate += () => networkNodeView.Draw();
+
         Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)

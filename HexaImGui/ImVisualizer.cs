@@ -3,6 +3,7 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
 using Hexa.NET.ImGui.Backends.OpenGL3;
 using Hexa.NET.ImGui.Utilities;
+using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
 using HexaImGui.demo;
@@ -24,6 +25,7 @@ public class ImVisualizer
 
     private ImGuiContextPtr _guiContext;
     private ImPlotContextPtr _plotContext;
+    private ImNodesContextPtr _nodesContext;
     private ImGuiIOPtr _io;
     private ImGuiFontBuilder _builder = null!;
     private GLFWwindowPtr _window = null!;
@@ -69,10 +71,14 @@ public class ImVisualizer
         ImGui.SetCurrentContext(_guiContext);
 
         ImPlot.SetImGuiContext(_guiContext);
-
         _plotContext = ImPlot.CreateContext();
         ImPlot.SetCurrentContext(_plotContext);
         ImPlot.StyleColorsDark(ImPlot.GetStyle());
+
+        ImNodes.SetImGuiContext(_guiContext);
+        _nodesContext = ImNodes.CreateContext();
+        ImNodes.SetCurrentContext(_nodesContext);
+        ImNodes.StyleColorsDark(ImNodes.GetStyle());
 
         // Setup ImGui config.
         _io = ImGui.GetIO();
@@ -192,6 +198,10 @@ public class ImVisualizer
         ImPlot.SetCurrentContext(null);
         ImPlot.SetImGuiContext(null);
         ImPlot.DestroyContext(_plotContext);
+
+        ImNodes.SetCurrentContext(null);
+        ImNodes.SetImGuiContext(null);
+        ImNodes.DestroyContext(_nodesContext);
 
         ImGui.SetCurrentContext(null);
         ImGui.DestroyContext(_guiContext);
