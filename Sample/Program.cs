@@ -59,12 +59,14 @@ internal class Program
         dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
 
         RecentDataViewer recentDataViewer = new RecentDataViewer("RecentDataViewer");
+        CommandConsole console = new CommandConsole("CommandConsole");
+        console.IsVisible = false;
 
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
         visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
-        //visualizer.UiWindows.TryAdd(textViewer.WindowName, textViewer);
         visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
+        visualizer.UiWindows.TryAdd(console.WindowId, console);
 
         Random random = new Random();
         int logIndex = 0;

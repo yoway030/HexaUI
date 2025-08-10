@@ -7,7 +7,6 @@ using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
 using HexaImGui.demo;
 using HexaImGui.Utils;
-using HexaImGui.Window;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
@@ -29,12 +28,15 @@ public class ImVisualizer
     private ImGuiFontBuilder _builder = null!;
     private GLFWwindowPtr _window = null!;
     private GL _gl = null!;
-    
+
+    public string LabelBackground = "VisualizerBackground";
+
     private HexaDemo _hexaImGuiDemo = new HexaDemo();
     private ImGuiDemo _imGuiDemo = new ImGuiDemo();
 
     public ConcurrentDictionary<string /*windowId*/, ImVisualizerWindow> UiWindows = new();
     public ConcurrentDictionary<string, ImVisualizerObject> UiMenus = new();
+    public Action? RenderDelegate;
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -157,6 +159,8 @@ public class ImVisualizer
 
             // UI 윈도우처리
             RenderWindows(currentTime, deltaSec);
+
+            RenderDelegate?.Invoke();
 
             ImGui.Render();
             ImGui.EndFrame();
@@ -291,7 +295,7 @@ public class ImVisualizer
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.25f, 0.25f, 0.25f, 1.0f)); // 짙은 회색 배경
 
-        ImGui.Begin("VisualizerBackground",
+        ImGui.Begin(LabelBackground,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoBringToFrontOnFocus |

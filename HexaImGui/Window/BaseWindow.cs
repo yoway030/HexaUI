@@ -13,35 +13,50 @@ public abstract class BaseWindow : ImVisualizerWindow
         WindowDepth = windowDepth;
         WindowId = windowDepth == 0 ? $"{WindowName}" : $"{WindowName}#{WindowDepth}";
         IsVisible = true;
-        _initSize = new Vector2(300, 200);
-        _initPosition = parentPosition != null ?
+        _windowSize = new Vector2(300, 200);
+        _windowPosition = parentPosition != null ?
             new Vector2(parentPosition.Value.X, parentPosition.Value.Y) :
             new Vector2(400, 400);
     }
 
     private bool _isVisible = true;
-    private Vector2 _initSize;
-    private Vector2 _initPosition;
+    private bool _isChangingWindowPosSize = false;
+    private Vector2 _windowSize;
+    private Vector2 _windowPosition;
 
     public string WindowName { get; init; }
     public int WindowDepth { get; init; }
     public string WindowId { get; init; }
     public bool IsVisible { get => _isVisible; set => _isVisible = value; }
 
-    public Vector2 InitSize { get => _initSize; set => _initSize = value; }
-    public Vector2 InitPoistion { get => _initPosition; set => _initPosition = value; }
+    public Vector2 WindowSize { get => _windowSize; set => _windowSize = value; }
+    public Vector2 WindowPoistion { get => _windowPosition; set => _windowPosition = value; }
+
+    public void SetWindowPosSize(Vector2 position, Vector2 size)
+    {
+        _windowPosition = position;
+        _windowSize = size;
+        _isChangingWindowPosSize = true;
+    }
 
     public void RenderVisualizer(DateTime utcNow, double deltaSec)
     {
-        if (IsVisible == false)
+        OnPrevRender(utcNow, deltaSec);
+
+        if (_isVisible == false)
         {
             return;
         }
 
-        OnPrevRender(utcNow, deltaSec);
+        ImGui.SetNextWindowPos(_windowPosition, ImGuiCond.FirstUseEver);
+        ImGui.SetNextWindowSize(_windowSize, ImGuiCond.FirstUseEver);
 
-        ImGui.SetNextWindowPos(_initPosition, ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSize(_initSize, ImGuiCond.FirstUseEver);
+        if (_isChangingWindowPosSize == true)
+        {
+            ImGui.SetNextWindowPos(_windowPosition, ImGuiCond.Always);
+            ImGui.SetNextWindowSize(_windowSize, ImGuiCond.Always);
+            _isChangingWindowPosSize = false;
+        }
 
         if (ImGui.Begin(WindowId, ref _isVisible))
         {
