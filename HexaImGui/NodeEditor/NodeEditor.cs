@@ -2,6 +2,7 @@
 using Hexa.NET.ImNodes;
 
 namespace HexaImGui.NodeEidtor;
+
 public class NodeEditor
 {
     private string? state;
