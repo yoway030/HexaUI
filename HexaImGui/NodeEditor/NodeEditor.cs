@@ -1,5 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
+using System.Numerics;
 
 namespace HexaImGui.NodeEidtor;
 
@@ -151,6 +152,21 @@ public class NodeEditor
             Initialize();
         ImNodes.EditorContextSet(context);
         ImNodes.BeginNodeEditor();
+
+        //// 현재 Node Editor가 속한 윈도우의 DrawList 가져오기
+        //var drawList = ImGui.GetWindowDrawList();
+
+        //// Node Editor 좌표 → 스크린 좌표 변환
+        //Vector2 origin = ImGui.GetWindowPos();
+        //Vector2 rectMin = origin;
+        //Vector2 rectMax = origin + new Vector2(100, 100);
+
+        //// 색상
+        //uint color = ImGui.GetColorU32(new Vector4(1f, 0f, 0f, 1f));
+
+        //// 사각형 그리기
+        //drawList.AddRectFilled(rectMin, rectMax, color);
+
         for (int i = 0; i < Nodes.Count; i++)
         {
             Nodes[i].Draw();
