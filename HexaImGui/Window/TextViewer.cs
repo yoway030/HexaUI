@@ -1,10 +1,10 @@
 ﻿using Hexa.NET.ImGui;
 using System.Numerics;
 using System.Text;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using System.Net.Http.Headers;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class TextViewer : BaseWindow
 {

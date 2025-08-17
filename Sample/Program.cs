@@ -1,7 +1,7 @@
-﻿using HexaImGui;
+﻿using ELImGui;
 using Hexa.NET.ImGui;
 using System.Numerics;
-using HexaImGui.Window;
+using ELImGui.Window;
 
 namespace Sample;
 

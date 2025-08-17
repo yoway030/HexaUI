@@ -3,7 +3,7 @@ using Hexa.NET.ImNodes;
 using System.Globalization;
 using System.Numerics;
 
-namespace HexaImGui.NodeEidtor;
+namespace ELImGui.NodeEidtor;
 
 public class FloatPin : Pin, IDefaultValuePin
 {

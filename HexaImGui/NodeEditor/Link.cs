@@ -1,66 +1,51 @@
-﻿using Hexa.NET.ImNodes;
+﻿namespace ELImGui.NodeEidtor;
 
-namespace HexaImGui.NodeEidtor;
+using Hexa.NET.ImNodes;
 
 public class Link
 {
-    private readonly Node outputNode;
-    private readonly Pin output;
-    private readonly Node inputNode;
-    private readonly Pin input;
-
-    private NodeEditor? editor;
-    private int id;
-    private int outputId;
-    private int inputId;
-
     public Link(int id, Node outputNode, Pin output, Node inputNode, Pin input)
     {
-        this.id = id;
-        this.outputNode = outputNode;
-        this.output = output;
-        outputId = output.Id;
-        this.inputNode = inputNode;
-        this.input = input;
-        inputId = input.Id;
+        Id = id;
+        OutputNode = outputNode;
+        OutputPin = output;
+        InputNode = inputNode;
+        InputPin = input;
     }
 
-    public int Id => id;
+    public NodeEditor? Editor { get; private set; }
+    public int Id { get; init; }
+    public Node OutputNode { get; init; }
+    public Pin OutputPin { get; init; }
+    public Node InputNode { get; init; }
+    public Pin InputPin { get; init; }
 
-    public Node OutputNode => outputNode;
-
-    public Pin Output => output;
-
-    public Node InputNode => inputNode;
-
-    public Pin Input => input;
-
-    public void Draw()
+    public void Render()
     {
-        ImNodes.Link(id, outputId, inputId);
+        ImNodes.Link(Id, OutputPin.Id, InputPin.Id);
     }
 
-    public virtual void Destroy()
+    public void Destroy()
     {
-        if (editor == null) return;
-        editor.RemoveLink(this);
+        if (Editor == null)
+        {
+            return;
+        }
+
+        Editor.RemoveLink(this);
         OutputNode.RemoveLink(this);
-        Output.RemoveLink(this);
+        OutputPin.RemoveLink(this);
         InputNode.RemoveLink(this);
-        Input.RemoveLink(this);
-        editor = null;
+        InputPin.RemoveLink(this);
+        Editor = null;
     }
 
-    public virtual void Initialize(NodeEditor editor)
+    public void Initialize(NodeEditor editor)
     {
-        this.editor = editor;
-
-        outputId = output.Id;
-        inputId = input.Id;
-
+        Editor = editor;
         OutputNode.AddLink(this);
-        Output.AddLink(this);
+        OutputPin.AddLink(this);
         InputNode.AddLink(this);
-        Input.AddLink(this);
+        InputPin.AddLink(this);
     }
 }

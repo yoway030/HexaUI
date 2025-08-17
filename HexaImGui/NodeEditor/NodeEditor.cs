@@ -2,7 +2,7 @@
 using Hexa.NET.ImNodes;
 using System.Numerics;
 
-namespace HexaImGui.NodeEidtor;
+namespace ELImGui.NodeEidtor;
 
 public class NodeEditor
 {
@@ -153,6 +153,11 @@ public class NodeEditor
         ImNodes.EditorContextSet(context);
         ImNodes.BeginNodeEditor();
 
+        var winPos = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+        // 좌상단에 그리드가 바로 붙는 스타일이라면 보통 아래처럼 절반을 패닝으로 준다
+        ImNodes.EditorContextResetPanning(new System.Numerics.Vector2(winSize.X * 0.5f, winSize.Y * 0.5f));
+
         //// 현재 Node Editor가 속한 윈도우의 DrawList 가져오기
         //var drawList = ImGui.GetWindowDrawList();
 
@@ -171,18 +176,55 @@ public class NodeEditor
         {
             Nodes[i].Draw();
         }
-        for (int i = 0; i < Links.Count; i++)
+
+        float Speed = 0.1f;   // t 증가 속도 (초당)
+        float HandleScale = 0.25f; // 제어점 스케일(α)
+        float DotRadius = 4.0f;
+        var drawList = ImGui.GetWindowDrawList();
+
+        double time = ImGui.GetTime();
+        foreach (var link in Links)
         {
-            Links[i].Draw();
+            if (link.OutputPin.Center == null)
+            {
+                continue;
+            }
+            if (link.InputPin.Center == null)
+            {
+                continue;
+            }
+
+            var p3 = link.InputPin.Center.Value;
+            var p0 = link.OutputPin.Center.Value;
+
+            float dx = Vector2.Distance(p0, p3);
+            var p1 = p0 + new Vector2(dx * HandleScale, 0f);
+            var p2 = p3 - new Vector2(dx * HandleScale, 0f);
+
+            // 각 링크마다 위상 차이를 줘서 구슬이 겹치지 않게
+            float t = (float)(time * Speed % 1.0f);
+
+            Vector2 pos = CubicBezier(p0, p1, p2, p3, t);
+            uint col = ImGui.GetColorU32(new Vector4(1, 1, 1, 1)); // 필요시 색상/알파 조절
+            drawList.AddCircleFilled(pos, DotRadius, col);
         }
 
+        for (int i = 0; i < Links.Count; i++)
+        {
+            Links[i].Render();
+        }
+
+        ImNodes.MiniMap();
         ImNodes.EndNodeEditor();
+
+
 
         int idNode1 = 0;
         int idNode2 = 0;
         int idpin1 = 0;
         int idpin2 = 0;
         bool createdFromSnap = false;
+        
         if (ImNodes.IsLinkCreated(ref idNode1, ref idpin1, ref idNode2, ref idpin2, ref createdFromSnap))
         {
             var pino = GetNode(idNode1).GetOuput(idpin1);
@@ -190,6 +232,7 @@ public class NodeEditor
             if (pini.CanCreateLink(pino) && pino.CanCreateLink(pini))
                 CreateLink(pini, pino);
         }
+
         int idLink = 0;
         if (ImNodes.IsLinkDestroyed(ref idLink))
         {
@@ -269,7 +312,7 @@ public class NodeEditor
             walkstack.Push((i, node));
             if (link.OutputNode == node)
             {
-                if (link.Output == endPin)
+                if (link.OutputPin == endPin)
                     return true;
                 else
                     walkstack.Push((0, link.InputNode));
@@ -277,6 +320,20 @@ public class NodeEditor
         }
 
         return false;
+    }
+
+    public Vector2 CubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
+    {
+        float u = 1f - t;
+        float uu = u * u, tt = t * t;
+        float uuu = uu * u, ttt = tt * t;
+
+        Vector2 p = uuu * p0;
+        p += 3f * uu * t * p1;
+        p += 3f * u * tt * p2;
+        p += ttt * p3;
+
+        return p;
     }
 
     public static Node[] TreeTraversal(Node root, bool includeStatic)

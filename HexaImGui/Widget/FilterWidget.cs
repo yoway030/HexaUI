@@ -1,8 +1,8 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using System.Numerics;
 
-namespace HexaImGui.Widget;
+namespace ELImGui.Widget;
 
 class FilterWidget : BaseWidget
 {

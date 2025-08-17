@@ -1,4 +1,4 @@
-﻿namespace HexaImGui.Utils;
+﻿namespace ELImGui.Utils;
 
 public static class ImVectorExtensions
 {

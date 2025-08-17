@@ -1,7 +1,8 @@
-﻿using Hexa.NET.ImGui;
-using Hexa.NET.ImNodes;
+﻿namespace ELImGui.NodeEidtor;
 
-namespace HexaImGui.NodeEidtor;
+using Hexa.NET.ImGui;
+using Hexa.NET.ImNodes;
+using System.Numerics;
 
 public class Node
 {
@@ -21,6 +22,8 @@ public class Node
     public uint TitleHoveredColor = 0x5e60ceff;
 
     public uint TitleSelectedColor = 0x7400b8ff;
+
+    private Vector2 position = Vector2.Zero;
 
     public Node(int id, string name, bool removable, bool isStatic)
     {
@@ -231,8 +234,10 @@ public class Node
         ImNodes.PushColorStyle(ImNodesCol.TitleBar, TitleColor);
         ImNodes.PushColorStyle(ImNodesCol.TitleBarHovered, TitleHoveredColor);
         ImNodes.PushColorStyle(ImNodesCol.TitleBarSelected, TitleSelectedColor);
+
         ImNodes.BeginNode(id);
         ImNodes.BeginNodeTitleBar();
+
         if (isEditing)
         {
             string name = Name;
@@ -252,6 +257,7 @@ public class Node
             {
                 isEditing = true;
             }
+            ImGui.Text(position.ToString());
         }
 
         ImNodes.EndNodeTitleBar();
@@ -265,7 +271,27 @@ public class Node
 
         DrawContent();
 
+        var nodePos = ImNodes.GetNodeScreenSpacePos(Id);
+        var nodeSize = ImNodes.GetNodeDimensions(Id);
+
+        for (int i = 0; i < pins.Count; i++)
+        {
+            if (pins[i].Kind == PinKind.Input)
+            {
+                var center = pins[i].Center;
+                pins[i].Center = new Vector2(nodePos.X, center.Value.Y);
+            }
+            if (pins[i].Kind == PinKind.Output)
+            {
+                var center = pins[i].Center;
+                pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center.Value.Y);
+            }
+        }
+
         ImNodes.EndNode();
+
+        
+
         ImNodes.PopColorStyle();
     }
 

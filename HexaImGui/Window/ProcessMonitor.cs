@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class ProcessMonitor : BaseWindow
 {

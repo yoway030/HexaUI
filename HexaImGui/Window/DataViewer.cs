@@ -1,9 +1,9 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class DataViewer<TData> : BaseWindow
     where TData : ViewableData, new()

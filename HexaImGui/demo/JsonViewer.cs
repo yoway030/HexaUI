@@ -1,10 +1,10 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
 
-namespace HexaImGui.demo;
+namespace ELImGui.demo;
 
 public class JsonViewer
 {

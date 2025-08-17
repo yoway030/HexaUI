@@ -2,7 +2,7 @@
 using System.Numerics;
 using System.Text;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class CommandConsole : BaseWindow
 {

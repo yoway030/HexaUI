@@ -1,8 +1,8 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using System.Numerics;
 
-namespace HexaImGui.demo;
+namespace ELImGui.demo;
 
 public class MouseDragRect
 {

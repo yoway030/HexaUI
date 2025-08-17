@@ -1,8 +1,8 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Utils;
+using ELImGui.Utils;
 using System.Runtime.CompilerServices;
 
-namespace HexaImGui.demo;
+namespace ELImGui.demo;
 
 class ImGuiDemo
 {

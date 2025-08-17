@@ -1,9 +1,9 @@
 ﻿
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
-using HexaImGui.NodeEidtor;
+using ELImGui.NodeEidtor;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class NetworkNodeView
 {
@@ -21,9 +21,9 @@ public class NetworkNodeView
         var node3 = editor.CreateNode("Node");
         var in3 = node3.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
         node3.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
-        editor.CreateLink(out1, in2);
-        editor.CreateLink(out1, in3);
-        editor.CreateLink(out2, in3);
+        editor.CreateLink(in2, out1);
+        editor.CreateLink(in3, out1);
+        editor.CreateLink(in3, out2);
     }
 
     public void Draw()
@@ -42,6 +42,7 @@ public class NetworkNodeView
                 node.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
                 node.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
             }
+
             ImGui.EndMenuBar();
         }
 

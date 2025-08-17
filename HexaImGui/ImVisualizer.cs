@@ -6,15 +6,15 @@ using Hexa.NET.ImGui.Utilities;
 using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
-using HexaImGui.demo;
-using HexaImGui.Utils;
+using ELImGui.demo;
+using ELImGui.Utils;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
-namespace HexaImGui;
+namespace ELImGui;
 
 public class ImVisualizer
 {

@@ -1,9 +1,9 @@
 ﻿using Hexa.NET.ImGui;
-using HexaImGui.Widget;
+using ELImGui.Widget;
 using System.Collections.Concurrent;
 using System.Numerics;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public class RecentDataViewer : BaseWindow
 {

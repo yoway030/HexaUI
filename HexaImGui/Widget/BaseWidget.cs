@@ -1,6 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 
-namespace HexaImGui.Widget;
+namespace ELImGui.Widget;
 
 public abstract class BaseWidget
 {

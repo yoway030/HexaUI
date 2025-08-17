@@ -1,7 +1,8 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
+using System.Numerics;
 
-namespace HexaImGui.NodeEidtor;
+namespace ELImGui.NodeEidtor;
 
 public class Pin
 {
@@ -14,6 +15,7 @@ public class Pin
     public PinKind Kind;
     public PinType Type;
     public uint MaxLinks;
+    public Vector2? Center { get; set; } = null;
 
     private readonly List<Link> links = new();
 
@@ -143,6 +145,11 @@ public class Pin
     protected virtual void DrawContent()
     {
         ImGui.Text(Name);
+
+        Vector2 min = ImGui.GetItemRectMin();
+        Vector2 max = ImGui.GetItemRectMax();
+        float y = (min.Y + max.Y) * 0.5f;
+        Center = new Vector2(min.X, y); // x position incorrect
     }
 
     public virtual void Initialize(NodeEditor editor, Node parent)

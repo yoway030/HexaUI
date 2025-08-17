@@ -1,4 +1,4 @@
-﻿namespace HexaImGui.NodeEidtor;
+﻿namespace ELImGui.NodeEidtor;
 
 public enum PinType
 {

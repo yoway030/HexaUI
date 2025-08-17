@@ -1,7 +1,7 @@
 ﻿using Hexa.NET.ImGui;
 using System.Numerics;
 
-namespace HexaImGui.Window;
+namespace ELImGui.Window;
 
 public abstract class BaseWindow : ImVisualizerWindow
 {

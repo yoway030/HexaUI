@@ -1,4 +1,4 @@
-﻿namespace HexaImGui.Window;
+﻿namespace ELImGui.Window;
 
 public abstract class ViewableData
 {

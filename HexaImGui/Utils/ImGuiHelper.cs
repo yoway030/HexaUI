@@ -1,6 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 
-namespace HexaImGui.Utils;
+namespace ELImGui.Utils;
 
 static class ImGuiHelper
 {

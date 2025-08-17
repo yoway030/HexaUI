@@ -1,6 +1,6 @@
 ﻿using Hexa.NET.GLFW;
 
-namespace HexaImGui.Utils;
+namespace ELImGui.Utils;
 
 internal unsafe class BindingsContext : HexaGen.Runtime.IGLContext
 {
