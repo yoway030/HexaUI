@@ -129,7 +129,9 @@ public class Node
         {
             Link link = pin.Links[i];
             if (link.OutputNode == other)
+            {
                 return link;
+            }
         }
         return null;
     }
@@ -140,20 +142,22 @@ public class Node
         {
             Link link = pin.Links[i];
             if (link.InputNode == other)
+            {
                 return link;
+            }
         }
         return null;
     }
 
-    public virtual Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
+    public virtual Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind, maxLinks);
+        Pin pin = new(editor.GetUniqueId(), name, shape, kind);
         return AddPin(pin);
     }
 
-    public virtual Pin CreateOrGetPin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
+    public virtual Pin CreateOrGetPin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind, maxLinks);
+        Pin pin = new(editor.GetUniqueId(), name, shape, kind);
         return AddOrGetPin(pin);
     }
 
@@ -166,13 +170,19 @@ public class Node
             int index = pins.IndexOf(old);
             old.Destroy();
             if (editor != null)
+            {
                 pin.Initialize(editor, this);
+            }
+
             pins[index] = pin;
         }
         else
         {
             if (editor != null)
+            {
                 pin.Initialize(editor, this);
+            }
+
             pins.Add(pin);
             PinAdded?.Invoke(this, pin);
         }
@@ -191,7 +201,10 @@ public class Node
         else
         {
             if (editor != null)
+            {
                 pin.Initialize(editor, this);
+            }
+
             pins.Add(pin);
             PinAdded?.Invoke(this, pin);
         }

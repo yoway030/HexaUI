@@ -13,57 +13,62 @@ public class Pin
         Static
     }
 
-    private NodeEditor? editor;
-    private Node parent;
-    private int id;
+    private NodeEditor? _editor;
+    private Node _parent;
+    private int _id;
+    private readonly List<Link> _links = new();
+
+#pragma warning disable CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+
+    public Pin(int id, string name, ImNodesPinShape shape, PinKind kind)
+#pragma warning restore CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+    {
+        this._id = id;
+        Name = name;
+        Shape = shape;
+        Kind = kind;
+    }
 
     public readonly string Name;
     public ImNodesPinShape Shape;
     public PinKind Kind;
     public uint MaxLinks;
+
     public Vector2? Center { get; set; } = null;
-
-    private readonly List<Link> links = new();
-
-#pragma warning disable CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-
-    public Pin(int id, string name, ImNodesPinShape shape, PinKind kind, uint maxLinks = uint.MaxValue)
-#pragma warning restore CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-    {
-        this.id = id;
-        Name = name;
-        Shape = shape;
-        Kind = kind;
-        MaxLinks = maxLinks;
-    }
 
     public event EventHandler<Link>? LinkCreated;
 
     public event EventHandler<Link>? LinkRemoved;
 
-    public int Id => id;
+    public int Id { get => _id; }
 
-    public Node Parent => parent;
+    public Node Parent { get => _parent; }
 
-    public List<Link> Links => links;
+    public List<Link> Links => _links;
 
     public void AddLink(Link link)
     {
-        links.Add(link);
+        _links.Add(link);
         LinkCreated?.Invoke(this, link);
     }
 
     public void RemoveLink(Link link)
     {
-        links.Remove(link);
+        _links.Remove(link);
         LinkRemoved?.Invoke(this, link);
     }
 
     public virtual bool CanCreateLink(Pin other)
     {
-        if (id == other.id) return false;
-        if (Links.Count == MaxLinks) return false;
-        if (Kind == other.Kind) return false;
+        if (_id == other._id)
+        {
+            return false;
+        }
+
+        if (Kind == other.Kind)
+        {
+            return false;
+        }
 
         return true;
     }
@@ -72,19 +77,21 @@ public class Pin
     {
         if (Kind == PinKind.Input)
         {
-            ImNodes.BeginInputAttribute(id, Shape);
+            ImNodes.BeginInputAttribute(_id, Shape);
             DrawContent();
             ImNodes.EndInputAttribute();
         }
+
         if (Kind == PinKind.Output)
         {
-            ImNodes.BeginOutputAttribute(id, Shape);
+            ImNodes.BeginOutputAttribute(_id, Shape);
             DrawContent();
             ImNodes.EndOutputAttribute();
         }
+
         if (Kind == PinKind.Static)
         {
-            ImNodes.BeginStaticAttribute(id);
+            ImNodes.BeginStaticAttribute(_id);
             DrawContent();
             ImNodes.EndStaticAttribute();
         }
@@ -102,21 +109,28 @@ public class Pin
 
     public virtual void Initialize(NodeEditor editor, Node parent)
     {
-        this.editor = editor;
-        this.parent = parent;
-        if (id == 0)
-            id = editor.GetUniqueId();
+        _editor = editor;
+        _parent = parent;
+
+        if (_id == 0)
+        {
+            _id = editor.GetUniqueId();
+        }
     }
 
     public virtual void Destroy()
     {
-        if (editor == null) return;
+        if (_editor == null)
+        {
+            return;
+        }
+
         var links = Links.ToArray();
         for (int i = 0; i < links.Length; i++)
         {
             links[i].Destroy();
         }
 
-        editor = null;
+        _editor = null;
     }
 }

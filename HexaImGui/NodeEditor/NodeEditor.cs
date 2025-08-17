@@ -1,8 +1,8 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.NodeEidtor;
+
+using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Numerics;
-
-namespace ELImGui.NodeEidtor;
 
 public class NodeEditor
 {
@@ -238,6 +238,7 @@ public class NodeEditor
         {
             GetLink(idLink).Destroy();
         }
+
         if (ImGui.IsKeyPressed(ImGuiKey.Delete))
         {
             int numLinks = ImNodes.NumSelectedLinks();
@@ -265,6 +266,7 @@ public class NodeEditor
                 }
             }
         }
+
         int idpinStart = 0;
         if (ImNodes.IsLinkStarted(ref idpinStart))
         {
