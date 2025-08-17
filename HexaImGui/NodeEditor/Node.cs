@@ -10,55 +10,18 @@ public class Node
     public const uint TitleHoveredColor = 0x5e60ceff;
     public const uint TitleSelectedColor = 0x7400b8ff;
 
-    private NodeEditor? _editor;
-    private int _id;
-
-    private bool _isEditing;
-    private readonly List<Pin> _pins = new();
-    private readonly List<Link> _links = new();
-
-    public Node(int id, string name)
+    public Node(int id, string name, NodeEditor editor)
     {
-        this._id = id;
+        Id = id;
         Name = name;
+        Editor = editor;
     }
 
-    public string Name;
-
-    public event EventHandler<Pin>? PinAdded;
-
-    public event EventHandler<Pin>? PinRemoved;
-
-    public event EventHandler<Link>? LinkAdded;
-
-    public event EventHandler<Link>? LinkRemoved;
-
-    public int Id => _id;
-
-    public List<Link> Links => _links;
-
-    public List<Pin> Pins => _pins;
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            _isEditing = value;
-        }
-    }
-
-    public bool IsHovered { get; set; }
-
-    public virtual void Initialize(NodeEditor editor)
-    {
-        _editor = editor;
-
-        if (_id == 0)
-        {
-            _id = editor.GetUniqueId();
-        }
-    }
+    public string Name { get; init; }
+    public int Id { get; init; }
+    private NodeEditor Editor { get; init; }
+    public List<Pin> Pins { get; } = new();
+    public bool IsHovered { get; set; } = false;
 
     public Pin GetInput(int id)
     {
@@ -82,9 +45,9 @@ public class Node
 
     public Pin? Find(int id)
     {
-        for (int i = 0; i < _pins.Count; i++)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            var pin = _pins[i];
+            var pin = Pins[i];
             if (pin.Id == id)
             {
                 return pin;
@@ -95,9 +58,9 @@ public class Node
 
     public Pin? Find(string name)
     {
-        for (int i = 0; i < _pins.Count; i++)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            var pin = _pins[i];
+            var pin = Pins[i];
             if (pin.Name == name)
             {
                 return pin;
@@ -108,9 +71,9 @@ public class Node
 
     public bool PinExists(string name)
     {
-        for (int i = 0; i < _pins.Count; i++)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            var pin = _pins[i];
+            var pin = Pins[i];
             if (pin.Name == name)
             {
                 return true;
@@ -124,7 +87,7 @@ public class Node
         for (int i = 0; i < pin.Links.Count; i++)
         {
             Link link = pin.Links[i];
-            if (link.OutputNode == other)
+            if (link.OutputPin.Parent == other)
             {
                 return link;
             }
@@ -137,7 +100,7 @@ public class Node
         for (int i = 0; i < pin.Links.Count; i++)
         {
             Link link = pin.Links[i];
-            if (link.InputNode == other)
+            if (link.InputPin.Parent == other)
             {
                 return link;
             }
@@ -145,162 +108,82 @@ public class Node
         return null;
     }
 
-    public virtual Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
+    public Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
     {
         Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
         return AddPin(pin);
     }
 
-    public virtual Pin CreateOrGetPin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
-    {
-        Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
-        return AddOrGetPin(pin);
-    }
-
-    public virtual T AddPin<T>(T pin) where T : Pin
+    public Pin AddPin(Pin pin)
     {
         Pin? old = Find(pin.Name);
 
         if (old != null)
         {
-            int index = _pins.IndexOf(old);
+            int index = Pins.IndexOf(old);
             old.Destroy();
 
-            _pins[index] = pin;
+            Pins[index] = pin;
         }
         else
         {
-            _pins.Add(pin);
-            PinAdded?.Invoke(this, pin);
+            Pins.Add(pin);
         }
 
         return pin;
     }
 
-    public virtual T AddOrGetPin<T>(T pin) where T : Pin
-    {
-        Pin? old = Find(pin.Name);
-
-        if (old != null)
-        {
-            return (T)old;
-        }
-        else
-        {
-            _pins.Add(pin);
-            PinAdded?.Invoke(this, pin);
-        }
-
-        return pin;
-    }
-
-    public virtual void DestroyPin<T>(T pin) where T : Pin
+    public void DestroyPin(Pin pin)
     {
         pin.Destroy();
-        _pins.Remove(pin);
-        PinRemoved?.Invoke(this, pin);
+        Pins.Remove(pin);
     }
 
-    public virtual void AddLink(Link link)
+    public void Destroy()
     {
-        _links.Add(link);
-        LinkAdded?.Invoke(this, link);
-    }
-
-    public virtual void RemoveLink(Link link)
-    {
-        _links.Remove(link);
-        LinkRemoved?.Invoke(this, link);
-    }
-
-    public virtual void Destroy()
-    {
-        if (_editor == null)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            return;
+            Pins[i].Destroy();
         }
-
-        for (int i = 0; i < _pins.Count; i++)
-        {
-            _pins[i].Destroy();
-        }
-        _editor.RemoveNode(this);
-        _editor = null;
     }
 
-    public virtual void Draw()
+    public void Render()
     {
         ImNodes.PushColorStyle(ImNodesCol.TitleBar, TitleColor);
         ImNodes.PushColorStyle(ImNodesCol.TitleBarHovered, TitleHoveredColor);
         ImNodes.PushColorStyle(ImNodesCol.TitleBarSelected, TitleSelectedColor);
 
-        ImNodes.BeginNode(_id);
+        ImNodes.BeginNode(Id);
         ImNodes.BeginNodeTitleBar();
 
-        if (_isEditing)
-        {
-            string name = Name;
-            ImGui.PushItemWidth(100);
-            if (ImGui.InputText("Name", ref name, 256, ImGuiInputTextFlags.EnterReturnsTrue))
-            {
-                Name = name;
-                _isEditing = false;
-            }
-            ImGui.PopItemWidth();
-        }
-        else
-        {
-            ImGui.Text(Name);
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Edit")) // TODO: Replace with icon
-            {
-                _isEditing = true;
-            }
-        }
+        ImGui.Text(Name);
 
         ImNodes.EndNodeTitleBar();
 
-        DrawContentBeforePins();
-
-        for (int i = 0; i < _pins.Count; i++)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            _pins[i].Render();
+            Pins[i].Render();
         }
-
-        DrawContent();
 
         var nodePos = ImNodes.GetNodeScreenSpacePos(Id);
         var nodeSize = ImNodes.GetNodeDimensions(Id);
 
-        for (int i = 0; i < _pins.Count; i++)
+        for (int i = 0; i < Pins.Count; i++)
         {
-            if (_pins[i].Kind == Pin.PinKind.Input)
+            if (Pins[i].Kind == Pin.PinKind.Input)
             {
-                var center = _pins[i].Center;
-                _pins[i].Center = new Vector2(nodePos.X, center?.Y ?? 0f);
+                var center = Pins[i].Center;
+                Pins[i].Center = new Vector2(nodePos.X, center?.Y ?? 0f);
             }
 
-            if (_pins[i].Kind == Pin.PinKind.Output)
+            if (Pins[i].Kind == Pin.PinKind.Output)
             {
-                var center = _pins[i].Center;
-                _pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
+                var center = Pins[i].Center;
+                Pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
             }
         }
 
         ImNodes.EndNode();
         ImNodes.PopColorStyle();
-    }
-
-    protected virtual void DrawContentBeforePins()
-    {
-    }
-
-    protected virtual void DrawContent()
-    {
-    }
-
-    public override string ToString()
-    {
-        return Name;
     }
 }

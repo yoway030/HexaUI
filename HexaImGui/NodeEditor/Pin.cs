@@ -21,6 +21,7 @@ public class Pin
         Kind = kind;
         Parent = parent;
     }
+
     public int Id { get; init; }
     public string Name { get; set; }
     public Node Parent { get; init; }

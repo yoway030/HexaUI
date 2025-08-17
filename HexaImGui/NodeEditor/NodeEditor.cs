@@ -7,8 +7,6 @@ using System.Numerics;
 public class NodeEditor
 {
     private ImNodesEditorContextPtr _editorContext;
-    private readonly List<Node> _nodes = new();
-    private readonly List<Link> _links = new();
     private int _idOffset;
 
     public NodeEditor()
@@ -16,72 +14,72 @@ public class NodeEditor
         _editorContext = ImNodes.EditorContextCreate();
     }
 
-    public List<Node> Nodes => _nodes;
-
-    public List<Link> Links => _links;
+    public List<Node> Nodes { get; } = new();
+    public List<Link> Links { get; } = new();
 
     public int GetUniqueId()
     {
         return _idOffset++;
     }
 
-    public Node GetNode(int id)
+    public Node? GetNode(int id)
     {
-        for (int i = 0; i < _nodes.Count; i++)
+        for (int i = 0; i < Nodes.Count; i++)
         {
-            Node node = _nodes[i];
+            Node node = Nodes[i];
             if (node.Id == id)
                 return node;
         }
-        throw new();
+
+        return null;
     }
 
-    public Link GetLink(int id)
+    public Link? GetLink(int id)
     {
-        for (int i = 0; i < _links.Count; i++)
+        for (int i = 0; i < Links.Count; i++)
         {
-            var link = _links[i];
+            var link = Links[i];
             if (link.Id == id)
             {
                 return link;
             }
         }
 
-        throw new KeyNotFoundException();
+        return null;
     }
 
     public Node CreateNode(string name)
     {
-        Node node = new(GetUniqueId(), name);
+        Node node = new(GetUniqueId(), name, this);
         AddNode(node);
         return node;
     }
 
     public void AddNode(Node node)
     {
-        _nodes.Add(node);
+        Nodes.Add(node);
     }
 
     public void RemoveNode(Node node)
     {
-        _nodes.Remove(node);
-    }
-
-    public void AddLink(Link link)
-    {
-        _links.Add(link);
-    }
-
-    public void RemoveLink(Link link)
-    {
-        _links.Remove(link);
+        Nodes.Remove(node);
     }
 
     public Link CreateLink(Pin input, Pin output)
     {
-        Link link = new(GetUniqueId(), output.Parent, output, input.Parent, input);
+        Link link = new(GetUniqueId(), this, output, input);
         AddLink(link);
         return link;
+    }
+
+    public void AddLink(Link link)
+    {
+        Links.Add(link);
+    }
+
+    public void RemoveLink(Link link)
+    {
+        Links.Remove(link);
     }
 
     public void Render()
@@ -91,7 +89,7 @@ public class NodeEditor
 
         for (int i = 0; i < Nodes.Count; i++)
         {
-            Nodes[i].Draw();
+            Nodes[i].Render();
         }
 
         RenderLinkFlows();
@@ -115,18 +113,20 @@ public class NodeEditor
 
     private void RenderLinkFlows()
     {
-        float Speed = 0.1f;   // t 증가 속도 (초당)
-        float HandleScale = 0.25f; // 제어점 스케일(α)
-        float DotRadius = 4.0f;
-        var drawList = ImGui.GetWindowDrawList();
+        const float Speed = 0.1f;   // t 증가 속도 (초당)
+        const float HandleScale = 0.25f; // 제어점 스케일(α)
+        const float DotRadius = 4.0f;
 
+        var drawList = ImGui.GetWindowDrawList();
         double time = ImGui.GetTime();
+
         foreach (var link in Links)
         {
             if (link.OutputPin.Center == null)
             {
                 continue;
             }
+
             if (link.InputPin.Center == null)
             {
                 continue;
@@ -139,11 +139,10 @@ public class NodeEditor
             var p1 = p0 + new Vector2(dx * HandleScale, 0f);
             var p2 = p3 - new Vector2(dx * HandleScale, 0f);
 
-            // 각 링크마다 위상 차이를 줘서 구슬이 겹치지 않게
             float t = (float)(time * Speed % 1.0f);
 
             Vector2 pos = CubicBezier(p0, p1, p2, p3, t);
-            uint col = ImGui.GetColorU32(new Vector4(1, 1, 1, 1)); // 필요시 색상/알파 조절
+            uint col = ImGui.GetColorU32(new Vector4(1, 1, 1, 1));
             drawList.AddCircleFilled(pos, DotRadius, col);
         }
     }
@@ -164,12 +163,13 @@ public class NodeEditor
 
     public void Destroy()
     {
-        var nodes = _nodes.ToArray();
-        for (int i = 0; i < nodes.Length; i++)
+        foreach (var node in Nodes)
         {
-            nodes[i].Destroy();
+            node.Destroy();
         }
-        _nodes.Clear();
+
+        Nodes.Clear();
+
         ImNodes.EditorContextFree(_editorContext);
         _editorContext = null;
     }

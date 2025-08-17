@@ -40,9 +40,9 @@ public class NodeViewer : BaseWindow
         editor.CreateLink(in3, out2);
     }
 
-    public void AddNode()
+    public void AddNode(string nodeName)
     {
-        var node = editor.CreateNode("Node");
+        var node = editor.CreateNode(nodeName);
         node.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
         node.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
     }
