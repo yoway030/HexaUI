@@ -279,12 +279,12 @@ public class Node
             if (pins[i].Kind == PinKind.Input)
             {
                 var center = pins[i].Center;
-                pins[i].Center = new Vector2(nodePos.X, center.Value.Y);
+                pins[i].Center = new Vector2(nodePos.X, center?.Y ?? 0f);
             }
             if (pins[i].Kind == PinKind.Output)
             {
                 var center = pins[i].Center;
-                pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center.Value.Y);
+                pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
             }
         }
 
