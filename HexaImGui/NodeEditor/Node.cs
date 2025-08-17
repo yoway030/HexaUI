@@ -73,7 +73,7 @@ public class Node
     public Pin GetInput(int id)
     {
         Pin? pin = Find(id);
-        if (pin == null || pin.Kind != PinKind.Input)
+        if (pin == null || pin.Kind != Pin.PinKind.Input)
         {
             throw new();
         }
@@ -83,7 +83,7 @@ public class Node
     public Pin GetOuput(int id)
     {
         Pin? pin = Find(id);
-        if (pin == null || pin.Kind != PinKind.Output)
+        if (pin == null || pin.Kind != Pin.PinKind.Output)
         {
             throw new();
         }
@@ -145,15 +145,15 @@ public class Node
         return null;
     }
 
-    public virtual Pin CreatePin(NodeEditor editor, string name, PinKind kind, PinType type, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
+    public virtual Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind, type, maxLinks);
+        Pin pin = new(editor.GetUniqueId(), name, shape, kind, maxLinks);
         return AddPin(pin);
     }
 
-    public virtual Pin CreateOrGetPin(NodeEditor editor, string name, PinKind kind, PinType type, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
+    public virtual Pin CreateOrGetPin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape, uint maxLinks = uint.MaxValue)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind, type, maxLinks);
+        Pin pin = new(editor.GetUniqueId(), name, shape, kind, maxLinks);
         return AddOrGetPin(pin);
     }
 
@@ -276,12 +276,12 @@ public class Node
 
         for (int i = 0; i < pins.Count; i++)
         {
-            if (pins[i].Kind == PinKind.Input)
+            if (pins[i].Kind == Pin.PinKind.Input)
             {
                 var center = pins[i].Center;
                 pins[i].Center = new Vector2(nodePos.X, center?.Y ?? 0f);
             }
-            if (pins[i].Kind == PinKind.Output)
+            if (pins[i].Kind == Pin.PinKind.Output)
             {
                 var center = pins[i].Center;
                 pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);

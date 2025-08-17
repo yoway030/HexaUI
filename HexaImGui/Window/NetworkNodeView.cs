@@ -13,14 +13,14 @@ public class NetworkNodeView
     {
         editor.Initialize();
         var node1 = editor.CreateNode("Node");
-        node1.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
-        var out1 = node1.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
+        node1.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        var out1 = node1.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
         var node2 = editor.CreateNode("Node");
-        var in2 = node2.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
-        var out2 = node2.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
+        var in2 = node2.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        var out2 = node2.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
         var node3 = editor.CreateNode("Node");
-        var in3 = node3.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
-        node3.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
+        var in3 = node3.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        node3.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
         editor.CreateLink(in2, out1);
         editor.CreateLink(in3, out1);
         editor.CreateLink(in3, out2);
@@ -39,8 +39,8 @@ public class NetworkNodeView
             if (ImGui.MenuItem("New Node"))
             {
                 var node = editor.CreateNode("Node");
-                node.CreatePin(editor, "In", PinKind.Input, PinType.DontCare, ImNodesPinShape.Circle);
-                node.CreatePin(editor, "Out", PinKind.Output, PinType.DontCare, ImNodesPinShape.Circle);
+                node.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+                node.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
             }
 
             ImGui.EndMenuBar();
