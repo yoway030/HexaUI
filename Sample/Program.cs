@@ -62,14 +62,14 @@ internal class Program
         CommandConsole console = new CommandConsole("CommandConsole");
         console.IsVisible = false;
 
+        NodeViewer nodeView = new NodeViewer("NodeViewer");
+
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
         visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
         visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
         visualizer.UiWindows.TryAdd(console.WindowId, console);
-
-        NetworkNodeView networkNodeView = new NetworkNodeView();
-        visualizer.RenderDelegate += () => networkNodeView.Draw();
+        visualizer.UiWindows.TryAdd(nodeView.WindowId, nodeView);
 
         Random random = new Random();
         int logIndex = 0;

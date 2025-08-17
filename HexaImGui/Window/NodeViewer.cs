@@ -1,17 +1,19 @@
-﻿
+﻿namespace ELImGui.Window;
+
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using ELImGui.NodeEidtor;
+using System;
 
-namespace ELImGui.Window;
-
-public class NetworkNodeView
+public class NodeViewer : BaseWindow
 {
     private NodeEditor editor = new();
 
-    public NetworkNodeView()
+    public NodeViewer(string windowName = nameof(NodeViewer))
+        : base(windowName, 0, null)
     {
         editor.Initialize();
+
         var node1 = editor.CreateNode("Node");
         node1.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
         var out1 = node1.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
@@ -26,14 +28,8 @@ public class NetworkNodeView
         editor.CreateLink(in3, out2);
     }
 
-    public void Draw()
+    public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        if (!ImGui.Begin("Demo ImNodes", ImGuiWindowFlags.MenuBar))
-        {
-            ImGui.End();
-            return;
-        }
-
         if (ImGui.BeginMenuBar())
         {
             if (ImGui.MenuItem("New Node"))
@@ -47,7 +43,9 @@ public class NetworkNodeView
         }
 
         editor.Draw();
+    }
 
-        ImGui.End();
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    {
     }
 }
