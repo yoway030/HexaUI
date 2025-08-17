@@ -12,22 +12,17 @@ public class Node
 
     private NodeEditor? _editor;
     private int _id;
-    private Vector2 position = Vector2.Zero;
 
     private bool _isEditing;
     private readonly List<Pin> _pins = new();
     private readonly List<Link> _links = new();
 
-    public Node(int id, string name, bool removable, bool isStatic)
+    public Node(int id, string name)
     {
         this._id = id;
         Name = name;
-        Removable = removable;
-        IsStatic = isStatic;
     }
 
-    public readonly bool Removable = true;
-    public readonly bool IsStatic;
     public string Name;
 
     public event EventHandler<Pin>? PinAdded;
@@ -58,14 +53,10 @@ public class Node
     public virtual void Initialize(NodeEditor editor)
     {
         _editor = editor;
+
         if (_id == 0)
         {
             _id = editor.GetUniqueId();
-        }
-
-        for (int i = 0; i < _pins.Count; i++)
-        {
-            _pins[i].Initialize(editor, this);
         }
     }
 
@@ -156,13 +147,13 @@ public class Node
 
     public virtual Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind);
+        Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
         return AddPin(pin);
     }
 
     public virtual Pin CreateOrGetPin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
     {
-        Pin pin = new(editor.GetUniqueId(), name, shape, kind);
+        Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
         return AddOrGetPin(pin);
     }
 
@@ -174,20 +165,11 @@ public class Node
         {
             int index = _pins.IndexOf(old);
             old.Destroy();
-            if (_editor != null)
-            {
-                pin.Initialize(_editor, this);
-            }
 
             _pins[index] = pin;
         }
         else
         {
-            if (_editor != null)
-            {
-                pin.Initialize(_editor, this);
-            }
-
             _pins.Add(pin);
             PinAdded?.Invoke(this, pin);
         }
@@ -205,11 +187,6 @@ public class Node
         }
         else
         {
-            if (_editor != null)
-            {
-                pin.Initialize(_editor, this);
-            }
-
             _pins.Add(pin);
             PinAdded?.Invoke(this, pin);
         }
@@ -279,7 +256,6 @@ public class Node
             {
                 _isEditing = true;
             }
-            ImGui.Text(position.ToString());
         }
 
         ImNodes.EndNodeTitleBar();
@@ -288,7 +264,7 @@ public class Node
 
         for (int i = 0; i < _pins.Count; i++)
         {
-            _pins[i].Draw();
+            _pins[i].Render();
         }
 
         DrawContent();

@@ -13,54 +13,35 @@ public class Pin
         Static
     }
 
-    private NodeEditor? _editor;
-    private Node _parent;
-    private int _id;
-    private readonly List<Link> _links = new();
-
-#pragma warning disable CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-
-    public Pin(int id, string name, ImNodesPinShape shape, PinKind kind)
-#pragma warning restore CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+    public Pin(int id, string name, Node parent, ImNodesPinShape shape, PinKind kind)
     {
-        this._id = id;
+        Id = id;
         Name = name;
         Shape = shape;
         Kind = kind;
+        Parent = parent;
     }
-
-    public readonly string Name;
-    public ImNodesPinShape Shape;
-    public PinKind Kind;
-    public uint MaxLinks;
-
+    public int Id { get; init; }
+    public string Name { get; set; }
+    public Node Parent { get; init; }
+    public ImNodesPinShape Shape { get; set; }
+    public PinKind Kind { get; init; }
     public Vector2? Center { get; set; } = null;
-
-    public event EventHandler<Link>? LinkCreated;
-
-    public event EventHandler<Link>? LinkRemoved;
-
-    public int Id { get => _id; }
-
-    public Node Parent { get => _parent; }
-
-    public List<Link> Links => _links;
+    public List<Link> Links { get; init; } = new();
 
     public void AddLink(Link link)
     {
-        _links.Add(link);
-        LinkCreated?.Invoke(this, link);
+        Links.Add(link);
     }
 
     public void RemoveLink(Link link)
     {
-        _links.Remove(link);
-        LinkRemoved?.Invoke(this, link);
+        Links.Remove(link);
     }
 
-    public virtual bool CanCreateLink(Pin other)
+    public bool CanCreateLink(Pin other)
     {
-        if (_id == other._id)
+        if (Id == other.Id)
         {
             return false;
         }
@@ -73,31 +54,31 @@ public class Pin
         return true;
     }
 
-    public void Draw()
+    public void Render()
     {
         if (Kind == PinKind.Input)
         {
-            ImNodes.BeginInputAttribute(_id, Shape);
-            DrawContent();
+            ImNodes.BeginInputAttribute(Id, Shape);
+            RenderContent();
             ImNodes.EndInputAttribute();
         }
 
         if (Kind == PinKind.Output)
         {
-            ImNodes.BeginOutputAttribute(_id, Shape);
-            DrawContent();
+            ImNodes.BeginOutputAttribute(Id, Shape);
+            RenderContent();
             ImNodes.EndOutputAttribute();
         }
 
         if (Kind == PinKind.Static)
         {
-            ImNodes.BeginStaticAttribute(_id);
-            DrawContent();
+            ImNodes.BeginStaticAttribute(Id);
+            RenderContent();
             ImNodes.EndStaticAttribute();
         }
     }
 
-    protected virtual void DrawContent()
+    private void RenderContent()
     {
         ImGui.Text(Name);
 
@@ -107,30 +88,12 @@ public class Pin
         Center = new Vector2(min.X, y); // x position incorrect
     }
 
-    public virtual void Initialize(NodeEditor editor, Node parent)
+    public void Destroy()
     {
-        _editor = editor;
-        _parent = parent;
-
-        if (_id == 0)
-        {
-            _id = editor.GetUniqueId();
-        }
-    }
-
-    public virtual void Destroy()
-    {
-        if (_editor == null)
-        {
-            return;
-        }
-
         var links = Links.ToArray();
         for (int i = 0; i < links.Length; i++)
         {
             links[i].Destroy();
         }
-
-        _editor = null;
     }
 }

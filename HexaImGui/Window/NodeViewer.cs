@@ -12,6 +12,20 @@ public class NodeViewer : BaseWindow
     public NodeViewer(string windowName = nameof(NodeViewer))
         : base(windowName, 0, null)
     {
+        InitSample();
+    }
+
+    public override void OnRender(DateTime utcNow, double deltaSec)
+    {
+        editor.Render();
+    }
+
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    {
+    }
+
+    public void InitSample()
+    {
         var node1 = editor.CreateNode("Node");
         node1.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
         var out1 = node1.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
@@ -26,24 +40,10 @@ public class NodeViewer : BaseWindow
         editor.CreateLink(in3, out2);
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public void AddNode()
     {
-        if (ImGui.BeginMenuBar())
-        {
-            if (ImGui.MenuItem("New Node"))
-            {
-                var node = editor.CreateNode("Node");
-                node.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
-                node.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
-            }
-
-            ImGui.EndMenuBar();
-        }
-
-        editor.Draw();
-    }
-
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
-    {
+        var node = editor.CreateNode("Node");
+        node.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        node.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
     }
 }
