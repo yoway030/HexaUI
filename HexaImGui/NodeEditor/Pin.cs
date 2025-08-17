@@ -85,6 +85,7 @@ public class Pin
 
         Vector2 min = ImGui.GetItemRectMin();
         Vector2 max = ImGui.GetItemRectMax();
+        
         float y = (min.Y + max.Y) * 0.5f;
         Center = new Vector2(min.X, y); // x position incorrect
     }

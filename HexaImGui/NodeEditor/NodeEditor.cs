@@ -3,6 +3,7 @@
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Numerics;
+using System.Reflection.Emit;
 
 public class NodeEditor
 {
@@ -16,6 +17,7 @@ public class NodeEditor
 
     public List<Node> Nodes { get; } = new();
     public List<Link> Links { get; } = new();
+    public Dictionary<int, int> LayerCreateCount { get; } = new();
 
     public int GetUniqueId()
     {
@@ -24,11 +26,12 @@ public class NodeEditor
 
     public Node? GetNode(int id)
     {
-        for (int i = 0; i < Nodes.Count; i++)
+        foreach (var node in Nodes)
         {
-            Node node = Nodes[i];
             if (node.Id == id)
+            {
                 return node;
+            }
         }
 
         return null;
@@ -48,10 +51,24 @@ public class NodeEditor
         return null;
     }
 
-    public Node CreateNode(string name)
+    public Node CreateNode(string name, int layer)
     {
         Node node = new(GetUniqueId(), name, this);
         AddNode(node);
+
+        var count = LayerCreateCount.ContainsKey(layer) ? LayerCreateCount[layer] + 1 : 1;
+        LayerCreateCount[layer] = count;
+
+        if (layer > 0)
+        {
+            node.AdjustPosition.X = 100f * layer;
+        }
+
+        if (count > 1)
+        {
+            node.AdjustPosition.Y = 100f * (count - 1);
+        }
+
         return node;
     }
 
@@ -60,9 +77,9 @@ public class NodeEditor
         Nodes.Add(node);
     }
 
-    public void RemoveNode(Node node)
+    public bool RemoveNode(Node node)
     {
-        Nodes.Remove(node);
+        return Nodes.Remove(node);
     }
 
     public Link CreateLink(Pin input, Pin output)
@@ -87,9 +104,9 @@ public class NodeEditor
         ImNodes.EditorContextSet(_editorContext);
         ImNodes.BeginNodeEditor();
 
-        for (int i = 0; i < Nodes.Count; i++)
+        foreach (var node in Nodes)
         {
-            Nodes[i].Render();
+            node.Render();
         }
 
         RenderLinkFlows();
@@ -101,12 +118,6 @@ public class NodeEditor
 
         ImNodes.MiniMap();
         ImNodes.EndNodeEditor();
-
-        for (int i = 0; i < Nodes.Count; i++)
-        {
-            var id = Nodes[i].Id;
-            Nodes[i].IsHovered = ImNodes.IsNodeHovered(ref id);
-        }
 
         ImNodes.EditorContextSet(null);
     }

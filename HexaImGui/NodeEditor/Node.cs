@@ -22,6 +22,7 @@ public class Node
     private NodeEditor Editor { get; init; }
     public List<Pin> Pins { get; } = new();
     public bool IsHovered { get; set; } = false;
+    public Vector2 AdjustPosition = Vector2.Zero;
 
     public Pin GetInput(int id)
     {
@@ -160,13 +161,28 @@ public class Node
 
         ImNodes.EndNodeTitleBar();
 
-        for (int i = 0; i < Pins.Count; i++)
+        if (Pins.Any() == false)
         {
-            Pins[i].Render();
+            // 여기에 뭐라도 그리지 않으면 노드가 비정상적으로 출력됨
+            ImGui.Text(" ");
+        }
+        else
+        {
+            foreach (var pin in Pins)
+            {
+                pin.Render();
+            }
         }
 
         var nodePos = ImNodes.GetNodeScreenSpacePos(Id);
         var nodeSize = ImNodes.GetNodeDimensions(Id);
+
+        if (AdjustPosition != Vector2.Zero)
+        {
+            nodePos += AdjustPosition;
+            ImNodes.SetNodeScreenSpacePos(Id, nodePos);
+            AdjustPosition = Vector2.Zero;
+        }
 
         for (int i = 0; i < Pins.Count; i++)
         {

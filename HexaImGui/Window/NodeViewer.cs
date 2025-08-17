@@ -7,17 +7,17 @@ using System;
 
 public class NodeViewer : BaseWindow
 {
-    private NodeEditor editor = new();
-
     public NodeViewer(string windowName = nameof(NodeViewer))
         : base(windowName, 0, null)
     {
         InitSample();
     }
 
+    public NodeEditor Editor { get; } = new();
+
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        editor.Render();
+        Editor.Render();
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
@@ -26,24 +26,25 @@ public class NodeViewer : BaseWindow
 
     public void InitSample()
     {
-        var node1 = editor.CreateNode("Node");
-        node1.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
-        var out1 = node1.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
-        var node2 = editor.CreateNode("Node");
-        var in2 = node2.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
-        var out2 = node2.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
-        var node3 = editor.CreateNode("Node");
-        var in3 = node3.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
-        node3.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
-        editor.CreateLink(in2, out1);
-        editor.CreateLink(in3, out1);
-        editor.CreateLink(in3, out2);
-    }
+        var node1 = Editor.CreateNode("Node 1", 1);
+        var in1 = node1.CreatePin(Editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        var out1 = node1.CreatePin(Editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
 
-    public void AddNode(string nodeName)
-    {
-        var node = editor.CreateNode(nodeName);
-        node.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
-        node.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
+        var node2 = Editor.CreateNode("Node 2", 2);
+        var in2 = node2.CreatePin(Editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        var out2 = node2.CreatePin(Editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
+
+        var node21 = Editor.CreateNode("Node 2-1", 2);
+        node21.CreatePin(Editor, "In", Pin.PinKind.Input, ImNodesPinShape.Quad);
+
+        var node3 = Editor.CreateNode("Node 3", 3);
+        var in3 = node3.CreatePin(Editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
+        node3.CreatePin(Editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);
+
+        var node31 = Editor.CreateNode("Node 3-1", 3);
+
+        Editor.CreateLink(in2, out1);
+        Editor.CreateLink(in3, out1);
+        Editor.CreateLink(in3, out2);
     }
 }
