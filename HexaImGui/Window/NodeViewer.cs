@@ -12,8 +12,6 @@ public class NodeViewer : BaseWindow
     public NodeViewer(string windowName = nameof(NodeViewer))
         : base(windowName, 0, null)
     {
-        editor.Initialize();
-
         var node1 = editor.CreateNode("Node");
         node1.CreatePin(editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);
         var out1 = node1.CreatePin(editor, "Out", Pin.PinKind.Output, ImNodesPinShape.Circle);

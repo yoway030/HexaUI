@@ -7,7 +7,7 @@ using System.Numerics;
 public class NodeEditor
 {
     private string? state;
-    private ImNodesEditorContextPtr context;
+    private ImNodesEditorContextPtr _editorContext;
 
     private readonly List<Node> nodes = new();
     private readonly List<Link> links = new();
@@ -15,6 +15,7 @@ public class NodeEditor
 
     public NodeEditor()
     {
+        _editorContext = ImNodes.EditorContextCreate();
     }
 
     public event EventHandler<Node>? NodeAdded;
@@ -32,23 +33,6 @@ public class NodeEditor
     public int IdState { get => idState; set => idState = value; }
 
     public string State { get => SaveState(); set => RestoreState(value); }
-
-    public virtual void Initialize()
-    {
-        if (context.IsNull)
-        {
-            context = ImNodes.EditorContextCreate();
-
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                nodes[i].Initialize(this);
-            }
-            for (int i = 0; i < links.Count; i++)
-            {
-                links[i].Initialize(this);
-            }
-        }
-    }
 
     public int GetUniqueId()
     {
@@ -98,8 +82,6 @@ public class NodeEditor
 
     public void AddNode(Node node)
     {
-        if (context.IsNull)
-            node.Initialize(this);
         nodes.Add(node);
         NodeAdded?.Invoke(this, node);
     }
@@ -112,8 +94,6 @@ public class NodeEditor
 
     public void AddLink(Link link)
     {
-        if (context.IsNull)
-            link.Initialize(this);
         links.Add(link);
         LinkAdded?.Invoke(this, link);
     }
@@ -133,44 +113,18 @@ public class NodeEditor
 
     public unsafe string SaveState()
     {
-        return ImNodes.SaveEditorStateToIniStringS(context, null);
+        return ImNodes.SaveEditorStateToIniStringS(_editorContext, null);
     }
 
     public void RestoreState(string state)
     {
-        if (context.IsNull)
-        {
-            this.state = state;
-            return;
-        }
-        ImNodes.LoadEditorStateFromIniString(context, state, (uint)state.Length);
+        ImNodes.LoadEditorStateFromIniString(_editorContext, state, (uint)state.Length);
     }
 
     public void Draw()
     {
-        if (context.IsNull)
-            Initialize();
-        ImNodes.EditorContextSet(context);
+        ImNodes.EditorContextSet(_editorContext);
         ImNodes.BeginNodeEditor();
-
-        var winPos = ImGui.GetWindowPos();
-        var winSize = ImGui.GetWindowSize();
-        // 좌상단에 그리드가 바로 붙는 스타일이라면 보통 아래처럼 절반을 패닝으로 준다
-        ImNodes.EditorContextResetPanning(new System.Numerics.Vector2(winSize.X * 0.5f, winSize.Y * 0.5f));
-
-        //// 현재 Node Editor가 속한 윈도우의 DrawList 가져오기
-        //var drawList = ImGui.GetWindowDrawList();
-
-        //// Node Editor 좌표 → 스크린 좌표 변환
-        //Vector2 origin = ImGui.GetWindowPos();
-        //Vector2 rectMin = origin;
-        //Vector2 rectMax = origin + new Vector2(100, 100);
-
-        //// 색상
-        //uint color = ImGui.GetColorU32(new Vector4(1f, 0f, 0f, 1f));
-
-        //// 사각형 그리기
-        //drawList.AddRectFilled(rectMin, rectMax, color);
 
         for (int i = 0; i < Nodes.Count; i++)
         {
@@ -216,8 +170,6 @@ public class NodeEditor
 
         ImNodes.MiniMap();
         ImNodes.EndNodeEditor();
-
-
 
         int idNode1 = 0;
         int idNode2 = 0;
@@ -295,8 +247,8 @@ public class NodeEditor
             nodes[i].Destroy();
         }
         this.nodes.Clear();
-        ImNodes.EditorContextFree(context);
-        context = null;
+        ImNodes.EditorContextFree(_editorContext);
+        _editorContext = null;
     }
 
     public static bool Validate(Pin startPin, Pin endPin)
