@@ -6,20 +6,26 @@ using System.Numerics;
 
 public class Node
 {
-    public const uint TitleColor = 0x6930c3ff;
-    public const uint TitleHoveredColor = 0x5e60ceff;
-    public const uint TitleSelectedColor = 0x7400b8ff;
+    public const uint Title_Color = 0x6930c3ff;
+    public const uint Title_HoveredColor = 0x5e60ceff;
+    public const uint Title_SelectedColor = 0x7400b8ff;
 
-    public Node(int id, string name, NodeEditor editor)
+    public Node(int id, string name, NodeEditor editor, uint titleColor = Title_Color)
     {
         Id = id;
         Name = name;
         Editor = editor;
+
+        TitleColor = titleColor;
     }
 
     public string Name { get; init; }
     public int Id { get; init; }
+    
     private NodeEditor Editor { get; init; }
+
+    public uint TitleColor { get; set; }
+
     public List<Pin> Pins { get; } = new();
     public bool IsHovered { get; set; } = false;
     public Vector2 AdjustPosition = Vector2.Zero;
@@ -151,8 +157,8 @@ public class Node
     public void Render()
     {
         ImNodes.PushColorStyle(ImNodesCol.TitleBar, TitleColor);
-        ImNodes.PushColorStyle(ImNodesCol.TitleBarHovered, TitleHoveredColor);
-        ImNodes.PushColorStyle(ImNodesCol.TitleBarSelected, TitleSelectedColor);
+        ImNodes.PushColorStyle(ImNodesCol.TitleBarHovered, Title_HoveredColor);
+        ImNodes.PushColorStyle(ImNodesCol.TitleBarSelected, Title_SelectedColor);
 
         ImNodes.BeginNode(Id);
         ImNodes.BeginNodeTitleBar();

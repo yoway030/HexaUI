@@ -10,6 +10,9 @@ public class NodeEditor
     private ImNodesEditorContextPtr _editorContext;
     private int _idOffset;
 
+    public const float NodeWidth = 100f;
+    public const float NodeHeight= 100f;
+
     public NodeEditor()
     {
         _editorContext = ImNodes.EditorContextCreate();
@@ -17,7 +20,9 @@ public class NodeEditor
 
     public List<Node> Nodes { get; } = new();
     public List<Link> Links { get; } = new();
-    public Dictionary<int, int> LayerCreateCount { get; } = new();
+    public Dictionary<int, HashSet<Node>> LayeredNodes { get; } = new();
+
+    public Vector2 AdjustCenter = new Vector2(NodeWidth, NodeHeight);
 
     public int GetUniqueId()
     {
@@ -51,35 +56,27 @@ public class NodeEditor
         return null;
     }
 
-    public Node CreateNode(string name, int layer)
+    public Node CreateNode(string name, int layer = 0, uint titleColor = Node.Title_Color)
     {
-        Node node = new(GetUniqueId(), name, this);
-        AddNode(node);
-
-        var count = LayerCreateCount.ContainsKey(layer) ? LayerCreateCount[layer] + 1 : 1;
-        LayerCreateCount[layer] = count;
-
-        if (layer > 0)
-        {
-            node.AdjustPosition.X = 100f * layer;
-        }
-
-        if (count > 1)
-        {
-            node.AdjustPosition.Y = 100f * (count - 1);
-        }
-
+        Node node = new(GetUniqueId(), name, this, titleColor);
+        AddNode(node, layer);
         return node;
     }
 
-    public void AddNode(Node node)
+    private void AddNode(Node node, int layer = 0)
     {
         Nodes.Add(node);
-    }
 
-    public bool RemoveNode(Node node)
-    {
-        return Nodes.Remove(node);
+        if (LayeredNodes.ContainsKey(layer) == false)
+        {
+            LayeredNodes[layer] = new HashSet<Node>();
+        }
+
+        int prevCount = LayeredNodes[layer].Count;
+        LayeredNodes[layer].Add(node);
+
+        node.AdjustPosition.X = NodeWidth * layer;
+        node.AdjustPosition.Y = NodeHeight * ((prevCount + 1) / 2) * (prevCount % 2 == 0 ? 1 : -1); // 위아래위래 배치
     }
 
     public Link CreateLink(Pin input, Pin output)
@@ -103,6 +100,12 @@ public class NodeEditor
     {
         ImNodes.EditorContextSet(_editorContext);
         ImNodes.BeginNodeEditor();
+
+        if (AdjustCenter != Vector2.Zero)
+        {
+            ImNodes.EditorContextResetPanning(AdjustCenter);
+            AdjustCenter = Vector2.Zero;
+        }
 
         foreach (var node in Nodes)
         {
