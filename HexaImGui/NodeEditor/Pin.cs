@@ -2,7 +2,7 @@
 using Hexa.NET.ImNodes;
 using System.Numerics;
 
-namespace ELImGui.NodeEidtor;
+namespace ELImGui.NodeEditor;
 
 public class Pin
 {

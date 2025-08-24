@@ -1,9 +1,8 @@
-﻿namespace ELImGui.NodeEidtor;
+﻿namespace ELImGui.NodeEditor;
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Numerics;
-using System.Reflection.Emit;
 
 public class NodeEditor
 {
@@ -96,7 +95,7 @@ public class NodeEditor
         Links.Remove(link);
     }
 
-    public void Render()
+    public void Render(DateTime utcNow, double deltaSec)
     {
         ImNodes.EditorContextSet(_editorContext);
         ImNodes.BeginNodeEditor();
@@ -112,7 +111,7 @@ public class NodeEditor
             node.Render();
         }
 
-        RenderLinkFlows();
+        RenderLinkFlows(utcNow, deltaSec);
 
         for (int i = 0; i < Links.Count; i++)
         {
@@ -125,9 +124,8 @@ public class NodeEditor
         ImNodes.EditorContextSet(null);
     }
 
-    private void RenderLinkFlows()
+    private void RenderLinkFlows(DateTime utcNow, double deltaSec)
     {
-        const float Speed = 0.1f;   // t 증가 속도 (초당)
         const float HandleScale = 0.25f; // 제어점 스케일(α)
         const float DotRadius = 4.0f;
 
@@ -153,11 +151,31 @@ public class NodeEditor
             var p1 = p0 + new Vector2(dx * HandleScale, 0f);
             var p2 = p3 - new Vector2(dx * HandleScale, 0f);
 
-            float t = (float)(time * Speed % 1.0f);
+            foreach (var flowPoint in link.InToOutFlowPoint.ToList())
+            {
+                TimeSpan timeSpan = utcNow - flowPoint.CreatedTime;
+                float progress = (float)(timeSpan.Divide(flowPoint.FlowDuration));
+                if (progress > 1.0f)
+                {
+                    link.InToOutFlowPoint.Remove(flowPoint);
+                }
 
-            Vector2 pos = CubicBezier(p0, p1, p2, p3, t);
-            uint col = ImGui.GetColorU32(new Vector4(1, 1, 1, 1));
-            drawList.AddCircleFilled(pos, DotRadius, col);
+                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, 1.0f - progress);
+                drawList.AddCircleFilled(flowPos, DotRadius, flowPoint.Color);
+            }
+
+            foreach (var flowPoint in link.OutToInFlowPoint.ToList())
+            {
+                TimeSpan timeSpan = utcNow - flowPoint.CreatedTime;
+                float progress = (float)(timeSpan.Divide(flowPoint.FlowDuration));
+                if (progress > 1.0f)
+                {
+                    link.OutToInFlowPoint.Remove(flowPoint);
+                }
+
+                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, progress);
+                drawList.AddCircleFilled(flowPos, DotRadius, flowPoint.Color);
+            }
         }
     }
 

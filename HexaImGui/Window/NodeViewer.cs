@@ -2,7 +2,7 @@
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
-using ELImGui.NodeEidtor;
+using ELImGui.NodeEditor;
 using System;
 
 public class NodeViewer : BaseWindow
@@ -17,7 +17,7 @@ public class NodeViewer : BaseWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        Editor.Render();
+        Editor.Render(utcNow, deltaSec);
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
@@ -55,7 +55,16 @@ public class NodeViewer : BaseWindow
         var node31 = Editor.CreateNode("Node 3-1", 3);
         Editor.CreateNode("Node 3-1", 3);
 
-        Editor.CreateLink(in2, out1);
+        var link = Editor.CreateLink(in2, out1);
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color=0xFFFF0000, CreatedTime=DateTime.UtcNow, FlowDuration=new TimeSpan(0,0,5), Message="asdasd"});
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFfff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFFF00ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFFF02ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 1), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFF00ff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 14), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
+
+        link.OutToInFlowPoint.Add(new LinkFlowPoint { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
+
         Editor.CreateLink(in3, out1);
         Editor.CreateLink(in3, out2);
     }
