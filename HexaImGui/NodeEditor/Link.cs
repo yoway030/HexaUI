@@ -17,8 +17,8 @@ public class Link
     public Pin OutputPin { get; init; }
     public Pin InputPin { get; init; }
 
-    public List<LinkFlowPoint> OutToInFlowPoint { get; init; } = new();
-    public List<LinkFlowPoint> InToOutFlowPoint { get; init; } = new();
+    public List<LinkDot> OutToInFlowPoint { get; init; } = new();
+    public List<LinkDot> InToOutFlowPoint { get; init; } = new();
 
     public void Render()
     {

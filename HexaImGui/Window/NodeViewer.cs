@@ -56,14 +56,14 @@ public class NodeViewer : BaseWindow
         Editor.CreateNode("Node 3-1", 3);
 
         var link = Editor.CreateLink(in2, out1);
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color=0xFFFF0000, CreatedTime=DateTime.UtcNow, FlowDuration=new TimeSpan(0,0,5), Message="asdasd"});
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFfff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFFF00ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFFFF02ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 1), Message = "asdasd" });
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFF00ff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 14), Message = "asdasd" });
-        link.InToOutFlowPoint.Add(new LinkFlowPoint { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkDot { Color=0xFFFF0000, CreatedTime=DateTime.UtcNow, FlowDuration=new TimeSpan(0,0,5), Message="asdasd"});
+        link.InToOutFlowPoint.Add(new LinkDot { Color = 0xFFfff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkDot { Color = 0xFFFF00ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 10), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkDot { Color = 0xFFFF02ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 1), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkDot { Color = 0xFF00ff00, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 14), Message = "asdasd" });
+        link.InToOutFlowPoint.Add(new LinkDot { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
 
-        link.OutToInFlowPoint.Add(new LinkFlowPoint { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
+        link.OutToInFlowPoint.Add(new LinkDot { Color = 0xFF0000ff, CreatedTime = DateTime.UtcNow, FlowDuration = new TimeSpan(0, 0, 5), Message = "asdasd" });
 
         Editor.CreateLink(in3, out1);
         Editor.CreateLink(in3, out2);

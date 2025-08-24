@@ -127,7 +127,6 @@ public class NodeEditor
     private void RenderLinkFlows(DateTime utcNow, double deltaSec)
     {
         const float HandleScale = 0.25f; // 제어점 스케일(α)
-        const float DotRadius = 4.0f;
 
         var drawList = ImGui.GetWindowDrawList();
         double time = ImGui.GetTime();
@@ -151,30 +150,30 @@ public class NodeEditor
             var p1 = p0 + new Vector2(dx * HandleScale, 0f);
             var p2 = p3 - new Vector2(dx * HandleScale, 0f);
 
-            foreach (var flowPoint in link.InToOutFlowPoint.ToList())
+            foreach (var dot in link.InToOutFlowPoint.ToList())
             {
-                TimeSpan timeSpan = utcNow - flowPoint.CreatedTime;
-                float progress = (float)(timeSpan.Divide(flowPoint.FlowDuration));
+                TimeSpan timeSpan = utcNow - dot.CreatedTime;
+                float progress = (float)(timeSpan.Divide(dot.FlowDuration));
                 if (progress > 1.0f)
                 {
-                    link.InToOutFlowPoint.Remove(flowPoint);
+                    link.InToOutFlowPoint.Remove(dot);
                 }
 
                 Vector2 flowPos = CubicBezier(p0, p1, p2, p3, 1.0f - progress);
-                drawList.AddCircleFilled(flowPos, DotRadius, flowPoint.Color);
+                drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
             }
 
-            foreach (var flowPoint in link.OutToInFlowPoint.ToList())
+            foreach (var dot in link.OutToInFlowPoint.ToList())
             {
-                TimeSpan timeSpan = utcNow - flowPoint.CreatedTime;
-                float progress = (float)(timeSpan.Divide(flowPoint.FlowDuration));
+                TimeSpan timeSpan = utcNow - dot.CreatedTime;
+                float progress = (float)(timeSpan.Divide(dot.FlowDuration));
                 if (progress > 1.0f)
                 {
-                    link.OutToInFlowPoint.Remove(flowPoint);
+                    link.OutToInFlowPoint.Remove(dot);
                 }
 
                 Vector2 flowPos = CubicBezier(p0, p1, p2, p3, progress);
-                drawList.AddCircleFilled(flowPos, DotRadius, flowPoint.Color);
+                drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
             }
         }
     }
