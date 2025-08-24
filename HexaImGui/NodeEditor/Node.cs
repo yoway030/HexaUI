@@ -2,6 +2,7 @@
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 public class Node
@@ -9,6 +10,9 @@ public class Node
     public const uint Title_Color = 0x6930c3ff;
     public const uint Title_HoveredColor = 0x5e60ceff;
     public const uint Title_SelectedColor = 0x7400b8ff;
+
+    private Dictionary<int, Pin> _pinsById = new();
+    private Dictionary<string, Pin> _pinsByName = new();
 
     public Node(int id, string name, int layer, NodeEditor editor, uint titleColor = Title_Color)
     {
@@ -27,132 +31,62 @@ public class Node
 
     public uint TitleColor { get; set; }
 
-    public List<Pin> Pins { get; } = new();
     public bool IsHovered { get; set; } = false;
     public Vector2 AdjustPosition = Vector2.Zero;
 
-    public Pin GetInput(int id)
-    {
-        Pin? pin = Find(id);
-        if (pin == null || pin.Kind != Pin.PinKind.Input)
-        {
-            throw new();
-        }
-        return pin;
-    }
-
-    public Pin GetOuput(int id)
-    {
-        Pin? pin = Find(id);
-        if (pin == null || pin.Kind != Pin.PinKind.Output)
-        {
-            throw new();
-        }
-        return pin;
-    }
-
-    public Pin? Find(int id)
-    {
-        for (int i = 0; i < Pins.Count; i++)
-        {
-            var pin = Pins[i];
-            if (pin.Id == id)
-            {
-                return pin;
-            }
-        }
-        return null;
-    }
-
-    public Pin? Find(string name)
-    {
-        for (int i = 0; i < Pins.Count; i++)
-        {
-            var pin = Pins[i];
-            if (pin.Name == name)
-            {
-                return pin;
-            }
-        }
-        return null;
-    }
-
-    public bool PinExists(string name)
-    {
-        for (int i = 0; i < Pins.Count; i++)
-        {
-            var pin = Pins[i];
-            if (pin.Name == name)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Link? FindSourceLink(Pin pin, Node other)
-    {
-        for (int i = 0; i < pin.Links.Count; i++)
-        {
-            Link link = pin.Links[i];
-            if (link.OutputPin.Parent == other)
-            {
-                return link;
-            }
-        }
-        return null;
-    }
-
-    public static Link? FindTargetLink(Pin pin, Node other)
-    {
-        for (int i = 0; i < pin.Links.Count; i++)
-        {
-            Link link = pin.Links[i];
-            if (link.InputPin.Parent == other)
-            {
-                return link;
-            }
-        }
-        return null;
-    }
-
-    public Pin CreatePin(NodeEditor editor, string name, Pin.PinKind kind, ImNodesPinShape shape)
+    public Pin? CreatePin(NodeEditor editor, string name, PinKind kind, ImNodesPinShape shape)
     {
         Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
-        return AddPin(pin);
-    }
-
-    public Pin AddPin(Pin pin)
-    {
-        Pin? old = Find(pin.Name);
-
-        if (old != null)
+        if (TryAddPin(pin) == false)
         {
-            int index = Pins.IndexOf(old);
-            old.Destroy();
-
-            Pins[index] = pin;
-        }
-        else
-        {
-            Pins.Add(pin);
+            return null;
         }
 
         return pin;
     }
 
-    public void DestroyPin(Pin pin)
+    public bool TryAddPin(Pin pin)
     {
-        pin.Destroy();
-        Pins.Remove(pin);
+        if (TryGetPin(pin.Id, out _) == true ||
+            TryGetPin(pin.Name, out _) == true)
+        {
+            return false;
+        }
+
+        _pinsById.Add(pin.Id, pin);
+        _pinsByName.Add(pin.Name, pin);
+
+        return true;
     }
 
-    public void Destroy()
+    public bool TryGetPin(int id, [NotNullWhen(true)] out Pin? pin)
+        => _pinsById.TryGetValue(id, out pin);
+
+    public bool TryGetPin(string name, [NotNullWhen(true)] out Pin? pin)
+        => _pinsByName.TryGetValue(name, out pin);
+
+    public void RemovePin(Pin pin)
     {
-        for (int i = 0; i < Pins.Count; i++)
+        _pinsById.Remove(pin.Id);
+        _pinsByName.Remove(pin.Name);
+
+        pin.Destroy();
+    }
+
+    public IEnumerable<Link> GetLinks(Node other)
+    {
+        foreach (var pin in _pinsById.Values)
         {
-            Pins[i].Destroy();
+            foreach (var link in pin.Links)
+            {
+                if (link.OutputPin.Parent == other || link.InputPin.Parent == other)
+                {
+                    yield return link;
+                }
+            }
         }
+
+        yield break;
     }
 
     public void Render()
@@ -163,19 +97,18 @@ public class Node
 
         ImNodes.BeginNode(Id);
         ImNodes.BeginNodeTitleBar();
-
         ImGui.Text(Name);
-
         ImNodes.EndNodeTitleBar();
 
-        if (Pins.Any() == false)
+        var pins = _pinsById.Values.ToList();
+        if (pins.Any() == false)
         {
             // 여기에 뭐라도 그리지 않으면 노드가 비정상적으로 출력됨
             ImGui.Text(" ");
         }
         else
         {
-            foreach (var pin in Pins)
+            foreach (var pin in pins)
             {
                 pin.Render();
             }
@@ -191,22 +124,29 @@ public class Node
             AdjustPosition = Vector2.Zero;
         }
 
-        for (int i = 0; i < Pins.Count; i++)
+        foreach (var pin in pins)
         {
-            if (Pins[i].Kind == Pin.PinKind.Input)
-            {
-                var center = Pins[i].Center;
-                Pins[i].Center = new Vector2(nodePos.X, center?.Y ?? 0f);
-            }
+            var center = pin.Center;
 
-            if (Pins[i].Kind == Pin.PinKind.Output)
+            if (pin.Kind == PinKind.Input)
             {
-                var center = Pins[i].Center;
-                Pins[i].Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
+                pin.Center = new Vector2(nodePos.X, center?.Y ?? 0f);
+            }
+            else if (pin.Kind == PinKind.Output)
+            {
+                pin.Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
             }
         }
 
         ImNodes.EndNode();
         ImNodes.PopColorStyle();
+    }
+
+    public void Destroy()
+    {
+        foreach (var pin in _pinsById.Values.ToList())
+        {
+            RemovePin(pin);
+        }
     }
 }

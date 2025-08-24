@@ -4,15 +4,14 @@ using System.Numerics;
 
 namespace ELImGui.NodeEditor;
 
+public enum PinKind
+{
+    Input,
+    Output,
+}
+
 public class Pin
 {
-    public enum PinKind
-    {
-        Input,
-        Output,
-        Static
-    }
-
     public Pin(int id, string name, Node parent, ImNodesPinShape shape, PinKind kind)
     {
         Id = id;
@@ -40,21 +39,6 @@ public class Pin
         Links.Remove(link);
     }
 
-    public bool CanCreateLink(Pin other)
-    {
-        if (Id == other.Id)
-        {
-            return false;
-        }
-
-        if (Kind == other.Kind)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     public void Render()
     {
         if (Kind == PinKind.Input)
@@ -63,19 +47,11 @@ public class Pin
             RenderContent();
             ImNodes.EndInputAttribute();
         }
-
-        if (Kind == PinKind.Output)
+        else if (Kind == PinKind.Output)
         {
             ImNodes.BeginOutputAttribute(Id, Shape);
             RenderContent();
             ImNodes.EndOutputAttribute();
-        }
-
-        if (Kind == PinKind.Static)
-        {
-            ImNodes.BeginStaticAttribute(Id);
-            RenderContent();
-            ImNodes.EndStaticAttribute();
         }
     }
 
@@ -83,9 +59,14 @@ public class Pin
     {
         ImGui.Text(Name);
 
+        UpdateCenterPos();
+    }
+
+    private void UpdateCenterPos()
+    {
         Vector2 min = ImGui.GetItemRectMin();
         Vector2 max = ImGui.GetItemRectMax();
-        
+
         float y = (min.Y + max.Y) * 0.5f;
         Center = new Vector2(min.X, y); // x position incorrect
     }
@@ -93,9 +74,11 @@ public class Pin
     public void Destroy()
     {
         var links = Links.ToArray();
-        for (int i = 0; i < links.Length; i++)
+        foreach (var link in links)
         {
-            links[i].Destroy();
+            link.Destroy();
         }
+
+        Links.Clear();
     }
 }

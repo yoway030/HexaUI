@@ -18,7 +18,7 @@ namespace ELImGui;
 
 public class ImVisualizer
 {
-    private const int _checkPointRenewCount = 1000;
+    private const int _checkPointRenewCount = 10000;
     private DateTime _checkPointTime = DateTime.UtcNow;
     private long _checkPointTick = Stopwatch.GetTimestamp();
     private long _lastTick = Stopwatch.GetTimestamp();

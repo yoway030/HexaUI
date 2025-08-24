@@ -1,7 +1,9 @@
 ﻿namespace ELImGui.NodeEditor;
 
+using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 public class NodeEditor
@@ -30,22 +32,6 @@ public class NodeEditor
         return _idOffset++;
     }
 
-    public Node? GetNode(int id) => _nodesById.TryGetValue(id, out Node? node) == true ? node : null;
-
-    public Link? GetLink(int id)
-    {
-        for (int i = 0; i < Links.Count; i++)
-        {
-            var link = Links[i];
-            if (link.Id == id)
-            {
-                return link;
-            }
-        }
-
-        return null;
-    }
-
     public Node? CreateNode(string name, int layer = 0, uint titleColor = Node.Title_Color)
     {
         Node node = new(GetUniqueId(), name, layer, this, titleColor);
@@ -57,17 +43,16 @@ public class NodeEditor
         return node;
     }
 
-    private bool TryAddNode(Node node)
+    public bool TryAddNode(Node node)
     {
-        if (_nodesById.TryAdd(node.Id, node) == false)
+        if (TryGetNode(node.Id, out _) == true ||
+            TryGetNode(node.Name, out _) == true)
         {
-            return false; // 이미 존재하는 ID
+            return false;
         }
 
-        if (_nodesByName.TryAdd(node.Name, node) == false)
-        {
-            return false; // 이미 존재하는 이름
-        }
+        _nodesById.Add(node.Id, node);
+        _nodesByName.Add(node.Name, node);
 
         if (_nodesByLayer.ContainsKey(node.Layer) == false)
         {
@@ -83,9 +68,45 @@ public class NodeEditor
         return true;
     }
 
-    public Link CreateLink(Pin input, Pin output)
+    public bool TryRemoveNode(string nodeName)
     {
-        Link link = new(GetUniqueId(), this, output, input);
+        if (TryGetNode(nodeName, out var node) == false)
+        {
+            return false;
+        }
+
+        return TryRemoveNode(nodeName);
+    }
+
+    public bool TryRemoveNode(Node node)
+    {
+        if (_nodesById.Remove(node.Id) == false)
+        {
+            return false;
+        }
+
+        if (_nodesByName.Remove(node.Name) == false)
+        {
+            return false;
+        }
+
+        if (_nodesByLayer[node.Layer] == null)
+        {
+            return false;
+        }
+
+        return _nodesByLayer[node.Layer].Remove(node);
+    }
+
+    public bool TryGetNode(int id, [NotNullWhen(true)] out Node? node)
+        => _nodesById.TryGetValue(id, out node);
+
+    public bool TryGetNode(string name, [NotNullWhen(true)] out Node? node)
+        => _nodesByName.TryGetValue(name, out node);
+
+    public Link? CreateLink(Pin from, Pin to)
+    {
+        Link link = new(GetUniqueId(), this, from, to);
         AddLink(link);
         return link;
     }
@@ -100,6 +121,22 @@ public class NodeEditor
         Links.Remove(link);
     }
 
+    public Link? GetLink(int id)
+    {
+        for (int i = 0; i < Links.Count; i++)
+        {
+            var link = Links[i];
+            if (link.Id == id)
+            {
+                return link;
+            }
+        }
+
+        return null;
+    }
+
+
+
     public void Render(DateTime utcNow, double deltaSec)
     {
         ImNodes.EditorContextSet(_editorContext);
@@ -111,17 +148,19 @@ public class NodeEditor
             AdjustCenter = Vector2.Zero;
         }
 
+        foreach (var link in Links)
+        {
+            link.Render();
+        }
+
+        RenderLinkFlows(utcNow, deltaSec);
+
         foreach (var node in _nodesById.Values)
         {
             node.Render();
         }
 
-        RenderLinkFlows(utcNow, deltaSec);
-
-        for (int i = 0; i < Links.Count; i++)
-        {
-            Links[i].Render();
-        }
+        RendLinkHover();
 
         ImNodes.MiniMap();
         ImNodes.EndNodeEditor();
@@ -134,50 +173,39 @@ public class NodeEditor
         const float HandleScale = 0.25f; // 제어점 스케일(α)
 
         var drawList = ImGui.GetWindowDrawList();
-        double time = ImGui.GetTime();
 
         foreach (var link in Links)
         {
             if (link.OutputPin.Center == null)
             {
                 continue;
+            } 
+            else if (link.InputPin.Center == null)
+            {
+                continue;
             }
-
-            if (link.InputPin.Center == null)
+            else if (link.Dots.Any() == false)
             {
                 continue;
             }
 
             var p3 = link.InputPin.Center.Value;
             var p0 = link.OutputPin.Center.Value;
-
             float dx = Vector2.Distance(p0, p3);
             var p1 = p0 + new Vector2(dx * HandleScale, 0f);
             var p2 = p3 - new Vector2(dx * HandleScale, 0f);
 
-            foreach (var dot in link.InToOutFlowPoint.ToList())
+            foreach (var dot in link.Dots.ToList())
             {
                 TimeSpan timeSpan = utcNow - dot.CreatedTime;
-                float progress = (float)(timeSpan.Divide(dot.FlowDuration));
-                if (progress > 1.0f)
+                float timeProgress = (float)timeSpan.TotalMilliseconds / (float)dot.DurationMSec;
+                if (timeProgress > 1.0f)
                 {
-                    link.InToOutFlowPoint.Remove(dot);
+                    link.Dots.Remove(dot);
                 }
 
-                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, 1.0f - progress);
-                drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
-            }
-
-            foreach (var dot in link.OutToInFlowPoint.ToList())
-            {
-                TimeSpan timeSpan = utcNow - dot.CreatedTime;
-                float progress = (float)(timeSpan.Divide(dot.FlowDuration));
-                if (progress > 1.0f)
-                {
-                    link.OutToInFlowPoint.Remove(dot);
-                }
-
-                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, progress);
+                float positionRate = dot.Destination == PinKind.Input ? timeProgress : 1.0f - timeProgress;
+                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, positionRate);
                 drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
             }
         }
@@ -197,6 +225,17 @@ public class NodeEditor
         return p;
     }
 
+    private void RendLinkHover()
+    {
+        int id = 0;
+        if (ImNodes.IsLinkHovered(ref id))
+        {
+            Console.WriteLine($"Link hovered: {id}");
+            ImGui.BeginTooltip();
+            ImGui.EndTooltip();
+        }
+    }
+
     public void Destroy()
     {
         foreach (var node in _nodesById.Values)
@@ -205,6 +244,8 @@ public class NodeEditor
         }
 
         _nodesById.Clear();
+        _nodesByName.Clear();
+        _nodesByLayer.Clear();
 
         ImNodes.EditorContextFree(_editorContext);
         _editorContext = null;

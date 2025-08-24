@@ -1,5 +1,6 @@
 ﻿namespace ELImGui.NodeEditor;
 
+using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 
 public class Link
@@ -16,9 +17,7 @@ public class Link
     public NodeEditor Editor { get; init; }
     public Pin OutputPin { get; init; }
     public Pin InputPin { get; init; }
-
-    public List<LinkDot> OutToInFlowPoint { get; init; } = new();
-    public List<LinkDot> InToOutFlowPoint { get; init; } = new();
+    public List<LinkDot> Dots { get; init; } = new();
 
     public void Render()
     {
