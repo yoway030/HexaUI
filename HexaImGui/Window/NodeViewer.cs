@@ -1,6 +1,5 @@
 ﻿namespace ELImGui.Window;
 
-using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using ELImGui.NodeEditor;
 using System;
@@ -24,11 +23,29 @@ public class NodeViewer : BaseWindow
     {
     }
 
+    //public Node? GetNode(int id)
+    //{
+    //}
+
+    //public Node? GetNode(string name)
+    //{
+    //}
+
+    //public Link? GetLink(int id)
+    //{
+    //}
+
+    //public Link? GetLink(Pin input, Pin output)
+    //{
+    //}
+
+    //public Link? GetLink
+
     public void InitSample()
     {
-        Editor.CreateNode("Node 1", -1);
-        Editor.CreateNode("Node 1", -1);
-        Editor.CreateNode("Node 1", -1);
+        Editor.CreateNode("Node -1-1", -1);
+        Editor.CreateNode("Node -1-2", -1);
+        Editor.CreateNode("Node -1-3", -1);
 
         var node1 = Editor.CreateNode("Node 1", 0, 0xff0000ff);
         var in1 = node1.CreatePin(Editor, "In", Pin.PinKind.Input, ImNodesPinShape.Circle);

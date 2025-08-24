@@ -9,6 +9,10 @@ public class NodeEditor
     private ImNodesEditorContextPtr _editorContext;
     private int _idOffset;
 
+    private Dictionary<int, Node> _nodesById = new();
+    private Dictionary<string, Node> _nodesByName = new();
+    private Dictionary<int, HashSet<Node>> _nodesByLayer { get; } = new();
+
     public const float NodeWidth = 100f;
     public const float NodeHeight= 100f;
 
@@ -17,9 +21,7 @@ public class NodeEditor
         _editorContext = ImNodes.EditorContextCreate();
     }
 
-    public List<Node> Nodes { get; } = new();
     public List<Link> Links { get; } = new();
-    public Dictionary<int, HashSet<Node>> LayeredNodes { get; } = new();
 
     public Vector2 AdjustCenter = new Vector2(NodeWidth, NodeHeight);
 
@@ -28,18 +30,7 @@ public class NodeEditor
         return _idOffset++;
     }
 
-    public Node? GetNode(int id)
-    {
-        foreach (var node in Nodes)
-        {
-            if (node.Id == id)
-            {
-                return node;
-            }
-        }
-
-        return null;
-    }
+    public Node? GetNode(int id) => _nodesById.TryGetValue(id, out Node? node) == true ? node : null;
 
     public Link? GetLink(int id)
     {
@@ -55,27 +46,41 @@ public class NodeEditor
         return null;
     }
 
-    public Node CreateNode(string name, int layer = 0, uint titleColor = Node.Title_Color)
+    public Node? CreateNode(string name, int layer = 0, uint titleColor = Node.Title_Color)
     {
-        Node node = new(GetUniqueId(), name, this, titleColor);
-        AddNode(node, layer);
+        Node node = new(GetUniqueId(), name, layer, this, titleColor);
+        if (TryAddNode(node) == false)
+        {
+            return null;
+        }
+
         return node;
     }
 
-    private void AddNode(Node node, int layer = 0)
+    private bool TryAddNode(Node node)
     {
-        Nodes.Add(node);
-
-        if (LayeredNodes.ContainsKey(layer) == false)
+        if (_nodesById.TryAdd(node.Id, node) == false)
         {
-            LayeredNodes[layer] = new HashSet<Node>();
+            return false; // 이미 존재하는 ID
         }
 
-        int prevCount = LayeredNodes[layer].Count;
-        LayeredNodes[layer].Add(node);
+        if (_nodesByName.TryAdd(node.Name, node) == false)
+        {
+            return false; // 이미 존재하는 이름
+        }
 
-        node.AdjustPosition.X = NodeWidth * layer;
+        if (_nodesByLayer.ContainsKey(node.Layer) == false)
+        {
+            _nodesByLayer[node.Layer] = new HashSet<Node>();
+        }
+
+        int prevCount = _nodesByLayer[node.Layer].Count;
+        _nodesByLayer[node.Layer].Add(node);
+
+        node.AdjustPosition.X = NodeWidth * node.Layer;
         node.AdjustPosition.Y = NodeHeight * ((prevCount + 1) / 2) * (prevCount % 2 == 0 ? 1 : -1); // 위아래위래 배치
+
+        return true;
     }
 
     public Link CreateLink(Pin input, Pin output)
@@ -106,7 +111,7 @@ public class NodeEditor
             AdjustCenter = Vector2.Zero;
         }
 
-        foreach (var node in Nodes)
+        foreach (var node in _nodesById.Values)
         {
             node.Render();
         }
@@ -194,12 +199,12 @@ public class NodeEditor
 
     public void Destroy()
     {
-        foreach (var node in Nodes)
+        foreach (var node in _nodesById.Values)
         {
             node.Destroy();
         }
 
-        Nodes.Clear();
+        _nodesById.Clear();
 
         ImNodes.EditorContextFree(_editorContext);
         _editorContext = null;

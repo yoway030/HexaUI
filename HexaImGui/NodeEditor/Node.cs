@@ -10,17 +10,18 @@ public class Node
     public const uint Title_HoveredColor = 0x5e60ceff;
     public const uint Title_SelectedColor = 0x7400b8ff;
 
-    public Node(int id, string name, NodeEditor editor, uint titleColor = Title_Color)
+    public Node(int id, string name, int layer, NodeEditor editor, uint titleColor = Title_Color)
     {
         Id = id;
         Name = name;
+        Layer = layer;
         Editor = editor;
-
         TitleColor = titleColor;
     }
 
-    public string Name { get; init; }
     public int Id { get; init; }
+    public string Name { get; init; }
+    public int Layer { get; private set; }
     
     private NodeEditor Editor { get; init; }
 
