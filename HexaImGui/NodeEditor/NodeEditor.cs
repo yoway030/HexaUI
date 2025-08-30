@@ -160,10 +160,10 @@ public class NodeEditor
             node.Render();
         }
 
-        RendLinkHover();
-
         ImNodes.MiniMap();
         ImNodes.EndNodeEditor();
+
+        RendLinkHover();
 
         ImNodes.EditorContextSet(null);
     }
@@ -230,8 +230,8 @@ public class NodeEditor
         int id = 0;
         if (ImNodes.IsLinkHovered(ref id))
         {
-            Console.WriteLine($"Link hovered: {id}");
             ImGui.BeginTooltip();
+            ImGui.Text($"Link hovered: {id}");
             ImGui.EndTooltip();
         }
     }
