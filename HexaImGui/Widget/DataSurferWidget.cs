@@ -37,8 +37,6 @@ public class DataSurferWidget<TData> : BaseWidget
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        ImGui.BeginChild($"{WidgetName}#{ParentWindowId}");
-
         // Freeze check box
         ImGui.Checkbox($"Freeze##{ParentWindowId}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
@@ -172,8 +170,6 @@ public class DataSurferWidget<TData> : BaseWidget
 
             ImGui.EndTable();
         }
-
-        ImGui.EndChild();
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
