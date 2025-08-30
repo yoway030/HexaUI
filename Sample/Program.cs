@@ -60,9 +60,11 @@ internal class Program
 
         RecentDataViewer recentDataViewer = new RecentDataViewer("RecentDataViewer");
         CommandConsole console = new CommandConsole("CommandConsole");
-        console.IsVisible = false;
+        console.IsVisibleImObject = false;
 
         NodeViewer nodeView = new NodeViewer("NodeViewer");
+
+        
 
         visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
         visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
@@ -70,6 +72,12 @@ internal class Program
         visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
         visualizer.UiWindows.TryAdd(console.WindowId, console);
         visualizer.UiWindows.TryAdd(nodeView.WindowId, nodeView);
+        
+        SampleWindow sample = new();
+        visualizer.UiWindows.TryAdd(sample.WindowId, sample);
+
+        DataSurferWidgetWindow<LogMessage> logsufer2 = new("logsufer2");
+        visualizer.UiWindows.TryAdd(logsufer2.WindowId, logsufer2);
 
         Random random = new Random();
         int logIndex = 0;
@@ -77,6 +85,8 @@ internal class Program
         {
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
             logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
+
+            logsufer2.DataSurferWidget.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
             Thread.Sleep(100);
             logIndex++;
 

@@ -1,23 +1,20 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.Widget;
 
-namespace ELImGui.Widget;
-
-public abstract class BaseWidget
+public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
-    public BaseWidget(string widgetName, string windowId)
+    public BaseWidget(string widgetName, string parentWindowId)
     {
         WidgetName = widgetName;
-        WindowId = windowId;
+        ParentWindowId = parentWindowId;
     }
 
-    protected bool IsVisible = true;
-
     public string WidgetName { get; init; }
-    public string WindowId { get; init; }
+    public string ParentWindowId { get; init; }
+    public bool IsVisibleImObject { get; set; } = true;
 
-    public void RenderWidget(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec)
     {
-        if (IsVisible == false)
+        if (IsVisibleImObject == false)
         {
             return;
         }
@@ -27,7 +24,7 @@ public abstract class BaseWidget
         OnAfterRender(utcNow, deltaSec);
     }
 
-    public void UpdateWidget(DateTime utcNow, double deltaSec)
+    public void UpdateImObject(DateTime utcNow, double deltaSec)
     {
         OnUpdate(utcNow, deltaSec);
     }
@@ -36,5 +33,4 @@ public abstract class BaseWidget
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);
-
 }

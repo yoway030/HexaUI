@@ -27,7 +27,7 @@ class FilterWidget : BaseWidget
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##{WidgetName}#{WindowId}", ref _filterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        if (ImGui.InputText($"##{WidgetName}#{ParentWindowId}", ref _filterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnFilteringChange();
         }
@@ -38,7 +38,7 @@ class FilterWidget : BaseWidget
             ImGui.BeginDisabled();
         }
 
-        if (ImGui.Checkbox($"ViewOnlyFiltered##{WidgetName}#{WindowId}", ref _viewOnlyFiltered) == true)
+        if (ImGui.Checkbox($"ViewOnlyFiltered##{WidgetName}#{ParentWindowId}", ref _viewOnlyFiltered) == true)
         {
             OnFilteringChange();
         }

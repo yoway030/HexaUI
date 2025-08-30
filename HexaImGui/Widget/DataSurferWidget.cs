@@ -1,42 +1,26 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.Window;
+
+using Hexa.NET.ImGui;
 using ELImGui.Utils;
 using ELImGui.Widget;
 using System.Collections.Concurrent;
 using System.Text;
+using System.Numerics;
 
-namespace ELImGui.Window;
 
-public class DataSurfer<TData> : BaseWindow, IDisposable
+public class DataSurferWidget<TData> : BaseWidget
     where TData : SurfableIndexingData, new()
 {
-    public DataSurfer(string windowName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
-        : base(windowName, windowDepth)
+    public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
+
+    public DataSurferWidget(string parentWindowId, string widgetId = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
+        : base(widgetId, parentWindowId)
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
 
-        _filterWidget = new("Filter", WindowId);
+        _filterWidget = new("Filter", ParentWindowId);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
-    }
-
-    public DataSurfer(DataSurfer<TData> parentWnd, int maxLocalStorage)
-        : base(parentWnd.WindowName, parentWnd.WindowDepth + 1)
-    {
-        MaxLocalStorage = maxLocalStorage;
-        DataIdx = parentWnd.DataIdx;
-
-        _filterWidget = new("Filter", WindowId);
-        _filterWidget.FilterChangingFunc += OnFilterChanging;
-    }
-
-    public void Dispose()
-    {
-        if (_duplicateSurfer != null)
-        {
-            DuplicateWindow = false;
-            _duplicateSurfer.Dispose();
-            _duplicateSurfer = null;
-        }
     }
 
     public bool Freeze = false;
@@ -48,21 +32,15 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
     
-    public bool DuplicateWindow = false;
-    private DataSurfer<TData>? _duplicateSurfer = null;
-
     private FilterWidget _filterWidget;
     private List<TData>? _filteredStorage = null;
 
-    public override void OnPrevRender(DateTime utcNow, double deltaSec)
-    {
-        _duplicateSurfer?.RenderImObject(utcNow, deltaSec);
-    }
-
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
+        ImGui.BeginChild($"{WidgetName}#{ParentWindowId}");
+
         // Freeze check box
-        ImGui.Checkbox($"Freeze##{WindowId}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{ParentWindowId}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
@@ -75,13 +53,6 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         ImGui.Text($"Select:{_selection.Size}/{_localStorage.Count}");
         ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
         ImGuiHelper.SpacingSameLine();
-
-        // Duplicate window checkbox
-        if (ImGui.Checkbox($"Duplicate##{WindowId}", ref DuplicateWindow) == true)
-        {
-            OnDuplicateWindowCheckChange();
-        }
-        ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출력과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
 
         // Filter
         _filterWidget.RenderImObject(utcNow, deltaSec);
@@ -103,7 +74,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx#{ParentWindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -161,7 +132,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.IndexString}#{WindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.IndexString}#{ParentWindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
@@ -201,6 +172,8 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
             ImGui.EndTable();
         }
+
+        ImGui.EndChild();
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
@@ -211,7 +184,6 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
 
         _showStorage = _filteredStorage == null ? _localStorage : _filteredStorage;
-        _duplicateSurfer?.OnUpdate(utcNow, deltaSec);
     }
 
     public void PushData(TData data)
@@ -225,7 +197,6 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         {
             data.Index = DataIdx++;
             _localStorage.Add(data);
-            _duplicateSurfer?.PushData(data);
 
             if (_filteredStorage != null &&
                 data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
@@ -269,20 +240,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         }
     }
 
-    private void OnDuplicateWindowCheckChange()
-    {
-        if (DuplicateWindow == true)
-        {
-            _duplicateSurfer = new(this, 1_000);
-        }
-        else
-        {
-            _duplicateSurfer?.Dispose();
-            _duplicateSurfer = null;
-        }
-    }
-
-    public override void OnWindowFocused()
+    public void OnWindowFocused()
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))

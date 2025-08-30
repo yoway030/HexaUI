@@ -36,8 +36,8 @@ public class ImVisualizer
     private HexaDemo _hexaImGuiDemo = new HexaDemo();
     private ImGuiDemo _imGuiDemo = new ImGuiDemo();
 
-    public ConcurrentDictionary<string /*windowId*/, ImVisualizerWindow> UiWindows = new();
-    public ConcurrentDictionary<string, ImVisualizerObject> UiMenus = new();
+    public ConcurrentDictionary<string /*windowId*/, IImWindow> UiWindows = new();
+    public ConcurrentDictionary<string, IImMenu> UiMenus = new();
     public Action? RenderDelegate;
 
     public bool IsWindowShouldClose = false;
@@ -235,10 +235,24 @@ public class ImVisualizer
     private void RenderWindows(DateTime utcNow, double deltaSec)
     {
         var uiWindows = UiWindows.Values.ToArray();
-        foreach (var uiWindow in uiWindows)
+        foreach (var uiWindow in uiWindows.Select(w => w as IImUpdatable))
         {
-            uiWindow.UpdateVisualizer(utcNow, deltaSec);
-            uiWindow.RenderVisualizer(utcNow, deltaSec);
+            if (uiWindow is null)
+            {
+                continue;
+            }
+
+            uiWindow.UpdateImObject(utcNow, deltaSec);
+        }
+
+        foreach (var uiWindow in uiWindows.Select(w => w as IImRenderable))
+        {
+            if (uiWindow is null)
+            {
+                continue;
+            }
+
+            uiWindow.RenderImObject(utcNow, deltaSec);
         }
     }
 
@@ -271,10 +285,17 @@ public class ImVisualizer
                 {
                     ImGui.Spacing();
 
-                    bool isVisible = uiWindow.IsVisible;
-                    if (ImGui.Checkbox($"{uiWindow.WindowName}##MainMenu", ref isVisible))
+                    if (uiWindow is IImVisible { } visibleWindow)
                     {
-                        uiWindow.IsVisible = isVisible;
+                        bool isVisible = visibleWindow.IsVisibleImObject;
+                        if (ImGui.Checkbox($"{uiWindow.WindowName}##MainMenu", ref isVisible))
+                        {
+                            visibleWindow.IsVisibleImObject = isVisible;
+                        }
+                    }
+                    else
+                    {
+                        ImGui.TextDisabled(uiWindow.WindowName);
                     }
                 }
                 ImGui.EndMenu();
@@ -282,10 +303,24 @@ public class ImVisualizer
 
 
             var uiMenus = UiMenus.Values.ToArray();
-            foreach (var uiMenu in uiMenus)
+            foreach (var UiMenu in uiMenus.Select(w => w as IImUpdatable))
             {
-                uiMenu.UpdateVisualizer(utcNow, deltaSec);
-                uiMenu.RenderVisualizer(utcNow, deltaSec);
+                if (UiMenu is null)
+                {
+                    continue;
+                }
+
+                UiMenu.UpdateImObject(utcNow, deltaSec);
+            }
+
+            foreach (var UiMenu in uiMenus.Select(w => w as IImRenderable))
+            {
+                if (UiMenu is null)
+                {
+                    continue;
+                }
+
+                UiMenu.RenderImObject(utcNow, deltaSec);
             }
 
             ImGui.EndMainMenuBar();

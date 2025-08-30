@@ -70,8 +70,8 @@ public class CommandConsole : BaseWindow
         // '`' 입력시 창 오픈
         if (ImGui.IsKeyPressed(ImGuiKey.GraveAccent))
         {
-            IsVisible = !IsVisible;
-            if (IsVisible)
+            IsVisibleImObject = !IsVisibleImObject;
+            if (IsVisibleImObject)
             {
                 _scrollToBottom = true; // 토글 시 스크롤을 맨 아래로 이동
 

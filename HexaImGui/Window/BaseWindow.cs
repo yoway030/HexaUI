@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace ELImGui.Window;
 
-public abstract class BaseWindow : ImVisualizerWindow
+public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpdatable
 {
     public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
 
@@ -12,14 +12,13 @@ public abstract class BaseWindow : ImVisualizerWindow
         WindowName = windowName;
         WindowDepth = windowDepth;
         WindowId = windowDepth == 0 ? $"{WindowName}" : $"{WindowName}#{WindowDepth}";
-        IsVisible = true;
+        IsVisibleImObject = true;
         _windowSize = new Vector2(300, 200);
         _windowPosition = parentPosition != null ?
             new Vector2(parentPosition.Value.X, parentPosition.Value.Y) :
             new Vector2(400, 400);
     }
 
-    private bool _isVisible = true;
     private bool _isChangingWindowPosSize = false;
     private Vector2 _windowSize;
     private Vector2 _windowPosition;
@@ -27,7 +26,7 @@ public abstract class BaseWindow : ImVisualizerWindow
     public string WindowName { get; init; }
     public int WindowDepth { get; init; }
     public string WindowId { get; init; }
-    public bool IsVisible { get => _isVisible; set => _isVisible = value; }
+    public bool IsVisibleImObject { get; set; }
 
     public Vector2 WindowSize { get => _windowSize; set => _windowSize = value; }
     public Vector2 WindowPoistion { get => _windowPosition; set => _windowPosition = value; }
@@ -39,11 +38,11 @@ public abstract class BaseWindow : ImVisualizerWindow
         _isChangingWindowPosSize = true;
     }
 
-    public void RenderVisualizer(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec)
     {
         OnPrevRender(utcNow, deltaSec);
 
-        if (_isVisible == false)
+        if (IsVisibleImObject == false)
         {
             return;
         }
@@ -58,7 +57,8 @@ public abstract class BaseWindow : ImVisualizerWindow
             _isChangingWindowPosSize = false;
         }
 
-        if (ImGui.Begin(WindowId, ref _isVisible))
+        bool isVisible = IsVisibleImObject;
+        if (ImGui.Begin(WindowId, ref isVisible))
         {
             if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {
@@ -70,6 +70,7 @@ public abstract class BaseWindow : ImVisualizerWindow
 
         // ImGui.Begin의 반환값과 무관하게 ImGui.End를 호출해야 한다.
         ImGui.End();
+        IsVisibleImObject = isVisible;
 
         OnAfterRender(utcNow, deltaSec);
     }
@@ -78,7 +79,7 @@ public abstract class BaseWindow : ImVisualizerWindow
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
 
-    public void UpdateVisualizer(DateTime utcNow, double deltaSec)
+    public void UpdateImObject(DateTime utcNow, double deltaSec)
     {
         OnUpdate(utcNow, deltaSec);
     }

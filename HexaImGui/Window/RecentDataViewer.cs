@@ -115,8 +115,8 @@ public class RecentDataViewer : BaseWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        _filterWidget.RenderWidget(utcNow, deltaSec);
-        _selectedWindow?.RenderVisualizer(utcNow, deltaSec);
+        _filterWidget.RenderImObject(utcNow, deltaSec);
+        _selectedWindow?.RenderImObject(utcNow, deltaSec);
 
         if (_sortedEntries.Any() == false)
         {
