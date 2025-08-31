@@ -2,7 +2,7 @@
 
 namespace ELImGui.Utils;
 
-internal unsafe class BindingsContext : HexaGen.Runtime.IGLContext
+public unsafe class BindingsContext : HexaGen.Runtime.IGLContext
 {
     private GLFWwindowPtr window;
 

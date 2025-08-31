@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "Sample\Sample.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexaImGui", "HexaImGui\HexaImGui.csproj", "{60303091-8512-1404-26A3-01A4A93503B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteUiServer", "RemoteUiServer\RemoteUiServer.csproj", "{C5C2F506-3083-D9C0-F1CF-3342F4725EEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{60303091-8512-1404-26A3-01A4A93503B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60303091-8512-1404-26A3-01A4A93503B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60303091-8512-1404-26A3-01A4A93503B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5C2F506-3083-D9C0-F1CF-3342F4725EEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5C2F506-3083-D9C0-F1CF-3342F4725EEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5C2F506-3083-D9C0-F1CF-3342F4725EEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5C2F506-3083-D9C0-F1CF-3342F4725EEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
