@@ -8,7 +8,7 @@ class FilterWidget : BaseWidget
 {
     public static readonly Vector4 HighLightColor = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public FilterWidget(string widgetName, string windowId) : base(widgetName, windowId)
+    public FilterWidget(string widgetName, string windowName) : base(widgetName, windowName)
     {
     }
 

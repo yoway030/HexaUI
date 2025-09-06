@@ -9,7 +9,7 @@ public class DataViewer<TData> : BaseWindow
     where TData : ViewableData, new()
 {
     public DataViewer(string windowName = $"{nameof(DataViewer<TData>)}")
-        :base(windowName, 0)
+        :base(windowName)
     {
         _dataIdx = -1;
     }
@@ -34,7 +34,7 @@ public class DataViewer<TData> : BaseWindow
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        ImGui.InputText($"##Filter{WindowId}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        ImGui.InputText($"##Filter{WindowName}", ref FilterText, 100, ImGuiInputTextFlags.EnterReturnsTrue);
         ImGuiHelper.SpacingSameLine();
 
         ImGuiHelper.HelpMarkerSameLine("엔터키로 필터링 적용");
@@ -47,10 +47,10 @@ public class DataViewer<TData> : BaseWindow
 
         var initData = DataQueue.First().Value;
 
-        if (ImGui.BeginTable($"##Table{WindowId}", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
+        if (ImGui.BeginTable($"##Table{WindowName}", initData.GetColumnSetupActions().Count() + 1, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX))
         {
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx{WindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -109,7 +109,7 @@ public class DataViewer<TData> : BaseWindow
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains((uint)displayIndex);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{displayIndex}#{WindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{displayIndex}#{WindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력

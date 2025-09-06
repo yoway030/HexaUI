@@ -9,23 +9,23 @@ namespace ELImGui.Window;
 public class DataSurfer<TData> : BaseWindow, IDisposable
     where TData : SurfableIndexingData, new()
 {
-    public DataSurfer(string windowName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
-        : base(windowName, windowDepth)
+    public DataSurfer(string windowName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000)
+        : base(windowName)
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
 
-        _filterWidget = new("Filter", WindowId);
+        _filterWidget = new("Filter", WindowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
     public DataSurfer(DataSurfer<TData> parentWnd, int maxLocalStorage)
-        : base(parentWnd.WindowName, parentWnd.WindowDepth + 1)
+        : base($"{parentWnd.WindowName}#child")
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = parentWnd.DataIdx;
 
-        _filterWidget = new("Filter", WindowId);
+        _filterWidget = new("Filter", WindowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
@@ -62,7 +62,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         // Freeze check box
-        ImGui.Checkbox($"Freeze##{WindowId}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{WindowName}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
@@ -77,7 +77,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         ImGuiHelper.SpacingSameLine();
 
         // Duplicate window checkbox
-        if (ImGui.Checkbox($"Duplicate##{WindowId}", ref DuplicateWindow) == true)
+        if (ImGui.Checkbox($"Duplicate##{WindowName}", ref DuplicateWindow) == true)
         {
             OnDuplicateWindowCheckChange();
         }
@@ -103,7 +103,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{WindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx#{WindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -161,7 +161,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.IndexString}#{WindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.IndexString}#{WindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력

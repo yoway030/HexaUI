@@ -9,7 +9,7 @@ namespace ELImGui.Window;
 public class TextViewer : BaseWindow
 {
     public TextViewer(string windowName, string textOrPath, bool isPath)
-        : base(windowName, 0)
+        : base(windowName)
     {
         WindowName = windowName;
 
@@ -67,7 +67,7 @@ public class TextViewer : BaseWindow
     {
         int lineCount = Lines.Count;
 
-        if (ImGui.BeginChild($"{WindowName}Panel#{WindowDepth}", ImGuiChildFlags.AutoResizeY) == false)
+        if (ImGui.BeginChild($"{WindowName}Panel", ImGuiChildFlags.AutoResizeY) == false)
         {
             ImGui.EndChild();
             return;
@@ -82,7 +82,7 @@ public class TextViewer : BaseWindow
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##{WindowName}Highlight{WindowDepth}", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        if (ImGui.InputText($"##{WindowName}Highlight", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnHighlightChange();
         }
@@ -90,7 +90,7 @@ public class TextViewer : BaseWindow
         ImGui.SeparatorText("Text");
         ImGui.EndChild();
 
-        if (ImGui.BeginChild($"{WindowName}Text#{WindowDepth}") == false)
+        if (ImGui.BeginChild($"{WindowName}Panel") == false)
         {
             ImGui.EndChild();
             return;

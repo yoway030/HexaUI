@@ -9,7 +9,7 @@ namespace ELImGui.Window;
 public class ProcessMonitor : BaseWindow
 {
     public ProcessMonitor(string windowName, double intervalSec = 0.1f, double simpleShowSec = 10f, double maxStorageSec = 3600f)
-        : base(windowName, 0)
+        : base(windowName)
     {
         IntervalSec = intervalSec;
         SimpleShowSec = simpleShowSec;

@@ -27,9 +27,9 @@ public class RecentDataViewer : BaseWindow
     }
 
     public RecentDataViewer(string windowName)
-        : base(windowName, 0)
+        : base(windowName)
     {
-        _filterWidget = new("Filter", WindowId);
+        _filterWidget = new("Filter", WindowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
@@ -128,10 +128,10 @@ public class RecentDataViewer : BaseWindow
         var filterBgColorBase = FilterWidget.HighLightColor;
 
         var initEntry = _sortedEntries.First();
-        if (ImGui.BeginTable($"##Table{WindowId}", 2 + initEntry.Data.GetColumnSetupActions().Count(), ImGuiTableFlags.Borders))
+        if (ImGui.BeginTable($"##Table{WindowName}", 2 + initEntry.Data.GetColumnSetupActions().Count(), ImGuiTableFlags.Borders))
         {
-            ImGui.TableSetupColumn($"Time##Column{WindowId}", ImGuiTableColumnFlags.WidthFixed, 60);
-            ImGui.TableSetupColumn($"Count##Column{WindowId}", ImGuiTableColumnFlags.WidthFixed, 60);
+            ImGui.TableSetupColumn($"Time##Column{WindowName}", ImGuiTableColumnFlags.WidthFixed, 60);
+            ImGui.TableSetupColumn($"Count##Column{WindowName}", ImGuiTableColumnFlags.WidthFixed, 60);
             foreach (var action in initEntry.Data.GetColumnSetupActions())
             {
                 action();
@@ -171,7 +171,7 @@ public class RecentDataViewer : BaseWindow
                     {
                         // 더블클릭처리 샘플
                         _selectedKey = entry.Key;
-                        _selectedWindow = new TextViewer($"{WindowId}#{entry.Key}", entry.Data.FieldsToString, false)
+                        _selectedWindow = new TextViewer($"{WindowName}#{entry.Key}", entry.Data.FieldsToString, false)
                         {
                             WindowPosition = ImGui.GetWindowPos() + new Vector2(30, 30),
                         };

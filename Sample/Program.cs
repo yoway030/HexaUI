@@ -66,18 +66,18 @@ internal class Program
 
         
 
-        visualizer.UiWindows.TryAdd(logsurfer.WindowId, logsurfer);
-        visualizer.UiWindows.TryAdd(dataViwer.WindowId, dataViwer);
-        visualizer.UiWindows.TryAdd(processMonitor.WindowId, processMonitor);
-        visualizer.UiWindows.TryAdd(recentDataViewer.WindowId, recentDataViewer);
-        visualizer.UiWindows.TryAdd(console.WindowId, console);
-        visualizer.UiWindows.TryAdd(nodeView.WindowId, nodeView);
+        visualizer.UiWindows.TryAdd(logsurfer.WindowName, logsurfer);
+        visualizer.UiWindows.TryAdd(dataViwer.WindowName, dataViwer);
+        visualizer.UiWindows.TryAdd(processMonitor.WindowName, processMonitor);
+        visualizer.UiWindows.TryAdd(recentDataViewer.WindowName, recentDataViewer);
+        visualizer.UiWindows.TryAdd(console.WindowName, console);
+        visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
         
         SampleWindow sample = new();
-        visualizer.UiWindows.TryAdd(sample.WindowId, sample);
+        visualizer.UiWindows.TryAdd(sample.WindowName, sample);
 
         DataSurferWidgetWindow<LogMessage> logsufer2 = new("logsufer2");
-        visualizer.UiWindows.TryAdd(logsufer2.WindowId, logsufer2);
+        visualizer.UiWindows.TryAdd(logsufer2.WindowName, logsufer2);
 
         Random random = new Random();
         int logIndex = 0;

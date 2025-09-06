@@ -12,7 +12,7 @@ public class CommandConsole : BaseWindow
     public static readonly Vector4 ErrorTextColor = new Vector4(1, 0.4f, 0.4f, 1f);
 
     public CommandConsole(string windowName = $"{nameof(CommandConsole)}")
-        : base(windowName, 0)
+        : base(windowName)
     {
         // 기본 명령 등록
         Register("help", _ =>
@@ -88,7 +88,7 @@ public class CommandConsole : BaseWindow
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         // 로그 영역
-        string childId = $"ConsoleLog##{WindowId}";
+        string childId = $"ConsoleLog##{WindowName}";
         byte[] bytes = Encoding.UTF8.GetBytes(childId);
 
         // Mark the unsafe block to allow pointer usage
@@ -122,7 +122,7 @@ public class CommandConsole : BaseWindow
         }
 
         ImGui.PushItemWidth(-1);
-        string consoleInputLabel = $"##ConsoleInput#{WindowId}";
+        string consoleInputLabel = $"##ConsoleInput#{WindowName}";
         ImGui.SetItemDefaultFocus();
 
         bool pressedEnter = false;

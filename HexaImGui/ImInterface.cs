@@ -18,8 +18,6 @@ public interface IImVisible
 public interface IImWindow
 {
     public string WindowName { get; init; }
-    public int WindowDepth { get; init; }
-    public string WindowId { get; init; }
 }
 
 public interface IImWidget

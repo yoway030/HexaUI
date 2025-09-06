@@ -7,11 +7,9 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
 {
     public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public BaseWindow(string windowName, int windowDepth = 0, Vector2? parentPosition = null)
+    public BaseWindow(string windowName, Vector2? parentPosition = null)
     {
         WindowName = windowName;
-        WindowDepth = windowDepth;
-        WindowId = windowDepth == 0 ? $"{WindowName}" : $"{WindowName}#{WindowDepth}";
         IsVisibleImObject = true;
         _windowSize = new Vector2(300, 200);
         _windowPosition = parentPosition != null ?
@@ -24,10 +22,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
     private Vector2 _windowPosition;
 
     public string WindowName { get; init; }
-    public int WindowDepth { get; init; }
-    public string WindowId { get; init; }
     public bool IsVisibleImObject { get; set; }
-
     public Vector2 WindowSize
     {
         get => _windowSize;
@@ -37,7 +32,6 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
             _isChangingWindowPosSize = true;
         }
     }
-
     public Vector2 WindowPosition
     {
         get => _windowPosition;
@@ -68,7 +62,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         }
 
         bool isVisible = IsVisibleImObject;
-        if (ImGui.Begin(WindowId, ref isVisible))
+        if (ImGui.Begin(WindowName, ref isVisible))
         {
             if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {

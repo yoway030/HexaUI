@@ -6,9 +6,9 @@ namespace ELImGui.Window;
 public class DataSurferWidgetWindow<TData> : BaseWindow
     where TData : SurfableIndexingData, new()
 {
-    public DataSurferWidgetWindow(string windowName, int windowDepth = 0, Vector2? parentPosition = null) : base(windowName, windowDepth, parentPosition)
+    public DataSurferWidgetWindow(string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {
-        DataSurferWidget = new DataSurferWidget<TData>(WindowId);
+        DataSurferWidget = new DataSurferWidget<TData>(WindowName);
     }
 
     public DataSurferWidget<TData> DataSurferWidget { get; set; }

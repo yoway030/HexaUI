@@ -8,7 +8,7 @@ using Hexa.NET.ImGui;
 public class NodeViewer : BaseWindow
 {
     public NodeViewer(string windowName = nameof(NodeViewer))
-        : base(windowName, 0, null)
+        : base(windowName, null)
     {
         InitSample();
     }
