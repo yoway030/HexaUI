@@ -2,6 +2,8 @@
 using Hexa.NET.ImGui;
 using System.Numerics;
 using ELImGui.Window;
+using ELImGui.Utils;
+using Hexa.NET.ImGui.Widgets;
 
 namespace Sample;
 
@@ -130,8 +132,18 @@ public class LogMessage : SurfableIndexingData
     public override IEnumerable<Action> GetFieldDrawActions()
     {
         yield return () => ImGui.TextUnformatted(DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
-        yield return () => ImGui.TextColored(GetLevelColor(Level), Level);
-        yield return () => ImGui.TextUnformatted(Message);
+        yield return () =>
+        {
+            Identicon.DrawIdenticonRect(Level);
+            ImGui.SameLine();
+            ImGui.TextColored(GetLevelColor(Level), Level);
+        };
+        yield return () =>
+        {
+            Identicon.DrawIdenticonRect(Message);
+            ImGui.SameLine();
+            ImGui.TextUnformatted(Message);
+        };
         yield break;
     }
 
@@ -167,7 +179,13 @@ public class DataSample : ViewableData
 
     public override IEnumerable<Action> GetFieldDrawActions()
     {
-        yield return () => ImGui.TextUnformatted(Column1);
+        yield return () =>
+        {
+            Identicon.DrawIdenticonRect(Column1);
+            ImGui.SameLine();
+            ImGui.TextUnformatted(Column1);
+        };
+
         yield return () => ImGui.TextUnformatted(Column2);
         yield break;
     }
