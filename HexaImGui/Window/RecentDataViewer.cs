@@ -173,7 +173,7 @@ public class RecentDataViewer : BaseWindow
                         _selectedKey = entry.Key;
                         _selectedWindow = new TextViewer($"{WindowId}#{entry.Key}", entry.Data.FieldsToString, false)
                         {
-                            WindowPoistion = ImGui.GetWindowPos() + new Vector2(30, 30),
+                            WindowPosition = ImGui.GetWindowPos() + new Vector2(30, 30),
                         };
                     }
                 }

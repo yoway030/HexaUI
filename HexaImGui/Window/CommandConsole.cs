@@ -79,7 +79,8 @@ public class CommandConsole : BaseWindow
                 var size = viewport.Size;
                 size.Y = Math.Clamp(size.Y, 0, 400);
 
-                SetWindowPosSize(viewport.Pos, size);
+                WindowPosition = viewport.Pos;
+                WindowSize = size;
             }
         }
     }

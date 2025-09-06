@@ -28,14 +28,24 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
     public string WindowId { get; init; }
     public bool IsVisibleImObject { get; set; }
 
-    public Vector2 WindowSize { get => _windowSize; set => _windowSize = value; }
-    public Vector2 WindowPoistion { get => _windowPosition; set => _windowPosition = value; }
-
-    public void SetWindowPosSize(Vector2 position, Vector2 size)
+    public Vector2 WindowSize
     {
-        _windowPosition = position;
-        _windowSize = size;
-        _isChangingWindowPosSize = true;
+        get => _windowSize;
+        set
+        {
+            _windowSize = value;
+            _isChangingWindowPosSize = true;
+        }
+    }
+
+    public Vector2 WindowPosition
+    {
+        get => _windowPosition;
+        set
+        {
+            _windowPosition = value;
+            _isChangingWindowPosSize = true;
+        }
     }
 
     public void RenderImObject(DateTime utcNow, double deltaSec)
