@@ -1,10 +1,10 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.demo;
+
+using Hexa.NET.ImGui;
 using ELImGui.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
-
-namespace ELImGui.demo;
 
 public class JsonViewer
 {
@@ -42,78 +42,19 @@ public class JsonViewer
                 "JSON 포맷이 잘못된 경우 오류 메시지를 표시합니다.",
                 "뭔가 있어 보이지만 크게 쓸데는 없는것 같습니다."
             );
-            DrawJsonPretty(jsonText);
+
+            try
+            {
+                var token = JToken.Parse(jsonText);
+                DrawJsonTokenWithPath(token, "$");
+            }
+            catch (Exception ex)
+            {
+                ImGui.TextColored(new Vector4(1f, 0f, 0f, 1f), $"Invalid JSON: {ex.Message}");
+            }
         }
 
         ImGui.End();
-    }
-
-    private void DrawJsonPretty(string jsonText)
-    {
-        try
-        {
-            var token = JToken.Parse(jsonText);
-            DrawJsonTokenWithPath(token, "$");
-        }
-        catch (Exception ex)
-        {
-            ImGui.TextColored(new Vector4(1f, 0f, 0f, 1f), $"Invalid JSON: {ex.Message}");
-        }
-    }
-
-    private void DrawJToken(JToken token, int indent)
-    {
-        switch (token.Type)
-        {
-            case JTokenType.Object:
-                foreach (var prop in (JObject)token)
-                {
-                    ImGui.PushID(prop.Key);
-                    if (ImGui.TreeNode(prop.Key))
-                    {
-                        DrawJToken(prop.Value!, indent + 1);
-                        ImGui.TreePop();
-                    }
-                    ImGui.PopID();
-                }
-                break;
-
-            case JTokenType.Array:
-                int i = 0;
-                foreach (var item in (JArray)token)
-                {
-                    ImGui.PushID(i);
-                    if (ImGui.TreeNode($"[{i}]"))
-                    {
-                        DrawJToken(item, indent + 1);
-                        ImGui.TreePop();
-                    }
-                    ImGui.PopID();
-                    i++;
-                }
-                break;
-
-            case JTokenType.String:
-                ImGui.TextColored(new Vector4(0.9f, 0.6f, 0.2f, 1f), $"\"{token}\"");
-                break;
-
-            case JTokenType.Integer:
-            case JTokenType.Float:
-                ImGui.TextColored(new Vector4(0.6f, 0.8f, 1f, 1f), token.ToString());
-                break;
-
-            case JTokenType.Boolean:
-                ImGui.TextColored(new Vector4(0.4f, 0.9f, 0.4f, 1f), token.ToString().ToLower());
-                break;
-
-            case JTokenType.Null:
-                ImGui.TextColored(new Vector4(1f, 0f, 1f, 1f), "null");
-                break;
-
-            default:
-                ImGui.Text(token.ToString());
-                break;
-        }
     }
 
     void DrawJsonTokenWithPath(JToken token, string path)
