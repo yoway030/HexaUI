@@ -20,7 +20,7 @@ public static class Identicon
         uint fg = ImGui.ColorConvertFloat4ToU32(new(rgb.X, rgb.Y, rgb.Z, 1f));
         
         // 패딩/셀
-        float pad = size * 0.1f;
+        float pad = size * 0.00f;
         float inner = size - pad * 2f;
         float cell = inner / 5f;
 
