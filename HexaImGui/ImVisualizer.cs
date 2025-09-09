@@ -1,4 +1,6 @@
-﻿using Hexa.NET.GLFW;
+namespace ELImGui;
+
+using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
 using Hexa.NET.ImGui.Backends.OpenGL3;
@@ -6,19 +8,42 @@ using Hexa.NET.ImGui.Utilities;
 using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
-using ELImGui.demo;
-using ELImGui.Utils;
+using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
+using NLog;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
-
-namespace ELImGui;
+using ELImGui.demo;
+using ELImGui.Utils;
 
 public class ImVisualizer
 {
-    private const int _checkPointRenewCount = 10000;
+    private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    public static ImVisualizer Instance { get; private set; } = default!;
+
+    public static ImVisualizer CreateInstance()
+    {
+        if (Instance != null)
+        {
+            throw new InvalidOperationException("ImVisualizer instance already exists. Use DestroyInstance() before creating a new one.");
+        }
+
+        Instance = new ImVisualizer();
+        return Instance;
+    }
+
+    public static void DestroyInstance()
+    {
+        if (Instance != null)
+        {
+            Instance.Cleanup();
+            Instance = null!;
+        }
+    }
+
+    private const int CheckPointRenewCount = 1000;
     private DateTime _checkPointTime = DateTime.UtcNow;
     private long _checkPointTick = Stopwatch.GetTimestamp();
     private long _lastTick = Stopwatch.GetTimestamp();
@@ -33,10 +58,10 @@ public class ImVisualizer
 
     public string LabelBackground = "VisualizerBackground";
 
-    private HexaDemo _hexaImGuiDemo = new HexaDemo();
-    private ImGuiDemo _imGuiDemo = new ImGuiDemo();
+    private HexaDemo _hexaImGuiDemo = new();
+    private ImGuiDemo _imGuiDemo = new();
 
-    public ConcurrentDictionary<string /*windowId*/, IImWindow> UiWindows = new();
+    public ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
     public ConcurrentDictionary<string, IImMenu> UiMenus = new();
     public Action? RenderDelegate;
 
@@ -45,7 +70,7 @@ public class ImVisualizer
     public bool IsShowImGuiCSharpDemo = false;
     public bool IsShowHexaDemo = false;
 
-    public void Initialize()
+    public bool Initialize(string windowTitle)
     {
         GLFW.Init();
 
@@ -57,12 +82,12 @@ public class ImVisualizer
         GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
         GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
 
-        _window = GLFW.CreateWindow(1024, 768, "GLFW Example", null, null);
+        _window = GLFW.CreateWindow(1200, 900, windowTitle, null, null);
         if (_window.IsNull)
         {
-            Console.WriteLine("Failed to create GLFW window.");
+            Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to create GLFW window.");
             GLFW.Terminate();
-            return;
+            return false;
         }
 
         GLFW.MakeContextCurrent(_window);
@@ -103,20 +128,21 @@ public class ImVisualizer
 
         if (!ImGuiImplGLFW.InitForOpenGL(Unsafe.BitCast<GLFWwindowPtr, Hexa.NET.ImGui.Backends.GLFW.GLFWwindowPtr>(_window), true))
         {
-            Console.WriteLine("Failed to init ImGui Impl GLFW");
+            Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to init ImGui Impl GLFW");
             GLFW.Terminate();
-            return;
+            return false;
         }
 
         ImGuiImplOpenGL3.SetCurrentContext(_guiContext);
         if (!ImGuiImplOpenGL3.Init(glslVersion))
         {
-            Console.WriteLine("Failed to init ImGui Impl OpenGL3");
+            Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to init ImGui Impl OpenGL3");
             GLFW.Terminate();
-            return;
+            return false;
         }
 
         _gl = new(new BindingsContext(_window));
+        return true;
     }
 
     public void Loop()
@@ -125,15 +151,15 @@ public class ImVisualizer
 
         while (IsWindowShouldClose == false)
         {
-            if (loopCount % _checkPointRenewCount == 0)
+            if (loopCount % CheckPointRenewCount == 0)
             {
                 _checkPointTime = DateTime.UtcNow;
                 _checkPointTick = Stopwatch.GetTimestamp();
             }
 
-            var currentTick = Stopwatch.GetTimestamp();
+            long currentTick = Stopwatch.GetTimestamp();
             var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
-            var deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
+            double deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
             _lastTick = currentTick;
 
             // Poll for and process events
@@ -274,6 +300,7 @@ public class ImVisualizer
                 {
                     IsWindowShouldClose = true;
                 }
+
                 ImGui.Spacing();
                 ImGui.EndMenu();
             }
@@ -298,9 +325,9 @@ public class ImVisualizer
                         ImGui.TextDisabled(uiWindow.WindowName);
                     }
                 }
+
                 ImGui.EndMenu();
             }
-
 
             var uiMenus = UiMenus.Values.ToArray();
             foreach (var UiMenu in uiMenus.Select(w => w as IImUpdatable))

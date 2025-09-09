@@ -1,7 +1,7 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
-
 namespace ELImGui.demo;
+
+using Hexa.NET.ImGui;
+using System.Numerics;
 
 public class HexaDemo
 {
@@ -88,7 +88,10 @@ public class HexaDemo
             IMGUI_DEMO_MARKER("Widgets/Basic/Button");
 
             if (ImGui.Button("Button"))
+            {
                 clicked++;
+            }
+
             if ((clicked & 1) != 0)
             {
                 ImGui.SameLine();
@@ -101,8 +104,10 @@ public class HexaDemo
 
             IMGUI_DEMO_MARKER("Widgets/Basic/RadioButton");
 
-            ImGui.RadioButton("radio a", ref e, 0); ImGui.SameLine();
-            ImGui.RadioButton("radio b", ref e, 1); ImGui.SameLine();
+            ImGui.RadioButton("radio a", ref e, 0);
+            ImGui.SameLine();
+            ImGui.RadioButton("radio b", ref e, 1);
+            ImGui.SameLine();
             ImGui.RadioButton("radio c", ref e, 2);
 
             // Color buttons, demonstrate using PushID() to add unique identifier in the ID stack, and changing style.
@@ -110,7 +115,10 @@ public class HexaDemo
             for (int i = 0; i < 7; i++)
             {
                 if (i > 0)
+                {
                     ImGui.SameLine();
+                }
+
                 ImGui.PushID(i);
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.HSV(i / 7.0f, 0.6f, 0.6f).Value);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, ImGui.HSV(i / 7.0f, 0.7f, 0.7f).Value);
@@ -132,9 +140,16 @@ public class HexaDemo
 
             float spacing = ImGui.GetStyle().ItemInnerSpacing.X;
 
-            if (ImGui.ArrowButton("##left", ImGuiDir.Left)) { counter--; }
+            if (ImGui.ArrowButton("##left", ImGuiDir.Left))
+            {
+                counter--;
+            }
+
             ImGui.SameLine(0.0f, spacing);
-            if (ImGui.ArrowButton("##right", ImGuiDir.Right)) { counter++; }
+            if (ImGui.ArrowButton("##right", ImGuiDir.Right))
+            {
+                counter++;
+            }
 
             ImGui.SameLine();
             ImGui.Text($"{counter}");
@@ -149,8 +164,8 @@ public class HexaDemo
                 string[] items = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIIIIII", "JJJJ", "KKKKKKK" };
 
                 ImGui.Combo("combo", ref item_current, items, IM_ARRAYSIZE(items));
-                ImGui.SameLine(); HelpMarker(
-                    "Using the simplified one-liner Combo API here.\nRefer to the \"Combo\" section below for an explanation of how to use the more flexible and general BeginCombo/EndCombo API.");
+                ImGui.SameLine();
+                HelpMarker("Using the simplified one-liner Combo API here.\nRefer to the \"Combo\" section below for an explanation of how to use the more flexible and general BeginCombo/EndCombo API.");
             }
 
             {
@@ -159,7 +174,8 @@ public class HexaDemo
                 IMGUI_DEMO_MARKER("Widgets/Basic/InputText");
 
                 ImGui.InputText("input text", ref str0, 128);
-                ImGui.SameLine(); HelpMarker(
+                ImGui.SameLine();
+                HelpMarker(
                     "USER:\n"
 
                     + "Hold SHIFT or use mouse to select text.\n"
@@ -193,7 +209,8 @@ public class HexaDemo
                 ImGui.InputDouble("input double", ref d0, 0.01f, 1.0f, "%.8f");
 
                 ImGui.InputFloat("input scientific", ref f1, 0.0f, 0.0f, "%e");
-                ImGui.SameLine(); HelpMarker(
+                ImGui.SameLine();
+                HelpMarker(
                     "You can input value using the scientific notation,\n"
 
                     + "  e.g. \"1e+8\" becomes \"100000000\".");
@@ -205,7 +222,8 @@ public class HexaDemo
                 IMGUI_DEMO_MARKER("Widgets/Basic/DragInt, DragFloat");
 
                 ImGui.DragInt("drag int", ref i1, 1);
-                ImGui.SameLine(); HelpMarker(
+                ImGui.SameLine();
+                HelpMarker(
                     "Click and drag to edit value.\n"
 
                     + "Hold SHIFT/ALT for faster/slower edit.\n"
@@ -222,7 +240,8 @@ public class HexaDemo
                 IMGUI_DEMO_MARKER("Widgets/Basic/SliderInt, SliderFloat");
 
                 ImGui.SliderInt("slider int", ref i3, -1, 3);
-                ImGui.SameLine(); HelpMarker("CTRL+click to input value.");
+                ImGui.SameLine();
+                HelpMarker("CTRL+click to input value.");
 
                 ImGui.SliderFloat("slider float", ref f4, 0.0f, 1.0f, "ratio = %.3f");
                 ImGui.SliderFloat("slider float (log)", ref f5, -10.0f, 10.0f, "%.4f", ImGuiSliderFlags.Logarithmic);
@@ -237,17 +256,19 @@ public class HexaDemo
                 IMGUI_DEMO_MARKER("Widgets/Basic/Slider (enum)");
 
                 string[] elems_names = { "Fire", "Earth", "Air", "Water" };
-                string elem_name = elem >= 0 && elem < (int)Element.COUNT ? elems_names[elem] : "Unknown";
+                string elem_name = elem is >= 0 and < ((int)Element.COUNT) ? elems_names[elem] : "Unknown";
                 ImGui.SliderInt("slider enum", ref elem, 0, (int)Element.COUNT - 1, elem_name);
 
-                ImGui.SameLine(); HelpMarker("Using the format string parameter to display a name instead of the underlying integer.");
+                ImGui.SameLine();
+                HelpMarker("Using the format string parameter to display a name instead of the underlying integer.");
             }
 
             {
                 IMGUI_DEMO_MARKER("Widgets/Basic/ColorEdit3, ColorEdit4");
 
                 ImGui.ColorEdit3("color 1", ref col1);
-                ImGui.SameLine(); HelpMarker(
+                ImGui.SameLine();
+                HelpMarker(
                     "Click on the color square to open a color picker.\n"
 
                     + "Click and hold to use drag and drop.\n"
@@ -266,7 +287,8 @@ public class HexaDemo
                 string[] items = { "Apple", "Banana", "Cherry", "Kiwi", "Mango", "Orange", "Pineapple", "Strawberry", "Watermelon" };
 
                 ImGui.ListBox("listbox", ref item_current0, items, IM_ARRAYSIZE(items), 4);
-                ImGui.SameLine(); HelpMarker(
+                ImGui.SameLine();
+                HelpMarker(
                     "Using the simplified one-liner ListBox API here.\nRefer to the \"List boxes\" section below for an explanation of how to use the more flexible and general BeginListBox/EndListBox API.");
             }
 
@@ -279,7 +301,9 @@ public class HexaDemo
                 ImGui.SameLine();
                 ImGui.Button("Tooltip");
                 if (ImGui.IsItemHovered())
+                {
                     ImGui.SetTooltip("I am a tooltip");
+                }
 
                 ImGui.SameLine();
                 ImGui.Button("Fancy");
@@ -296,7 +320,9 @@ public class HexaDemo
                 ImGui.SameLine();
                 ImGui.Button("Delayed");
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayNormal)) // Delay best used on items that highlight on hover, so this not a great example!
+                {
                     ImGui.SetTooltip("I am a tooltip with a delay.");
+                }
 
                 ImGui.SameLine();
                 HelpMarker(
@@ -311,34 +337,22 @@ public class HexaDemo
             if (ImGui.Checkbox("JsonViewer-Tree", ref showJsonViewer))
             {
                 // Checkbox는 값이 변경될때 true를 리턴한다. 이후 어떤 값으로 변경되었는지 확인하고 처리한다.
-                if (showJsonViewer)
-                {
-                    jsonViewer = new JsonViewer();
-                }
-                else
-                {
-                    jsonViewer = null;
-                }
+                jsonViewer = showJsonViewer ? new JsonViewer() : null;
             }
+
             jsonViewer?.Draw();
 
             if (ImGui.Checkbox("MouseDragRect", ref showMouseDragRect))
             {
                 // Checkbox는 값이 변경될때 true를 리턴한다. 이후 어떤 값으로 변경되었는지 확인하고 처리한다.
-                if (showMouseDragRect)
-                {
-                    mouseDragRect = new MouseDragRect();
-                }
-                else
-                {
-                    mouseDragRect = null;
-                }
+                mouseDragRect = showMouseDragRect ? new MouseDragRect() : null;
             }
+
             mouseDragRect?.Draw();
 
             ImGui.TreePop();
         }
-        
+
         ImGui.End();
     }
 

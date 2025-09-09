@@ -26,17 +26,17 @@ public class Node
     public int Id { get; init; }
     public string Name { get; init; }
     public int Layer { get; private set; }
-    
-    private NodeEditor Editor { get; init; }
+
+    protected NodeEditor Editor { get; init; }
 
     public uint TitleColor { get; set; }
 
     public bool IsHovered { get; set; } = false;
     public Vector2 AdjustPosition = Vector2.Zero;
 
-    public Pin? CreatePin(NodeEditor editor, string name, PinKind kind, ImNodesPinShape shape)
+    public Pin? CreatePin(string name, PinKind kind, ImNodesPinShape shape = ImNodesPinShape.Circle)
     {
-        Pin pin = new(editor.GetUniqueId(), name, this, shape, kind);
+        Pin pin = new(Editor.GetUniqueId(), name, this, shape, kind);
         if (TryAddPin(pin) == false)
         {
             return null;
@@ -89,7 +89,11 @@ public class Node
         yield break;
     }
 
-    public void Render()
+    public virtual void Update()
+    {
+    }
+
+    public virtual void RenderHeader()
     {
         ImNodes.PushColorStyle(ImNodesCol.TitleBar, TitleColor);
         ImNodes.PushColorStyle(ImNodesCol.TitleBarHovered, Title_HoveredColor);
@@ -99,7 +103,16 @@ public class Node
         ImNodes.BeginNodeTitleBar();
         ImGui.Text(Name);
         ImNodes.EndNodeTitleBar();
+    }
 
+    public virtual void RenderFooter()
+    {
+        ImNodes.EndNode();
+        ImNodes.PopColorStyle();
+    }
+
+    public virtual void RenderPin()
+    {
         var pins = _pinsById.Values.ToList();
         if (pins.Any() == false)
         {
@@ -137,9 +150,18 @@ public class Node
                 pin.Center = new Vector2(nodePos.X + nodeSize.X, center?.Y ?? 0f);
             }
         }
+    }
 
-        ImNodes.EndNode();
-        ImNodes.PopColorStyle();
+    public virtual void RenderContent()
+    {
+    }
+
+    public virtual void Render()
+    {
+        RenderHeader();
+        RenderContent();
+        RenderPin();
+        RenderFooter();
     }
 
     public void Destroy()

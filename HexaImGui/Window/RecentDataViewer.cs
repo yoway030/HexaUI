@@ -1,9 +1,9 @@
-﻿using Hexa.NET.ImGui;
-using ELImGui.Widget;
-using System.Collections.Concurrent;
-using System.Numerics;
-
 namespace ELImGui.Window;
+
+using System.Collections.Concurrent;
+using Hexa.NET.ImGui;
+using System.Numerics;
+using ELImGui.Widget;
 
 public class RecentDataViewer : BaseWindow
 {
@@ -29,7 +29,7 @@ public class RecentDataViewer : BaseWindow
     public RecentDataViewer(string windowName)
         : base(windowName)
     {
-        _filterWidget = new("Filter", WindowName);
+        _filterWidget = new("Filter", windowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
@@ -38,7 +38,7 @@ public class RecentDataViewer : BaseWindow
 
     public readonly ConcurrentQueue<(string Key, ViewableData Data)> DataQueue = new();
 
-    private FilterWidget _filterWidget;
+    private readonly FilterWidget _filterWidget;
     private bool _filterChanged = false;
 
     private string? _selectedKey;
@@ -46,7 +46,7 @@ public class RecentDataViewer : BaseWindow
 
     public void PushData(string key, ViewableData data)
     {
-        if (string.IsNullOrWhiteSpace(key) || data == null)
+        if (String.IsNullOrWhiteSpace(key) || data == null)
         {
             return;
         }
@@ -60,7 +60,7 @@ public class RecentDataViewer : BaseWindow
 
         while (DataQueue.TryDequeue(out var item))
         {
-            if (string.IsNullOrWhiteSpace(item.Key) || item.Data == null)
+            if (String.IsNullOrWhiteSpace(item.Key) || item.Data == null)
             {
                 return;
             }
@@ -102,12 +102,13 @@ public class RecentDataViewer : BaseWindow
 
             _sortedEntries.Sort((a, b) =>
             {
-                var time = b.UpdateTime.CompareTo(a.UpdateTime);
+                int time = b.UpdateTime.CompareTo(a.UpdateTime);
                 if (time == 0)
                 {
-                    var count = b.Count - a.Count;
+                    int count = b.Count - a.Count;
                     return count;
                 }
+
                 return time;
             });
         }
@@ -136,6 +137,7 @@ public class RecentDataViewer : BaseWindow
             {
                 action();
             }
+
             ImGui.TableHeadersRow();
 
             foreach (var entry in _sortedEntries)
@@ -151,7 +153,7 @@ public class RecentDataViewer : BaseWindow
                 var span = utcNow - entry.UpdateTime;
                 if (span <= TimeSpan.FromMilliseconds(HighlightTimeMs))
                 {
-                    var alpha = (1.0 - (span.TotalMilliseconds/HighlightTimeMs)) * 0.7;
+                    double alpha = (1.0 - (span.TotalMilliseconds / HighlightTimeMs)) * 0.7;
                     recentBgColorBase.W = (float)alpha;
 
                     ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(recentBgColorBase));
@@ -177,6 +179,7 @@ public class RecentDataViewer : BaseWindow
                         };
                     }
                 }
+
                 ImGui.TableNextColumn();
                 {
                     ImGui.TextUnformatted(entry.Count.ToString());

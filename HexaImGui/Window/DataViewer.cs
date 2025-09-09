@@ -1,4 +1,4 @@
-﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGui;
 using ELImGui.Utils;
 using System.Collections.Concurrent;
 using System.Text;
@@ -9,7 +9,7 @@ public class DataViewer<TData> : BaseWindow
     where TData : ViewableData, new()
 {
     public DataViewer(string windowName = $"{nameof(DataViewer<TData>)}")
-        :base(windowName)
+        : base(windowName)
     {
         _dataIdx = -1;
     }

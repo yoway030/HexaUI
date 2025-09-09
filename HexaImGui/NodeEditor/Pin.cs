@@ -1,8 +1,8 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.NodeEditor;
+
+using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Numerics;
-
-namespace ELImGui.NodeEditor;
 
 public enum PinKind
 {
@@ -64,8 +64,8 @@ public class Pin
 
     private void UpdateCenterPos()
     {
-        Vector2 min = ImGui.GetItemRectMin();
-        Vector2 max = ImGui.GetItemRectMax();
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
 
         float y = (min.Y + max.Y) * 0.5f;
         Center = new Vector2(min.X, y); // x position incorrect

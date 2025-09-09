@@ -1,7 +1,7 @@
-﻿
-using Hexa.NET.ImGui;
 
 namespace ELImGui.Window;
+
+using Hexa.NET.ImGui;
 
 public class SampleWindow : IImWindow, IImRenderable
 {

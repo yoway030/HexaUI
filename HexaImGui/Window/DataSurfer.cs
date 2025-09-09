@@ -1,10 +1,10 @@
-﻿using Hexa.NET.ImGui;
-using ELImGui.Utils;
-using ELImGui.Widget;
+namespace ELImGui.Window;
+
 using System.Collections.Concurrent;
 using System.Text;
-
-namespace ELImGui.Window;
+using Hexa.NET.ImGui;
+using ELImGui.Utils;
+using ELImGui.Widget;
 
 public class DataSurfer<TData> : BaseWindow, IDisposable
     where TData : SurfableIndexingData, new()
@@ -47,7 +47,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
     public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
-    
+
     public bool DuplicateWindow = false;
     private DataSurfer<TData>? _duplicateSurfer = null;
 
@@ -81,6 +81,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         {
             OnDuplicateWindowCheckChange();
         }
+
         ImGuiHelper.HelpMarkerSameLine("동일 데이터 출력위젯 생성\n원본 데이터 출력과 필터링 데이터 출력을 분리하고 싶을 경우 사용");
 
         // Filter
@@ -114,7 +115,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             ImGui.TableHeadersRow();
 
             // 멀티셀렉트 처리
-            ImGuiMultiSelectIOPtr ms_io = ImGui.BeginMultiSelect(
+            var ms_io = ImGui.BeginMultiSelect(
                 ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1D,
                 _selection.Size,
                 _showStorage.Count);
@@ -126,7 +127,8 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                     {
                         return unchecked((uint)-1);
                     }
-                    return (uint)_showStorage[index].Index;
+
+                    return _showStorage[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
 
@@ -143,8 +145,8 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
                 // 클리핑 처리
                 for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
-                    TData data = _showStorage[displayIndex];
-                    var fieldsToString = data.FieldsToString;
+                    var data = _showStorage[displayIndex];
+                    string fieldsToString = data.FieldsToString;
                     bool isHighlighted = _filterWidget.IsFiltering &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
@@ -210,7 +212,7 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
             AdjustData();
         }
 
-        _showStorage = _filteredStorage == null ? _localStorage : _filteredStorage;
+        _showStorage = _filteredStorage ?? _localStorage;
         _duplicateSurfer?.OnUpdate(utcNow, deltaSec);
     }
 
@@ -257,16 +259,11 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
 
     private void OnFilterChanging()
     {
-        if (_filterWidget.IsOnlyFileterd == true)
-        {
-            _filteredStorage = [ .. _localStorage
+        _filteredStorage = _filterWidget.IsOnlyFileterd == true
+            ? [ .. _localStorage
                 .Where(data => data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
-                .ToList(), ];
-        }
-        else
-        {
-            _filteredStorage = null;
-        }
+                .ToList(), ]
+            : null;
     }
 
     private void OnDuplicateWindowCheckChange()
@@ -287,20 +284,17 @@ public class DataSurfer<TData> : BaseWindow, IDisposable
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                var surfableDataIndex = _selection.Storage.Data[i].Key;
-                var showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
-                var surfableDataIndexInShowStorage = surfableDataIndex - showStorageStartIndex;
-
-                if (surfableDataIndexInShowStorage < 0 || surfableDataIndexInShowStorage >= _showStorage.Count)
+                uint selectedIndex = _selection.Storage.Data[i].Key - 1;
+                if (selectedIndex < 0 || selectedIndex >= _localStorage.Count)
                 {
                     continue;
                 }
 
-                sb.AppendLine(_showStorage[(int)surfableDataIndexInShowStorage].FieldsToString);
+                sb.AppendLine(_localStorage[(int)selectedIndex].FieldsToString);
             }
 
             ImGui.SetClipboardText(sb.ToString());

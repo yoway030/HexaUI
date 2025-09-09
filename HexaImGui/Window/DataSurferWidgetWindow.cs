@@ -1,7 +1,7 @@
-﻿
-using System.Numerics;
 
 namespace ELImGui.Window;
+
+using System.Numerics;
 
 public class DataSurferWidgetWindow<TData> : BaseWindow
     where TData : SurfableIndexingData, new()
@@ -27,5 +27,4 @@ public class DataSurferWidgetWindow<TData> : BaseWindow
     {
         DataSurferWidget.OnWindowFocused();
     }
-
 }

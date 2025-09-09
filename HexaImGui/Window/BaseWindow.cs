@@ -1,11 +1,11 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
-
 namespace ELImGui.Window;
+
+using Hexa.NET.ImGui;
+using System.Numerics;
 
 public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpdatable
 {
-    public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
+    public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
 
     public BaseWindow(string windowName, Vector2? parentPosition = null)
     {
@@ -90,5 +90,5 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
 
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);
 
-    public virtual void OnWindowFocused() {}
+    public virtual void OnWindowFocused() { }
 }

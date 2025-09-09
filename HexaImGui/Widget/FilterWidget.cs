@@ -1,23 +1,23 @@
-﻿using Hexa.NET.ImGui;
-using ELImGui.Utils;
-using System.Numerics;
-
 namespace ELImGui.Widget;
+
+using System.Numerics;
+using Hexa.NET.ImGui;
+using ELImGui.Utils;
 
 class FilterWidget : BaseWidget
 {
-    public static readonly Vector4 HighLightColor = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
+    public static readonly Vector4 HighLightColor = new(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public FilterWidget(string widgetName, string windowName) : base(widgetName, windowName)
+    public FilterWidget(string widgetName, string windowId) : base(widgetName, windowId)
     {
     }
 
-    private string _filterText = string.Empty;
+    private string _filterText = String.Empty;
     private bool _viewOnlyFiltered = false;
 
-    public string FilterText { get => _filterText; }
-    public bool IsFiltering { get => string.IsNullOrWhiteSpace(_filterText) == false; }
-    public bool IsOnlyFileterd { get => IsFiltering && _viewOnlyFiltered == true; }
+    public string FilterText => _filterText;
+    public bool IsFiltering => String.IsNullOrWhiteSpace(_filterText) == false;
+    public bool IsOnlyFileterd => IsFiltering && _viewOnlyFiltered == true;
 
     public Action? FilterChangingFunc;
 
@@ -31,6 +31,7 @@ class FilterWidget : BaseWidget
         {
             OnFilteringChange();
         }
+
         ImGuiHelper.SpacingSameLine();
 
         if (IsFiltering == false)

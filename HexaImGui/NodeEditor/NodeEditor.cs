@@ -1,6 +1,5 @@
-﻿namespace ELImGui.NodeEditor;
+namespace ELImGui.NodeEditor;
 
-using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Diagnostics.CodeAnalysis;
@@ -15,8 +14,8 @@ public class NodeEditor
     private Dictionary<string, Node> _nodesByName = new();
     private Dictionary<int, HashSet<Node>> _nodesByLayer { get; } = new();
 
-    public const float NodeWidth = 100f;
-    public const float NodeHeight= 100f;
+    public const float NodeWidth = 200f;
+    public const float NodeHeight = 80f;
 
     public NodeEditor()
     {
@@ -25,7 +24,7 @@ public class NodeEditor
 
     public List<Link> Links { get; } = new();
 
-    public Vector2 AdjustCenter = new Vector2(NodeWidth, NodeHeight);
+    public Vector2 AdjustCenter = new(NodeWidth, NodeHeight);
 
     public int GetUniqueId()
     {
@@ -135,7 +134,13 @@ public class NodeEditor
         return null;
     }
 
-
+    public void Update(DateTime utcNow, double deltaSec)
+    {
+        foreach (var node in _nodesById.Values.ToArray())
+        {
+            node.Update();
+        }
+    }
 
     public void Render(DateTime utcNow, double deltaSec)
     {
@@ -155,7 +160,7 @@ public class NodeEditor
 
         RenderLinkFlows(utcNow, deltaSec);
 
-        foreach (var node in _nodesById.Values)
+        foreach (var node in _nodesById.Values.ToArray())
         {
             node.Render();
         }
@@ -179,7 +184,7 @@ public class NodeEditor
             if (link.OutputPin.Center == null)
             {
                 continue;
-            } 
+            }
             else if (link.InputPin.Center == null)
             {
                 continue;
@@ -197,15 +202,15 @@ public class NodeEditor
 
             foreach (var dot in link.Dots.ToList())
             {
-                TimeSpan timeSpan = utcNow - dot.CreatedTime;
-                float timeProgress = (float)timeSpan.TotalMilliseconds / (float)dot.DurationMSec;
+                var timeSpan = utcNow - dot.CreatedTime;
+                float timeProgress = (float)timeSpan.TotalMilliseconds / dot.DurationMSec;
                 if (timeProgress > 1.0f)
                 {
                     link.Dots.Remove(dot);
                 }
 
                 float positionRate = dot.Destination == PinKind.Input ? timeProgress : 1.0f - timeProgress;
-                Vector2 flowPos = CubicBezier(p0, p1, p2, p3, positionRate);
+                var flowPos = CubicBezier(p0, p1, p2, p3, positionRate);
                 drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
             }
         }
@@ -217,7 +222,7 @@ public class NodeEditor
         float uu = u * u, tt = t * t;
         float uuu = uu * u, ttt = tt * t;
 
-        Vector2 p = uuu * p0;
+        var p = uuu * p0;
         p += 3f * uu * t * p1;
         p += 3f * u * tt * p2;
         p += ttt * p3;

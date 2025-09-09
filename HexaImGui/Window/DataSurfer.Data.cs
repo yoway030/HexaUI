@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 public abstract class SurfableIndexingData : ViewableData
 {

@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Utils;
+namespace ELImGui.Utils;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
@@ -18,10 +18,10 @@ public static class Identicon
         uint h32 = Fnv1aHash(input);
         var rgb = ColorUtil.HslToRgb(h32, 0.65f, 0.55f);
         uint fg = ImGui.ColorConvertFloat4ToU32(new(rgb.X, rgb.Y, rgb.Z, 1f));
-        
+
         // 패딩/셀
         float pad = size * 0.00f;
-        float inner = size - pad * 2f;
+        float inner = size - (pad * 2f);
         float cell = inner / 5f;
 
         // 패턴. 5x5 그리드, 좌우대칭. 5*3 = 15비트 * 색상 개수 만큼 표현
@@ -30,9 +30,9 @@ public static class Identicon
         {
             for (int x = 0; x < 3; x++)
             {
-                bool v = ((bits & 1) == 1);
+                bool v = (bits & 1) == 1;
                 bits >>= 1;
-                
+
                 if (!v)
                 {
                     continue;
@@ -40,7 +40,7 @@ public static class Identicon
 
                 void FillCell(int gx)
                 {
-                    var p0 = topLeft + new Vector2(pad + gx * cell, pad + y * cell);
+                    var p0 = topLeft + new Vector2(pad + (gx * cell), pad + (y * cell));
                     var p1 = p0 + new Vector2(cell, cell);
                     dl.AddRectFilled(p0, p1, fg);
                 }

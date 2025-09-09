@@ -1,4 +1,4 @@
-﻿namespace ELImGui.demo;
+namespace ELImGui.demo;
 
 using Hexa.NET.ImGui;
 using ELImGui.Utils;
@@ -8,7 +8,8 @@ using System.Numerics;
 
 public class JsonViewer
 {
-    public string jsonText = 
+#pragma warning disable JSON002 // 가능한 JSON 문자열이 탐지됨
+    public string jsonText =
 """
 {           
   "name": "John \"Johnny\" Smith",
@@ -30,11 +31,12 @@ public class JsonViewer
   ]
 }
 """;
+#pragma warning restore JSON002 // 가능한 JSON 문자열이 탐지
 
     public void Draw()
     {
         ImGui.Begin("JSON Viewer");
-        
+
         if (ImGui.CollapsingHeader("JSON Viewer"))
         {
             ImGuiHelper.HelpMarkerSameLine(
@@ -71,7 +73,9 @@ public class JsonViewer
                     bool open = ImGui.TreeNodeEx(prop.Key, flags);
 
                     if (ImGui.IsItemHovered())
+                    {
                         ImGui.SetTooltip($"Path: ${childPath}");
+                    }
 
                     if (open)
                     {
@@ -81,6 +85,7 @@ public class JsonViewer
 
                     ImGui.PopID();
                 }
+
                 break;
 
             case JTokenType.Array:
@@ -93,7 +98,9 @@ public class JsonViewer
                     bool open = ImGui.TreeNodeEx($"[{i}]", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Framed);
 
                     if (ImGui.IsItemHovered())
+                    {
                         ImGui.SetTooltip($"Path: ${childPath}");
+                    }
 
                     if (open)
                     {
@@ -103,6 +110,7 @@ public class JsonViewer
 
                     ImGui.PopID();
                 }
+
                 break;
 
             default:
@@ -116,11 +124,15 @@ public class JsonViewer
                 {
                     // Ctrl+C 눌렸으면 복사
                     if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyDown(ImGuiKey.C))
+                    {
                         ImGui.SetClipboardText(display);
+                    }
                 }
 
                 if (ImGui.IsItemHovered())
+                {
                     ImGui.SetTooltip($"Path: ${path}");
+                }
 
                 ImGui.SameLine();
                 ImGui.TextColored(color, $" ({token.Type})");

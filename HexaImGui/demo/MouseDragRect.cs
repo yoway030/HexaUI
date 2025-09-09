@@ -1,8 +1,8 @@
-﻿using Hexa.NET.ImGui;
+﻿namespace ELImGui.demo;
+
+using Hexa.NET.ImGui;
 using ELImGui.Utils;
 using System.Numerics;
-
-namespace ELImGui.demo;
 
 public class MouseDragRect
 {
@@ -50,12 +50,11 @@ public class MouseDragRect
         if (isDragging && _dragStartPos.HasValue && _dragEndPos.HasValue)
         {
             // 드래그 중인 경우 → 드래그 박스 그리기
-            Vector2 dragMin = Vector2.Min(_dragStartPos.Value, _dragEndPos.Value);
-            Vector2 dragMax = Vector2.Max(_dragStartPos.Value, _dragEndPos.Value);
+            var dragMin = Vector2.Min(_dragStartPos.Value, _dragEndPos.Value);
+            var dragMax = Vector2.Max(_dragStartPos.Value, _dragEndPos.Value);
             drawList.AddRectFilled(dragMin, dragMax, ImGui.GetColorU32(ImGuiCol.Border));
         }
 
         ImGui.EndChild();
     }
-
 }

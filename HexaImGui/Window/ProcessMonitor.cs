@@ -1,10 +1,10 @@
-﻿using Hexa.NET.ImGui;
-using Hexa.NET.ImPlot;
+namespace ELImGui.Window;
+
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Numerics;
-
-namespace ELImGui.Window;
+using Hexa.NET.ImGui;
+using Hexa.NET.ImPlot;
 
 public class ProcessMonitor : BaseWindow
 {
@@ -40,7 +40,7 @@ public class ProcessMonitor : BaseWindow
     private readonly int _processorCount = Environment.ProcessorCount;
     private TimeSpan _lastTotalProcessorTime;
     private readonly List<double> _cpuUsage;
-    private double _cpuUsageMax = 100.0;
+    private readonly double _cpuUsageMax = 100.0;
 
     // memory usage
     private readonly List<float> _memoryUsage;
@@ -64,7 +64,7 @@ public class ProcessMonitor : BaseWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        Vector2 windowSize = ImGui.GetContentRegionAvail();
+        var windowSize = ImGui.GetContentRegionAvail();
 
         var plotStyle = ImPlot.GetStyle();
         var oldPlotPadding = plotStyle.PlotPadding;
@@ -124,8 +124,8 @@ public class ProcessMonitor : BaseWindow
         // CPU 사용률
         _process.Refresh();
         var currentTotalProcessorTime = _process.TotalProcessorTime;
-        var cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
-        var cpuPercent = ((cpuUsed / timeSpan.TotalSeconds) * 100 / _processorCount);
+        double cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
+        double cpuPercent = cpuUsed / timeSpan.TotalSeconds * 100 / _processorCount;
         _cpuUsage.Add(cpuPercent);
         _cpuUsage.RemoveAt(0);
 

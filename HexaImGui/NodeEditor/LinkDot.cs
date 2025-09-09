@@ -1,11 +1,11 @@
-﻿namespace ELImGui.NodeEditor;
+namespace ELImGui.NodeEditor;
 
 using System;
 
 public class LinkDot
 {
-    public string Message { get; init; } = string.Empty;
-    
+    public string Message { get; init; } = String.Empty;
+
     public DateTime CreatedTime { get; init; } = DateTime.UtcNow;
 
     public int DurationMSec { get; init; } = 1000;

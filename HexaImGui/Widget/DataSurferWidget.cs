@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
 using ELImGui.Utils;
@@ -7,11 +7,10 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Numerics;
 
-
 public class DataSurferWidget<TData> : BaseWidget
     where TData : SurfableIndexingData, new()
 {
-    public static readonly Vector4 ColorTextHighLight = new Vector4(0.0f, 1.0f, 0.0f, 0.5f);
+    public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
 
     public DataSurferWidget(string parentWindowId, string widgetId = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
         : base(widgetId, parentWindowId)
@@ -31,7 +30,7 @@ public class DataSurferWidget<TData> : BaseWidget
 
     public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
-    
+
     private FilterWidget _filterWidget;
     private List<TData>? _filteredStorage = null;
 
@@ -83,7 +82,7 @@ public class DataSurferWidget<TData> : BaseWidget
             ImGui.TableHeadersRow();
 
             // 멀티셀렉트 처리
-            ImGuiMultiSelectIOPtr ms_io = ImGui.BeginMultiSelect(
+            var ms_io = ImGui.BeginMultiSelect(
                 ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1D,
                 _selection.Size,
                 _showStorage.Count);
@@ -95,7 +94,8 @@ public class DataSurferWidget<TData> : BaseWidget
                     {
                         return unchecked((uint)-1);
                     }
-                    return (uint)_showStorage[index].Index;
+
+                    return _showStorage[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
 
@@ -112,8 +112,8 @@ public class DataSurferWidget<TData> : BaseWidget
                 // 클리핑 처리
                 for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
-                    TData data = _showStorage[displayIndex];
-                    var fieldsToString = data.FieldsToString;
+                    var data = _showStorage[displayIndex];
+                    string fieldsToString = data.FieldsToString;
                     bool isHighlighted = _filterWidget.IsFiltering &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
@@ -179,7 +179,7 @@ public class DataSurferWidget<TData> : BaseWidget
             AdjustData();
         }
 
-        _showStorage = _filteredStorage == null ? _localStorage : _filteredStorage;
+        _showStorage = _filteredStorage ?? _localStorage;
     }
 
     public void PushData(TData data)
@@ -224,16 +224,11 @@ public class DataSurferWidget<TData> : BaseWidget
 
     private void OnFilterChanging()
     {
-        if (_filterWidget.IsOnlyFileterd == true)
-        {
+        _filteredStorage = _filterWidget.IsOnlyFileterd == true ?
             _filteredStorage = [ .. _localStorage
                 .Where(data => data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
-                .ToList(), ];
-        }
-        else
-        {
-            _filteredStorage = null;
-        }
+                .ToList(), ]
+            : null;
     }
 
     public void OnWindowFocused()
@@ -241,13 +236,13 @@ public class DataSurferWidget<TData> : BaseWidget
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                var surfableDataIndex = _selection.Storage.Data[i].Key;
-                var showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
-                var surfableDataIndexInShowStorage = surfableDataIndex - showStorageStartIndex;
+                uint surfableDataIndex = _selection.Storage.Data[i].Key;
+                uint showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
+                uint surfableDataIndexInShowStorage = surfableDataIndex - showStorageStartIndex;
 
                 if (surfableDataIndexInShowStorage < 0 || surfableDataIndexInShowStorage >= _showStorage.Count)
                 {

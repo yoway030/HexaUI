@@ -1,10 +1,9 @@
-﻿using Hexa.NET.ImGui;
+namespace ELImGui.Window;
+
+using Hexa.NET.ImGui;
 using System.Numerics;
 using System.Text;
 using ELImGui.Utils;
-using System.Net.Http.Headers;
-
-namespace ELImGui.Window;
 
 public class TextViewer : BaseWindow
 {
@@ -17,7 +16,7 @@ public class TextViewer : BaseWindow
         {
             Path = textOrPath;
 
-            if (string.IsNullOrWhiteSpace(Path))
+            if (String.IsNullOrWhiteSpace(Path))
             {
                 ErrorText = "파일 경로가 null이거나 비어 있습니다.";
             }
@@ -31,12 +30,12 @@ public class TextViewer : BaseWindow
 
                 Text = File.ReadAllText(Path);
 
-                if (string.IsNullOrWhiteSpace(Text))
+                if (String.IsNullOrWhiteSpace(Text))
                 {
                     ErrorText = "파일 내용이 비어 있습니다.";
                 }
-
             }
+
             catch (IOException ex)
             {
                 ErrorText = $"파일 입출력 오류: {ex.Message}";
@@ -55,12 +54,12 @@ public class TextViewer : BaseWindow
     }
 
     public string? ErrorText { get; private set; } = null;
-    public string Text { get; private set; } = string.Empty;
+    public string Text { get; private set; } = String.Empty;
     public List<string> Lines { get; private set; } = null!;
     public string? Path { get; private set; } = null;
     private ImGuiSelectionBasicStorage _selection = new();
 
-    public string HighlightText = string.Empty;
+    public string HighlightText = String.Empty;
     private HashSet<int>? _highlightedLines = null;
 
     public override void OnRender(DateTime utcNow, double deltaSec)
@@ -90,7 +89,7 @@ public class TextViewer : BaseWindow
         ImGui.SeparatorText("Text");
         ImGui.EndChild();
 
-        if (ImGui.BeginChild($"{WindowName}Panel") == false)
+        if (ImGui.BeginChild($"{WindowName}Text") == false)
         {
             ImGui.EndChild();
             return;
@@ -106,7 +105,7 @@ public class TextViewer : BaseWindow
         }
         else
         {
-            ImGuiMultiSelectIOPtr ms_io = ImGui.BeginMultiSelect(
+            var ms_io = ImGui.BeginMultiSelect(
                 ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1D,
                 _selection.Size,
                 lineCount);
@@ -154,12 +153,12 @@ public class TextViewer : BaseWindow
     {
     }
 
-    public  override void OnWindowFocused()
+    public override void OnWindowFocused()
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
@@ -173,7 +172,7 @@ public class TextViewer : BaseWindow
 
     private void OnHighlightChange()
     {
-        if (string.IsNullOrWhiteSpace(HighlightText))
+        if (String.IsNullOrWhiteSpace(HighlightText))
         {
             _highlightedLines = null;
         }

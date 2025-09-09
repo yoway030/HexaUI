@@ -1,6 +1,5 @@
 ﻿namespace ELImGui.NodeEditor;
 
-using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 
 public class Link

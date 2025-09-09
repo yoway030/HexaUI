@@ -1,15 +1,15 @@
-﻿using Hexa.NET.ImGui;
+namespace ELImGui.Window;
+
+using Hexa.NET.ImGui;
 using System.Numerics;
 using System.Text;
 
-namespace ELImGui.Window;
-
 public class CommandConsole : BaseWindow
 {
-    public static readonly Vector4 DefaultColor = new Vector4(1, 1, 1, 1);
-    public static readonly Vector4 HelpTextColor = new Vector4(0.8f, 0.9f, 1f, 1f);
-    public static readonly Vector4 EchoTextColor = new Vector4(0.7f, 0.9f, 0.7f, 1f);
-    public static readonly Vector4 ErrorTextColor = new Vector4(1, 0.4f, 0.4f, 1f);
+    public static readonly Vector4 DefaultColor = new(1, 1, 1, 1);
+    public static readonly Vector4 HelpTextColor = new(0.8f, 0.9f, 1f, 1f);
+    public static readonly Vector4 EchoTextColor = new(0.7f, 0.9f, 0.7f, 1f);
+    public static readonly Vector4 ErrorTextColor = new(1, 0.4f, 0.4f, 1f);
 
     public CommandConsole(string windowName = $"{nameof(CommandConsole)}")
         : base(windowName)
@@ -18,7 +18,7 @@ public class CommandConsole : BaseWindow
         Register("help", _ =>
         {
             AddLog("Available commands:", HelpTextColor);
-            foreach (var k in _commands.Keys)
+            foreach (string k in _commands.Keys)
             {
                 AddLog($"  {k}");
             }
@@ -28,12 +28,12 @@ public class CommandConsole : BaseWindow
 
         Register("echo", args =>
         {
-            AddLog(string.Join(' ', args));
+            AddLog(String.Join(' ', args));
         });
 
         Register("time", _ =>
         {
-            AddLog(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+            AddLog(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
         });
     }
 
@@ -42,7 +42,7 @@ public class CommandConsole : BaseWindow
     private readonly List<string> _history = new();
     private int _historyIndex = -1;
 
-    private string _commandInput = string.Empty;
+    private string _commandInput = String.Empty;
     private bool _scrollToBottom = false;
 
     public void Register(string name, Action<string[]> handler)
@@ -131,7 +131,7 @@ public class CommandConsole : BaseWindow
             pressedEnter = ImGui.InputText(consoleInputLabel, ref _commandInput, 1024,
             ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackHistory, Callback);
         }
-        
+
         ImGui.PopItemWidth();
 
         if (pressedEnter)
@@ -155,7 +155,7 @@ public class CommandConsole : BaseWindow
                 foundHistory = _history[_historyIndex];
             }
         }
-        
+
         if (ImGui.IsKeyPressed(ImGuiKey.DownArrow))
         {
             if (_history.Count > 0)
@@ -168,7 +168,7 @@ public class CommandConsole : BaseWindow
                 else
                 {
                     _historyIndex = -1;
-                    foundHistory = string.Empty;
+                    foundHistory = String.Empty;
                 }
             }
         }
@@ -185,7 +185,9 @@ public class CommandConsole : BaseWindow
 
             // 삽입 (BufSize를 넘으면 잘립니다)
             fixed (byte* p = replacementBytes)
+            {
                 data->InsertChars(0, p, p + replacement.Length);
+            }
 
             // 커서 맨 끝으로
             data->CursorPos = data->BufTextLen;
@@ -198,7 +200,7 @@ public class CommandConsole : BaseWindow
 
     private void ExecuteCurrentInput()
     {
-        var line = _commandInput.Trim();
+        string line = _commandInput.Trim();
         if (line.Length == 0)
         {
             return;
@@ -235,7 +237,7 @@ public class CommandConsole : BaseWindow
             AddLog($"Unknown command: {cmd}", ErrorTextColor);
         }
 
-        _commandInput = string.Empty;
+        _commandInput = String.Empty;
         _scrollToBottom = true;
     }
 
@@ -248,14 +250,19 @@ public class CommandConsole : BaseWindow
 
         foreach (char ch in line)
         {
-            if (ch == '"') 
+            if (ch == '"')
             {
-                inQuotes = !inQuotes; continue;
+                inQuotes = !inQuotes;
+                continue;
             }
 
-            if (!inQuotes && char.IsWhiteSpace(ch))
+            if (!inQuotes && Char.IsWhiteSpace(ch))
             {
-                if (cur.Length > 0) { tokens.Add(cur.ToString()); cur.Clear(); }
+                if (cur.Length > 0)
+                {
+                    tokens.Add(cur.ToString());
+                    cur.Clear();
+                }
             }
             else
             {
@@ -270,10 +277,10 @@ public class CommandConsole : BaseWindow
 
         if (tokens.Count == 0)
         {
-            return (string.Empty, Array.Empty<string>());
+            return (String.Empty, Array.Empty<string>());
         }
 
-        var cmd = tokens[0];
+        string cmd = tokens[0];
         tokens.RemoveAt(0);
         return (cmd, tokens.ToArray());
     }
