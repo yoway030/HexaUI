@@ -8,7 +8,7 @@ class FilterWidget : BaseWidget
 {
     public static readonly Vector4 HighLightColor = new(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public FilterWidget(string widgetName, string windowId) : base(widgetName, windowId)
+    public FilterWidget(string widgetName, string parentWindowName) : base(widgetName, parentWindowName)
     {
     }
 
@@ -27,7 +27,7 @@ class FilterWidget : BaseWidget
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##{WidgetName}#{ParentWindowId}", ref _filterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        if (ImGui.InputText($"##{WidgetName}#{ParentWindowName}", ref _filterText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnFilteringChange();
         }
@@ -39,7 +39,7 @@ class FilterWidget : BaseWidget
             ImGui.BeginDisabled();
         }
 
-        if (ImGui.Checkbox($"ViewOnlyFiltered##{WidgetName}#{ParentWindowId}", ref _viewOnlyFiltered) == true)
+        if (ImGui.Checkbox($"ViewOnlyFiltered##{WidgetName}#{ParentWindowName}", ref _viewOnlyFiltered) == true)
         {
             OnFilteringChange();
         }

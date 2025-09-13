@@ -12,13 +12,13 @@ public class DataSurferWidget<TData> : BaseWidget
 {
     public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public DataSurferWidget(string parentWindowId, string widgetId = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
-        : base(widgetId, parentWindowId)
+    public DataSurferWidget(string parentWindowName, string widgetName = $"{nameof(DataSurfer<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
+        : base(widgetName, parentWindowName)
     {
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
 
-        _filterWidget = new("Filter", ParentWindowId);
+        _filterWidget = new("Filter", ParentWindowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
@@ -37,7 +37,7 @@ public class DataSurferWidget<TData> : BaseWidget
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         // Freeze check box
-        ImGui.Checkbox($"Freeze##{ParentWindowId}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{ParentWindowName}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
@@ -71,7 +71,7 @@ public class DataSurferWidget<TData> : BaseWidget
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{ParentWindowId}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx#{ParentWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
 
             // 데이터 출력하는 컬럼
             foreach (var action in initData.GetColumnSetupActions())
@@ -130,7 +130,7 @@ public class DataSurferWidget<TData> : BaseWidget
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.IndexString}#{ParentWindowId}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.IndexString}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력

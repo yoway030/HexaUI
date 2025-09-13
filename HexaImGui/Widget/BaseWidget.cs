@@ -2,14 +2,14 @@ namespace ELImGui.Widget;
 
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
-    public BaseWidget(string widgetName, string parentWindowId)
+    public BaseWidget(string widgetName, string parentWindowName)
     {
         WidgetName = widgetName;
-        ParentWindowId = parentWindowId;
+        ParentWindowName = parentWindowName;
     }
 
     public string WidgetName { get; init; }
-    public string ParentWindowId { get; init; }
+    public string ParentWindowName { get; init; }
     public bool IsVisibleImObject { get; set; } = true;
 
     public void RenderImObject(DateTime utcNow, double deltaSec)
