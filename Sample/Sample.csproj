@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HexaImGui\HexaImGui.csproj" />
+    <ProjectReference Include="..\HexaImGui\ELImGui.csproj" />
   </ItemGroup>
 
 </Project>

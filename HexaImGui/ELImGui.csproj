@@ -51,11 +51,9 @@
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.2" />
 		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NLog" Version="6.0.4" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\LCommon\LCommon.csproj" />
-	</ItemGroup>
 	<ItemGroup>
 		<Analyzer Remove="..\..\..\Tools\LServerCodeAnalyzer\Output\LServerCodeAnalyzer.dll" />
 	</ItemGroup>

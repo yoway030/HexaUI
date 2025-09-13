@@ -16,7 +16,7 @@ internal class Program
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
-            visualizer.Initialize();
+            visualizer.Initialize("Sample");
 
             while (visualizer.IsWindowShouldClose == false)
             {
