@@ -6,15 +6,22 @@ using ELImGui.Widget;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Numerics;
+using System;
+using System.Data;
 
 public class DataTableWidget<TData> : BaseWidget
-    where TData : IndexedDataTableRow, new()
 {
     public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public DataTableWidget(string parentWindowName, string widgetName = $"{nameof(DataTableWidget<TData>)}", int maxLocalStorage = 10_000, int windowDepth = 0)
+    public DataTableWidget(string widgetName, DataTableRole<TData> role)
+        : this($"{nameof(DataTableWidget<TData>)}", role, String.Empty)
+    {
+    }
+
+    public DataTableWidget(string widgetName, DataTableRole<TData> role, string parentWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
         : base(widgetName, parentWindowName)
     {
+        Role = role;
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
 
@@ -22,19 +29,19 @@ public class DataTableWidget<TData> : BaseWidget
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
-    public DataTableDefine DefineInfo = new DataTableDefine();
+    public DataTableRole<TData> Role;
 
     public bool Freeze = false;
     public int MaxLocalStorage { get; init; }
     public ConcurrentQueue<TData> DataQueue = new();
-    private List<TData> _localStorage = new();
-    private List<TData> _showStorage = null!;
+    private List<IndexedRow<TData>> _localStorage = new();
+    private List<IndexedRow<TData>> _showStorage = null!;
 
     public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
 
     private FilterWidget _filterWidget;
-    private List<TData>? _filteredStorage = null;
+    private List<IndexedRow<TData>>? _filteredStorage = null;
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
@@ -67,20 +74,14 @@ public class DataTableWidget<TData> : BaseWidget
 
         var initData = _showStorage[0];
 
-        if (ImGui.BeginTable("Datas", DefineInfo.Columns.Count + 1, DefineInfo.TableFlags))
+        if (ImGui.BeginTable("Datas", Role.Columns.Length + 1, Role.TableFlags))
         {
             // 헤더 고정
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
             ImGui.TableSetupColumn($"##Idx#{ParentWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
-
-            // 데이터 출력하는 컬럼
-            foreach (var column in DefineInfo)
-            {
-                ImGui.TableSetupColumn(column.Name, column.Flags, column.Width);
-            }
-
+            Role.SetupColumns();
             ImGui.TableHeadersRow();
 
             // 멀티셀렉트 처리
@@ -114,8 +115,8 @@ public class DataTableWidget<TData> : BaseWidget
                 // 클리핑 처리
                 for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
-                    var data = _showStorage[displayIndex];
-                    string fieldsToString = data.FieldsToString;
+                    var indexedRow = _showStorage[displayIndex];
+                    string fieldsToString = Role.RowToString(indexedRow.Data);
                     bool isHighlighted = _filterWidget.IsFiltering &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
@@ -130,26 +131,22 @@ public class DataTableWidget<TData> : BaseWidget
                     ImGui.TableNextColumn();
                     {
                         // 선택기능을 위한 첫번째 컬럼
-                        bool item_is_selected = _selection.Contains(data.Index);
+                        bool item_is_selected = _selection.Contains(indexedRow.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.Index}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{indexedRow.Index}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
-                    foreach (var drawAction in data.GetFieldDrawActions())
-                    {
-                        ImGui.TableNextColumn();
-                        drawAction();
-                    }
+                    Role.RenderRow(indexedRow.Data);
 
                     if (isHighlighted)
                     {
                         ImGui.PopStyleColor();
                     }
-
+                    
                     if (ImGui.IsItemHovered())
                     {
-                        data.RenderTooltip();
+                        Role.RenderTooltip(indexedRow.Data);
                     }
                 }
             }
@@ -193,13 +190,16 @@ public class DataTableWidget<TData> : BaseWidget
     {
         while (DataQueue.TryDequeue(out var data) == true)
         {
-            data.Index = DataIdx++;
-            _localStorage.Add(data);
+            uint index = DataIdx++;
+            var indexedData = new IndexedRow<TData>(index, data);
+            _localStorage.Add(indexedData);
+
+            var rowToString = Role.RowToString(indexedData.Data);
 
             if (_filteredStorage != null &&
-                data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
+                rowToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
             {
-                _filteredStorage.Add(data);
+                _filteredStorage.Add(indexedData);
             }
         }
 
@@ -228,7 +228,7 @@ public class DataTableWidget<TData> : BaseWidget
     {
         _filteredStorage = _filterWidget.IsOnlyFileterd == true ?
             _filteredStorage = [ .. _localStorage
-                .Where(data => data.FieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
+                .Where(indexedRow => Role.RowToString(indexedRow.Data).Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                 .ToList(), ]
             : null;
     }
@@ -242,16 +242,17 @@ public class DataTableWidget<TData> : BaseWidget
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                uint surfableDataIndex = _selection.Storage.Data[i].Key;
+                uint dataIndexKey = _selection.Storage.Data[i].Key;
                 uint showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
-                uint surfableDataIndexInShowStorage = surfableDataIndex - showStorageStartIndex;
+                uint surfableDataIndexInShowStorage = dataIndexKey - showStorageStartIndex;
 
                 if (surfableDataIndexInShowStorage < 0 || surfableDataIndexInShowStorage >= _showStorage.Count)
                 {
                     continue;
                 }
 
-                sb.AppendLine(_showStorage[(int)surfableDataIndexInShowStorage].FieldsToString);
+                var rowToString = Role.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].Data);
+                sb.AppendLine(rowToString);
             }
 
             ImGui.SetClipboardText(sb.ToString());

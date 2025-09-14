@@ -27,11 +27,6 @@ internal class Program
         });
         thread.Start();
 
-        DataTableWindow<LogMessage> dataTable = new("LogSurfer");
-        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data1", 60, ImGuiTableColumnFlags.WidthFixed));
-        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data2", 100, ImGuiTableColumnFlags.WidthFixed));
-        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data3", 1024, ImGuiTableColumnFlags.WidthFixed));
-
         ProcessMonitor processMonitor = new("ProcessMonitor");
 
         string jsonString = 
@@ -56,15 +51,44 @@ internal class Program
     ]
 }
 """;
+
+        var tableRole = new DataTableRoleBuilder<PlayerRow>()
+            .AddColumn("Name", 160, getter: (in PlayerRow p) => p.Name)
+            .AddColumn(
+                name: "Level",
+                width: 60,
+                getter: (in PlayerRow p) => p.Level.ToString(),
+                renderer: (in PlayerRow p) =>
+                {
+                    Identicon.RenderIdenticonRect(p.Name);
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted(p.Level.ToString());
+                })
+            .AddColumn("DPS", 80, getter: (in PlayerRow p) => p.DPS.ToString())
+            .AddColumn("Class", 100, getter: (in PlayerRow p) => p.Class)
+            .Build(
+                renderTooltip : (in PlayerRow row) =>
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.TextUnformatted($"Name: {row.Name}");
+                    ImGui.TextUnformatted($"Level: {row.Level}");
+                    ImGui.TextUnformatted($"DPS: {row.DPS}");
+                    ImGui.TextUnformatted($"Class: {row.Class}");
+                    ImGui.EndTooltip();
+                },
+                getRowToString: (in PlayerRow row) =>
+                {
+                    return $"{row.Name} {row.Level} {row.DPS} {row.Class}";
+                });
+        DataTableWindow<PlayerRow> dataTable = new("LogSurfer1111", tableRole);
+
         TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
-        RecentDataViewer recentDataViewer = new RecentDataViewer("RecentDataViewer");
         CommandConsole console = new CommandConsole("CommandConsole");
         console.IsVisibleImObject = false;
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
         visualizer.UiWindows.TryAdd(dataTable.WindowName, dataTable);
         visualizer.UiWindows.TryAdd(processMonitor.WindowName, processMonitor);
-        visualizer.UiWindows.TryAdd(recentDataViewer.WindowName, recentDataViewer);
         visualizer.UiWindows.TryAdd(console.WindowName, console);
         visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
         
@@ -74,9 +98,8 @@ internal class Program
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
-            dataTable.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
-            
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}", Level = logIndex, Class = "EEEE", DPS = 10 });
+
             Thread.Sleep(100);
             logIndex++;
 
@@ -92,61 +115,10 @@ internal class Program
     }
 }
 
-
-public class LogMessage : IndexedDataTableRow
+public sealed class PlayerRow
 {
-    public DateTime DateTime { get; set; } = DateTime.MinValue;
-    public string Level { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-
-    public Vector4 GetLevelColor(string level) => level switch
-    {
-        "ERROR" => new Vector4(1, 0.2f, 0.2f, 1),
-        "WARN" => new Vector4(1, 0.7f, 0.2f, 1),
-        "DEBUG" => new Vector4(0.5f, 0.7f, 1f, 1),
-        _ => new Vector4(1, 1, 1, 1),
-    };
-
-    public override string FieldsToString => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        yield return () => ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 180);
-        yield return () => ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 60);
-        yield return () => ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthFixed, 1000);
-        yield break;
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () => ImGui.TextUnformatted(DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
-        yield return () =>
-        {
-            Identicon.DrawIdenticonRect(Level);
-            ImGui.SameLine();
-            ImGui.TextColored(GetLevelColor(Level), Level);
-        };
-        yield return () =>
-        {
-            Identicon.DrawIdenticonRect(Message);
-            ImGui.SameLine();
-            ImGui.TextUnformatted(Message);
-        };
-        yield break;
-    }
-
-    public override void RenderTooltip()
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff")}");
-        ImGui.TextColored(GetLevelColor(Level), Level);
-
-        // Message wrapping
-        ImGui.Spacing();
-        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 30); // Adjust wrap position based on font size
-        ImGui.TextUnformatted(Message);
-        ImGui.PopTextWrapPos();
-        ImGui.EndTooltip();
-    }
+    public string Name { get; init; } = "";
+    public int Level { get; init; }
+    public float DPS { get; init; }
+    public string Class { get; init; } = "";
 }
-

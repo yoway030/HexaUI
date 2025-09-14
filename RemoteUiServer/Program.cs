@@ -29,8 +29,6 @@ using ELImGui.Window;
 using ELImGui;
 using System.Threading;
 
-DataTableWindow<LogMessage>? logsufer2 = new("logsufer2");
-
 var server = new OffscreenImGuiServer(Constants.WIDTH, Constants.HEIGHT)
 {
     RenderDelegate = () =>
@@ -48,10 +46,6 @@ var server = new OffscreenImGuiServer(Constants.WIDTH, Constants.HEIGHT)
         ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
         ImGui.PopStyleColor();
-
-        logsufer2?.TableWidget.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads" });
-        logsufer2?.UpdateImObject(DateTime.UtcNow, 30);
-        logsufer2?.RenderImObject(DateTime.UtcNow, 30);
 
         //ImGui.ShowDemoWindow();
     }
@@ -168,7 +162,7 @@ sealed class TinyHttp
 
         // --- 헤더 파싱 (Content-Length/CORS 대비) ---
         int contentLength = 0;
-        bool isJson = false;
+        //bool isJson = false;
         while (true)
         {
             string? line;
@@ -183,9 +177,9 @@ sealed class TinyHttp
                 var v = line[(idx + 1)..].Trim();
                 if (h.Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
                     int.TryParse(v, out contentLength);
-                if (h.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) &&
-                    v.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
-                    isJson = true;
+                //if (h.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) &&
+                //    v.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+                //    isJson = true;
             }
         }
 
@@ -394,25 +388,25 @@ sealed class TinyHttp
             return;
         }
 
-        // 로컬 헬퍼
-        void EnqueueDto(InputEventDto d)
-        {
-            switch (d.type)
-            {
-                case "move":
-                    _imgServer.EnqueueInput(new InputEvent { Type = InputType.Move, X = d.x, Y = d.y });
-                    break;
-                case "down":
-                    _imgServer.EnqueueInput(new InputEvent { Type = InputType.Down, Button = d.button });
-                    break;
-                case "up":
-                    _imgServer.EnqueueInput(new InputEvent { Type = InputType.Up, Button = d.button });
-                    break;
-                case "wheel":
-                    _imgServer.EnqueueInput(new InputEvent { Type = InputType.Wheel, Dx = d.dx, Dy = d.dy });
-                    break;
-            }
-        }
+        //// 로컬 헬퍼
+        //void EnqueueDto(InputEventDto d)
+        //{
+        //    switch (d.type)
+        //    {
+        //        case "move":
+        //            _imgServer.EnqueueInput(new InputEvent { Type = InputType.Move, X = d.x, Y = d.y });
+        //            break;
+        //        case "down":
+        //            _imgServer.EnqueueInput(new InputEvent { Type = InputType.Down, Button = d.button });
+        //            break;
+        //        case "up":
+        //            _imgServer.EnqueueInput(new InputEvent { Type = InputType.Up, Button = d.button });
+        //            break;
+        //        case "wheel":
+        //            _imgServer.EnqueueInput(new InputEvent { Type = InputType.Wheel, Dx = d.dx, Dy = d.dy });
+        //            break;
+        //    }
+        //}
     }
 
     private static Task WriteSimple(NetworkStream s, string text)
@@ -694,51 +688,4 @@ sealed class InputEvent
     public int Button { get; init; }  // 0:좌 1:우 2:중
     public float Dx { get; init; }    // 수평 휠
     public float Dy { get; init; }    // 수직 휠
-}
-
-public class LogMessage : IndexedDataTableRow
-{
-    public DateTime DateTime { get; set; } = DateTime.MinValue;
-    public string Level { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-
-    public Vector4 GetLevelColor(string level) => level switch
-    {
-        "ERROR" => new Vector4(1, 0.2f, 0.2f, 1),
-        "WARN" => new Vector4(1, 0.7f, 0.2f, 1),
-        "DEBUG" => new Vector4(0.5f, 0.7f, 1f, 1),
-        _ => new Vector4(1, 1, 1, 1),
-    };
-
-    public override string FieldsToString => $"{DateTime.ToString("yyyy-MM-ddTHH-mm-ss.fff")} {Level} {Message}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        yield return () => ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 180);
-        yield return () => ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 60);
-        yield return () => ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthFixed, 1000);
-        yield break;
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () => ImGui.TextUnformatted(DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
-        yield return () => ImGui.TextColored(GetLevelColor(Level), Level);
-        yield return () => ImGui.TextUnformatted(Message);
-        yield break;
-    }
-
-    public override void RenderTooltip()
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff")}");
-        ImGui.TextColored(GetLevelColor(Level), Level);
-
-        // Message wrapping
-        ImGui.Spacing();
-        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 30); // Adjust wrap position based on font size
-        ImGui.TextUnformatted(Message);
-        ImGui.PopTextWrapPos();
-        ImGui.EndTooltip();
-    }
 }

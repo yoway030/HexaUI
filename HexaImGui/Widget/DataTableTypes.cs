@@ -10,230 +10,137 @@ public readonly record struct DataTableColumn(
     ImGuiTableColumnFlags Flags = ImGuiTableColumnFlags.WidthFixed
 );
 
-public class DataTableDefine : IEnumerable<DataTableColumn>
+public readonly struct DataTableCellRenderer<T>
 {
-    public DataTableDefine() : this(new List<DataTableColumn>())
+    public delegate string StringGetter(in T value);
+    private readonly StringGetter _stringGetter;
+
+    public delegate void CustomRenderer(in T value);
+    private readonly CustomRenderer? _customRenderer;
+
+    public DataTableCellRenderer(StringGetter getter, CustomRenderer? renderer = null)
     {
+        _stringGetter = getter;
+        _customRenderer = renderer;
     }
 
-    public DataTableDefine(List<DataTableColumn> columns,
-        ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Render(in T model)
     {
-        Columns = columns;
-        TableFlags = tableFlags;
-    }
-
-    public List<DataTableColumn> Columns { get; set; } = new List<DataTableColumn>();
-    public ImGuiTableFlags TableFlags { get; set; } = ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX;
-
-    public IEnumerator<DataTableColumn> GetEnumerator()
-    {
-        return Columns.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return Columns.GetEnumerator();
+        if (_customRenderer != null)
+        {
+            _customRenderer(in model);
+        }
+        else
+        {
+            ImGui.TextUnformatted(_stringGetter(model));
+        }
     }
 }
 
-public abstract class DataTableRow
+public sealed class DataTableRoleBuilder<T>
 {
-    public abstract string FieldsToString { get; }
+    private readonly ImGuiTableFlags _tableFlags;
+    private readonly List<DataTableColumn> _columns = new();
+    private readonly List<DataTableCellRenderer<T>> _renderers = new();
 
-    public abstract IEnumerable<Action> GetColumnSetupActions();
+    public DataTableRoleBuilder(ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
+    {
+        _tableFlags = tableFlags;
+    }
 
-    public abstract IEnumerable<Action> GetFieldDrawActions();
+    public DataTableRoleBuilder<T> AddColumn(
+        string name,
+        DataTableCellRenderer<T>.StringGetter getter)
+    {
+        return AddColumn(name, 100f, ImGuiTableColumnFlags.WidthFixed, getter, null);
+    }
 
-    public virtual void RenderTooltip() { }
+    public DataTableRoleBuilder<T> AddColumn(
+        string name,
+        float width,
+        DataTableCellRenderer<T>.StringGetter getter,
+        DataTableCellRenderer<T>.CustomRenderer? renderer = null)
+    {
+        return AddColumn(name, width, ImGuiTableColumnFlags.WidthFixed, getter, renderer);
+    }
+
+    public DataTableRoleBuilder<T> AddColumn(
+        string name,
+        float width,
+        ImGuiTableColumnFlags flags,
+        DataTableCellRenderer<T>.StringGetter getter,
+        DataTableCellRenderer<T>.CustomRenderer? renderer)
+    {
+        _columns.Add(new DataTableColumn(name, width, flags));
+        _renderers.Add(new DataTableCellRenderer<T>(getter, renderer));
+        return this;
+    }
+
+    public DataTableRole<T> Build(
+        DataTableRole<T>.TooltipRendererFunc? renderTooltip = null,
+        DataTableRole<T>.RowToStringConverterFunc? getRowToString = null)
+        => new(_columns.ToArray(), _renderers.ToArray(), _tableFlags, renderTooltip, getRowToString);
 }
 
-public interface IIndexedDataTableRow
+public sealed class DataTableRole<T>
 {
-    public uint Index { get; set; }
-}
+    public delegate void TooltipRendererFunc(in T model);
+    public delegate string RowToStringConverterFunc(in T model);
 
-public abstract class IndexedDataTableRow : DataTableRow, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
+    public DataTableColumn[] Columns { get; }
+    public DataTableCellRenderer<T>[] Renderers { get; }
+    public ImGuiTableFlags TableFlags { get; }
 
-public class DataTableRow<T1> : DataTableRow
-{
-    public T1 Data1 { get; set; } = default!;
+    public TooltipRendererFunc? TooltipRender { get; }
 
-    public override string FieldsToString => $"{Data1}";
+    public RowToStringConverterFunc? RowToStringConverter { get; }
 
-    public override IEnumerable<Action> GetColumnSetupActions()
+    public DataTableRole(
+        DataTableColumn[] cols,
+        DataTableCellRenderer<T>[] renderers,
+        ImGuiTableFlags flags,
+        TooltipRendererFunc? tooltipRenderer,
+        RowToStringConverterFunc? rowStringConverter)
     {
-        throw new NotImplementedException();
+        Columns = cols;
+        Renderers = renderers;
+        TableFlags = flags;
+        TooltipRender = tooltipRenderer;
+        RowToStringConverter = rowStringConverter;
     }
 
-    public override IEnumerable<Action> GetFieldDrawActions()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetupColumns()
     {
-        yield return () => { ImGui.TextUnformatted($"{Data1}"); };
-        yield break;
+        for (int i = 0; i < Columns.Length; i++)
+        {
+            ref readonly var c = ref Columns[i];
+            ImGui.TableSetupColumn(c.Name, c.Flags, c.Width);
+        }
     }
 
-    public override void RenderTooltip()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void RenderRow(in T model)
     {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{Data1}");
-        ImGui.EndTooltip();
-    }
-}
-
-public class IndexedDataTableRow<T1> : DataTableRow<T1>, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
-
-public class DataTableRow<T1, T2> : DataTableRow
-{
-    public T1 Data1 { get; set; } = default!;
-    public T2 Data2 { get; set; } = default!;
-
-    public override string FieldsToString => $"{Data1} {Data2}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        throw new NotImplementedException();
+        for (int i = 0; i < Renderers.Length; i++)
+        {
+            ImGui.TableNextColumn();
+            Renderers[i].Render(in model);
+        }
     }
 
-    public override IEnumerable<Action> GetFieldDrawActions()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void RenderTooltip(in T model)
     {
-        yield return () => { ImGui.TextUnformatted($"{Data1}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data2}"); };
-        yield break;
+        TooltipRender?.Invoke(in model);
     }
 
-    public override void RenderTooltip()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string RowToString(in T model)
     {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{Data1}");
-        ImGui.TextUnformatted($"{Data2}");
-        ImGui.EndTooltip();
-    }
-}
-
-public class IndexedDataTableRow<T1, T2> : DataTableRow<T1, T2>, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
-
-public class DataTableRow<T1, T2, T3> : DataTableRow
-{
-    public T1 Data1 { get; set; } = default!;
-    public T2 Data2 { get; set; } = default!;
-    public T3 Data3 { get; set; } = default!;
-
-    public override string FieldsToString => $"{Data1} {Data2} {Data3}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () => { ImGui.TextUnformatted($"{Data1}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data2}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data3}"); };
-        yield break;
-    }
-
-    public override void RenderTooltip()
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{Data1}");
-        ImGui.TextUnformatted($"{Data2}");
-        ImGui.TextUnformatted($"{Data3}");
-        ImGui.EndTooltip();
+        return RowToStringConverter?.Invoke(in model) ?? String.Empty;
     }
 }
 
-public class IndexedDataTableRow<T1, T2, T3> : DataTableRow<T1, T2, T3>, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
-
-public class DataTableRow<T1, T2, T3, T4> : DataTableRow
-{
-    public T1 Data1 { get; set; } = default!;
-    public T2 Data2 { get; set; } = default!;
-    public T3 Data3 { get; set; } = default!;
-    public T4 Data4 { get; set; } = default!;
-
-    public override string FieldsToString => $"{Data1} {Data2} {Data3} {Data4}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () => { ImGui.TextUnformatted($"{Data1}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data2}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data3}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data4}"); };
-        yield break;
-    }
-
-    public override void RenderTooltip()
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{Data1}");
-        ImGui.TextUnformatted($"{Data2}");
-        ImGui.TextUnformatted($"{Data3}");
-        ImGui.TextUnformatted($"{Data4}");
-        ImGui.EndTooltip();
-    }
-}
-
-public class IndexedDataTableRow<T1, T2, T3, T4> : DataTableRow<T1, T2, T3, T4>, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
-
-public class DataTableRow<T1, T2, T3, T4, T5> : DataTableRow
-{
-    public T1 Data1 { get; set; } = default!;
-    public T2 Data2 { get; set; } = default!;
-    public T3 Data3 { get; set; } = default!;
-    public T4 Data4 { get; set; } = default!;
-    public T5 Data5 { get; set; } = default!;
-
-    public override string FieldsToString => $"{Data1} {Data2} {Data3} {Data4} {Data5}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () => { ImGui.TextUnformatted($"{Data1}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data2}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data3}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data4}"); };
-        yield return () => { ImGui.TextUnformatted($"{Data5}"); };
-        yield break;
-    }
-
-    public override void RenderTooltip()
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted($"{Data1}");
-        ImGui.TextUnformatted($"{Data2}");
-        ImGui.TextUnformatted($"{Data3}");
-        ImGui.TextUnformatted($"{Data4}");
-        ImGui.TextUnformatted($"{Data5}");
-        ImGui.EndTooltip();
-    }
-}
-
-public class IndexedDataTableRow<T1, T2, T3, T4, T5> : DataTableRow<T1, T2, T3, T4, T5>, IIndexedDataTableRow
-{
-    public uint Index { get; set; }
-}
+public readonly record struct IndexedRow<TRow>(uint Index, TRow Data);

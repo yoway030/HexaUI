@@ -5,7 +5,7 @@ using System.Numerics;
 
 public static class Identicon
 {
-    public static void DrawIdenticonRect(string input)
+    public static void RenderIdenticonRect(string input)
     {
         var dl = ImGui.GetWindowDrawList();
         var oldFlags = dl.Flags;

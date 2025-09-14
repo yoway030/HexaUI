@@ -4,11 +4,10 @@ namespace ELImGui.Window;
 using System.Numerics;
 
 public class DataTableWindow<TData> : BaseWindow
-    where TData : IndexedDataTableRow, new()
 {
-    public DataTableWindow(string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
+    public DataTableWindow(string windowName, DataTableRole<TData> role, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {
-        TableWidget = new DataTableWidget<TData>(WindowName);
+        TableWidget = new DataTableWidget<TData>($"{windowName}#{nameof(DataTableWidget<TData>)}", role);
     }
 
     public DataTableWidget<TData> TableWidget { get; set; }
