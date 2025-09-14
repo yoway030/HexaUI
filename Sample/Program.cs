@@ -27,7 +27,10 @@ internal class Program
         });
         thread.Start();
 
-        DataSurfer<LogMessage> logsurfer = new("LogSurfer");
+        DataTableWindow<LogMessage> dataTable = new("LogSurfer");
+        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data1", 60, ImGuiTableColumnFlags.WidthFixed));
+        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data2", 100, ImGuiTableColumnFlags.WidthFixed));
+        dataTable.TableWidget.DefineInfo.Columns.Add(new DataTableColumn("Data3", 1024, ImGuiTableColumnFlags.WidthFixed));
 
         ProcessMonitor processMonitor = new("ProcessMonitor");
 
@@ -54,22 +57,12 @@ internal class Program
 }
 """;
         TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
-
-        DataViewer<DataSample> dataViwer = new("SomeData");
-        dataViwer.PushData(new() { Column1 = "Daatatadata1", Column2 = "111111111111" });
-        dataViwer.PushData(new() { Column1 = "Daatatada222", Column2 = "22222222" });
-        dataViwer.PushData(new() { Column1 = "Daatata3333", Column2 = "33" });
-
         RecentDataViewer recentDataViewer = new RecentDataViewer("RecentDataViewer");
         CommandConsole console = new CommandConsole("CommandConsole");
         console.IsVisibleImObject = false;
-
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
-        
-
-        visualizer.UiWindows.TryAdd(logsurfer.WindowName, logsurfer);
-        visualizer.UiWindows.TryAdd(dataViwer.WindowName, dataViwer);
+        visualizer.UiWindows.TryAdd(dataTable.WindowName, dataTable);
         visualizer.UiWindows.TryAdd(processMonitor.WindowName, processMonitor);
         visualizer.UiWindows.TryAdd(recentDataViewer.WindowName, recentDataViewer);
         visualizer.UiWindows.TryAdd(console.WindowName, console);
@@ -77,27 +70,22 @@ internal class Program
         
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);
-
-        DataSurferWidgetWindow<LogMessage> logsufer2 = new("logsufer2");
-        visualizer.UiWindows.TryAdd(logsufer2.WindowName, logsufer2);
-
         Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
-            logsurfer.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
-
-            logsufer2.DataSurferWidget.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
+            dataTable.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "DEBUG", Message = $"asdafasdasdas fads asdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fadsasdafasdasdas fads{logIndex}" });
+            dataTable.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads {logIndex}" });
+            
             Thread.Sleep(100);
             logIndex++;
 
-            {
-                int rnd = random.Next();
-                string key = $"SampleKey{rnd % 100}";
-                string value = $"SampleValue{rnd % 100}";
-                recentDataViewer.PushData(key, new DataSample { Column1 = key, Column2 = value });
-            }
+            //{
+            //    int rnd = random.Next();
+            //    string key = $"SampleKey{rnd % 100}";
+            //    string value = $"SampleValue{rnd % 100}";
+            //    recentDataViewer.PushData(key, new DataSample { Column1 = key, Column2 = value });
+            //}
         }
 
         thread.Join();
@@ -159,35 +147,6 @@ public class LogMessage : SurfableIndexingData
         ImGui.TextUnformatted(Message);
         ImGui.PopTextWrapPos();
         ImGui.EndTooltip();
-    }
-}
-
-public class DataSample : ViewableData
-{
-    public string Column1 { get; set; } = "DataSample";
-
-    public string Column2 { get; set; } = "1111333,4444,55666";
-
-    public override string FieldsToString => $"{Column1}, {Column2}";
-
-    public override IEnumerable<Action> GetColumnSetupActions()
-    {
-        yield return () => ImGui.TableSetupColumn($"{nameof(Column1)}", ImGuiTableColumnFlags.WidthFixed, 180);
-        yield return () => ImGui.TableSetupColumn($"{nameof(Column2)}", ImGuiTableColumnFlags.WidthFixed, 180);
-        yield break;
-    }
-
-    public override IEnumerable<Action> GetFieldDrawActions()
-    {
-        yield return () =>
-        {
-            Identicon.DrawIdenticonRect(Column1);
-            ImGui.SameLine();
-            ImGui.TextUnformatted(Column1);
-        };
-
-        yield return () => ImGui.TextUnformatted(Column2);
-        yield break;
     }
 }
 

@@ -29,7 +29,7 @@ using ELImGui.Window;
 using ELImGui;
 using System.Threading;
 
-DataSurferWidgetWindow<LogMessage>? logsufer2 = new("logsufer2");
+DataTableWindow<LogMessage>? logsufer2 = new("logsufer2");
 
 var server = new OffscreenImGuiServer(Constants.WIDTH, Constants.HEIGHT)
 {
@@ -49,7 +49,7 @@ var server = new OffscreenImGuiServer(Constants.WIDTH, Constants.HEIGHT)
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
         ImGui.PopStyleColor();
 
-        logsufer2?.DataSurferWidget.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads" });
+        logsufer2?.TableWidget.PushData(new LogMessage { DateTime = DateTime.UtcNow, Level = "ERROR", Message = $"asdafasdasdas fads" });
         logsufer2?.UpdateImObject(DateTime.UtcNow, 30);
         logsufer2?.RenderImObject(DateTime.UtcNow, 30);
 
