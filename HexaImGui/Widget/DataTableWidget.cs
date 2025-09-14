@@ -116,7 +116,7 @@ public class DataTableWidget<TData> : BaseWidget
                 for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
                     var indexedRow = _showStorage[displayIndex];
-                    string fieldsToString = Role.RowToString(indexedRow.Data);
+                    string fieldsToString = Role.RowToString(indexedRow.RowData);
                     bool isHighlighted = _filterWidget.IsFiltering &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
 
@@ -137,7 +137,7 @@ public class DataTableWidget<TData> : BaseWidget
                     }
 
                     // 데이터 필드 출력
-                    Role.RenderRow(indexedRow.Data);
+                    Role.RenderRow(indexedRow.RowData);
 
                     if (isHighlighted)
                     {
@@ -146,7 +146,7 @@ public class DataTableWidget<TData> : BaseWidget
                     
                     if (ImGui.IsItemHovered())
                     {
-                        Role.RenderTooltip(indexedRow.Data);
+                        Role.RenderTooltip(indexedRow.RowData);
                     }
                 }
             }
@@ -191,15 +191,15 @@ public class DataTableWidget<TData> : BaseWidget
         while (DataQueue.TryDequeue(out var data) == true)
         {
             uint index = DataIdx++;
-            var indexedData = new IndexedRow<TData>(index, data);
-            _localStorage.Add(indexedData);
+            var indexedRow = new IndexedRow<TData>(index, data);
+            _localStorage.Add(indexedRow);
 
-            var rowToString = Role.RowToString(indexedData.Data);
+            var rowToString = Role.RowToString(indexedRow.RowData);
 
             if (_filteredStorage != null &&
                 rowToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
             {
-                _filteredStorage.Add(indexedData);
+                _filteredStorage.Add(indexedRow);
             }
         }
 
@@ -228,7 +228,7 @@ public class DataTableWidget<TData> : BaseWidget
     {
         _filteredStorage = _filterWidget.IsOnlyFileterd == true ?
             _filteredStorage = [ .. _localStorage
-                .Where(indexedRow => Role.RowToString(indexedRow.Data).Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
+                .Where(indexedRow => Role.RowToString(indexedRow.RowData).Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                 .ToList(), ]
             : null;
     }
@@ -251,7 +251,7 @@ public class DataTableWidget<TData> : BaseWidget
                     continue;
                 }
 
-                var rowToString = Role.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].Data);
+                var rowToString = Role.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].RowData);
                 sb.AppendLine(rowToString);
             }
 

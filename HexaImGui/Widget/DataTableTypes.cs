@@ -143,4 +143,4 @@ public sealed class DataTableRole<T>
     }
 }
 
-public readonly record struct IndexedRow<TRow>(uint Index, TRow Data);
+public readonly record struct IndexedRow<TRow>(uint Index, TRow RowData);
