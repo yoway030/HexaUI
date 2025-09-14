@@ -4,7 +4,7 @@ namespace ELImGui.Window;
 using System.Numerics;
 
 public class DataTableWindow<TData> : BaseWindow
-    where TData : SurfableIndexingData, new()
+    where TData : IndexedDataTableRow, new()
 {
     public DataTableWindow(string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {

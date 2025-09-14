@@ -14,10 +14,10 @@ public class RecentDataViewer : BaseWindow
     {
         public DateTime UpdateTime;
         public string Key;
-        public ViewableData Data;
+        public DataTableRow Data;
         public int Count;
 
-        public Entry(string key, ViewableData data)
+        public Entry(string key, DataTableRow data)
         {
             Key = key;
             Data = data;
@@ -36,7 +36,7 @@ public class RecentDataViewer : BaseWindow
     private readonly Dictionary<string, Entry> _entries = new();
     private readonly List<Entry> _sortedEntries = new();
 
-    public readonly ConcurrentQueue<(string Key, ViewableData Data)> DataQueue = new();
+    public readonly ConcurrentQueue<(string Key, DataTableRow Data)> DataQueue = new();
 
     private readonly FilterWidget _filterWidget;
     private bool _filterChanged = false;
@@ -44,7 +44,7 @@ public class RecentDataViewer : BaseWindow
     private string? _selectedKey;
     private BaseWindow? _selectedWindow;
 
-    public void PushData(string key, ViewableData data)
+    public void PushData(string key, DataTableRow data)
     {
         if (String.IsNullOrWhiteSpace(key) || data == null)
         {

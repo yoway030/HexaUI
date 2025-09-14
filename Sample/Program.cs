@@ -93,7 +93,7 @@ internal class Program
 }
 
 
-public class LogMessage : SurfableIndexingData
+public class LogMessage : IndexedDataTableRow
 {
     public DateTime DateTime { get; set; } = DateTime.MinValue;
     public string Level { get; set; } = string.Empty;

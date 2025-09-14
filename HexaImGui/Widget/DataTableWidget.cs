@@ -8,7 +8,7 @@ using System.Text;
 using System.Numerics;
 
 public class DataTableWidget<TData> : BaseWidget
-    where TData : SurfableIndexingData, new()
+    where TData : IndexedDataTableRow, new()
 {
     public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
 
@@ -132,7 +132,7 @@ public class DataTableWidget<TData> : BaseWidget
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(data.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{data.IndexString}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{data.Index}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
                     }
 
                     // 데이터 필드 출력
