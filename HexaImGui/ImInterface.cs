@@ -22,8 +22,8 @@ public interface IImWindow
 
 public interface IImWidget
 {
-    public string WidgetName { get; init; }
-    public string ParentWindowName { get; init; }
+    public string WidgetName { get; set; }
+    public string ParentWindowName { get; set; }
 }
 
 public interface IImMenu

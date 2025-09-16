@@ -2,6 +2,7 @@
 using Hexa.NET.ImGui;
 using System.Numerics;
 using ELImGui.Window;
+using ELImGui.Widget;
 using ELImGui.Utils;
 using Hexa.NET.ImGui.Widgets;
 
@@ -82,6 +83,12 @@ internal class Program
                 });
         DataTableWindow<PlayerRow> dataTable = new("LogSurfer1111", tableRole);
 
+        SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
+        jsonWidgetWindow.Widget.JsonText = jsonString;
+
+        DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow ");
+        
+
         TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
         CommandConsole console = new CommandConsole("CommandConsole");
         console.IsVisibleImObject = false;
@@ -91,7 +98,9 @@ internal class Program
         visualizer.UiWindows.TryAdd(processMonitor.WindowName, processMonitor);
         visualizer.UiWindows.TryAdd(console.WindowName, console);
         visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
-        
+        visualizer.UiWindows.TryAdd(jsonWidgetWindow.WindowName, jsonWidgetWindow);
+        visualizer.UiWindows.TryAdd(jsonDoubleWidgetWindow.WindowName, jsonDoubleWidgetWindow);
+
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);
         Random random = new Random();

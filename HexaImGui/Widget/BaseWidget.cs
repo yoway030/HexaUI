@@ -2,15 +2,25 @@ namespace ELImGui.Widget;
 
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
+    public BaseWidget() : this($"{nameof(BaseWidget)}", String.Empty)
+    {
+    }
+
     public BaseWidget(string widgetName, string parentWindowName)
     {
         WidgetName = widgetName;
         ParentWindowName = parentWindowName;
     }
 
-    public string WidgetName { get; init; }
-    public string ParentWindowName { get; init; }
+    public string WidgetName { get; set; }
+    public string ParentWindowName { get; set; }
     public bool IsVisibleImObject { get; set; } = true;
+
+    public void InitializeName(string widgetName, string parentWindowName = "")
+    {
+        WidgetName = widgetName;
+        ParentWindowName = parentWindowName;
+    }
 
     public void RenderImObject(DateTime utcNow, double deltaSec)
     {
