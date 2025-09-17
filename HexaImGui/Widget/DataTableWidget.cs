@@ -12,6 +12,7 @@ using System.Data;
 public class DataTableWidget<TData> : BaseWidget
 {
     public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
+    public static readonly Vector4 ColorBgHighLight = new(0.4f, 1.0f, 0.4f, 0.3f);
 
     public DataTableWidget(string widgetName, DataTableRole<TData> role)
         : this($"{nameof(DataTableWidget<TData>)}", role, String.Empty)
@@ -125,7 +126,7 @@ public class DataTableWidget<TData> : BaseWidget
 
                     if (isHighlighted)
                     {
-                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ColorTextHighLight));
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(ColorBgHighLight));
                     }
 
                     ImGui.TableNextColumn();
@@ -139,11 +140,6 @@ public class DataTableWidget<TData> : BaseWidget
                     // 데이터 필드 출력
                     Role.RenderRow(indexedRow.RowData);
 
-                    if (isHighlighted)
-                    {
-                        ImGui.PopStyleColor();
-                    }
-                    
                     if (ImGui.IsItemHovered())
                     {
                         Role.RenderTooltip(indexedRow.RowData);
@@ -194,7 +190,7 @@ public class DataTableWidget<TData> : BaseWidget
             var indexedRow = new IndexedRow<TData>(index, data);
             _localStorage.Add(indexedRow);
 
-            var rowToString = Role.RowToString(indexedRow.RowData);
+            string rowToString = Role.RowToString(indexedRow.RowData);
 
             if (_filteredStorage != null &&
                 rowToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
@@ -227,7 +223,7 @@ public class DataTableWidget<TData> : BaseWidget
     private void OnFilterChanging()
     {
         _filteredStorage = _filterWidget.IsOnlyFileterd == true ?
-            _filteredStorage = [ .. _localStorage
+            [ .. _localStorage
                 .Where(indexedRow => Role.RowToString(indexedRow.RowData).Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase))
                 .ToList(), ]
             : null;
@@ -251,7 +247,7 @@ public class DataTableWidget<TData> : BaseWidget
                     continue;
                 }
 
-                var rowToString = Role.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].RowData);
+                string rowToString = Role.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].RowData);
                 sb.AppendLine(rowToString);
             }
 

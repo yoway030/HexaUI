@@ -1,7 +1,6 @@
 namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
-using System.Collections;
 using System.Runtime.CompilerServices;
 
 public readonly record struct DataTableColumn(
@@ -44,7 +43,7 @@ public sealed class DataTableRoleBuilder<T>
     private readonly List<DataTableColumn> _columns = new();
     private readonly List<DataTableCellRenderer<T>> _renderers = new();
 
-    public DataTableRoleBuilder(ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
+    public DataTableRoleBuilder(ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
     {
         _tableFlags = tableFlags;
     }
@@ -70,7 +69,7 @@ public sealed class DataTableRoleBuilder<T>
         float width,
         ImGuiTableColumnFlags flags,
         DataTableCellRenderer<T>.StringGetter getter,
-        DataTableCellRenderer<T>.CustomRenderer? renderer)
+        DataTableCellRenderer<T>.CustomRenderer? renderer = null)
     {
         _columns.Add(new DataTableColumn(name, width, flags));
         _renderers.Add(new DataTableCellRenderer<T>(getter, renderer));

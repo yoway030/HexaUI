@@ -30,5 +30,5 @@ public class DataTableWindow<TData> : BaseWindow
     public void PushData(TData data)
     {
         TableWidget.DataQueue.Enqueue(data);
-    }   
+    }
 }
