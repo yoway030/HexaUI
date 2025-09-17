@@ -53,7 +53,7 @@ internal class Program
 }
 """;
 
-        var tableRole = new DataTableRoleBuilder<PlayerRow>()
+        var tableRole = new DataTableRuleBuilder<PlayerRow>()
             .AddColumn("Name", 160, getter: (in PlayerRow p) => p.Name)
             .AddColumn(
                 name: "Level",
@@ -68,7 +68,7 @@ internal class Program
             .AddColumn("DPS", 80, getter: (in PlayerRow p) => p.DPS.ToString())
             .AddColumn("Class", 100, getter: (in PlayerRow p) => p.Class)
             .Build(
-                renderTooltip : (in PlayerRow row) =>
+                tooltipRender : (in PlayerRow row) =>
                 {
                     ImGui.BeginTooltip();
                     ImGui.TextUnformatted($"Name: {row.Name}");
@@ -86,7 +86,7 @@ internal class Program
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
         jsonWidgetWindow.Widget.JsonText = jsonString;
 
-        DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow ");
+        DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow");
         
 
         TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);

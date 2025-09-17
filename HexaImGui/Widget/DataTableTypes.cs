@@ -37,25 +37,25 @@ public readonly struct DataTableCellRenderer<T>
     }
 }
 
-public sealed class DataTableRoleBuilder<T>
+public sealed class DataTableRuleBuilder<T>
 {
     private readonly ImGuiTableFlags _tableFlags;
     private readonly List<DataTableColumn> _columns = new();
     private readonly List<DataTableCellRenderer<T>> _renderers = new();
 
-    public DataTableRoleBuilder(ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
+    public DataTableRuleBuilder(ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX)
     {
         _tableFlags = tableFlags;
     }
 
-    public DataTableRoleBuilder<T> AddColumn(
+    public DataTableRuleBuilder<T> AddColumn(
         string name,
         DataTableCellRenderer<T>.StringGetter getter)
     {
         return AddColumn(name, 100f, ImGuiTableColumnFlags.WidthFixed, getter, null);
     }
 
-    public DataTableRoleBuilder<T> AddColumn(
+    public DataTableRuleBuilder<T> AddColumn(
         string name,
         float width,
         DataTableCellRenderer<T>.StringGetter getter,
@@ -64,7 +64,7 @@ public sealed class DataTableRoleBuilder<T>
         return AddColumn(name, width, ImGuiTableColumnFlags.WidthFixed, getter, renderer);
     }
 
-    public DataTableRoleBuilder<T> AddColumn(
+    public DataTableRuleBuilder<T> AddColumn(
         string name,
         float width,
         ImGuiTableColumnFlags flags,
