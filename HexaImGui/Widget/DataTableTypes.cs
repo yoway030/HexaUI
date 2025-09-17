@@ -1,4 +1,4 @@
-namespace ELImGui.Window;
+﻿namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
 using System.Runtime.CompilerServices;
@@ -76,36 +76,44 @@ public sealed class DataTableRoleBuilder<T>
         return this;
     }
 
-    public DataTableRole<T> Build(
-        DataTableRole<T>.TooltipRendererFunc? renderTooltip = null,
-        DataTableRole<T>.RowToStringConverterFunc? getRowToString = null)
-        => new(_columns.ToArray(), _renderers.ToArray(), _tableFlags, renderTooltip, getRowToString);
+    public DataTableRule<T> Build(
+        DataTableRule<T>.RendererFunc? tooltipRender = null,
+        DataTableRule<T>.RendererFunc? rowHeadRender = null,
+        DataTableRule<T>.RendererFunc? rowFootRender = null,
+        DataTableRule<T>.RowToStringConverterFunc? getRowToString = null)
+        => new(_columns.ToArray(), _renderers.ToArray(), _tableFlags, tooltipRender, rowHeadRender, rowFootRender, getRowToString);
 }
 
-public sealed class DataTableRole<T>
+public sealed class DataTableRule<T>
 {
-    public delegate void TooltipRendererFunc(in T model);
+    public delegate void RendererFunc(in T model);
     public delegate string RowToStringConverterFunc(in T model);
 
     public DataTableColumn[] Columns { get; }
     public DataTableCellRenderer<T>[] Renderers { get; }
     public ImGuiTableFlags TableFlags { get; }
 
-    public TooltipRendererFunc? TooltipRender { get; }
+    public RendererFunc? TooltipRender { get; }
+    public RendererFunc? RowHeadRender { get; }
+    public RendererFunc? RowFootRender { get; }
 
     public RowToStringConverterFunc? RowToStringConverter { get; }
 
-    public DataTableRole(
+    public DataTableRule(
         DataTableColumn[] cols,
         DataTableCellRenderer<T>[] renderers,
         ImGuiTableFlags flags,
-        TooltipRendererFunc? tooltipRenderer,
+        RendererFunc? tooltipRenderer,
+        RendererFunc? rowHeadRender,
+        RendererFunc? rowFootRender,
         RowToStringConverterFunc? rowStringConverter)
     {
         Columns = cols;
         Renderers = renderers;
         TableFlags = flags;
         TooltipRender = tooltipRenderer;
+        RowHeadRender = rowHeadRender;
+        RowFootRender = rowFootRender;
         RowToStringConverter = rowStringConverter;
     }
 
@@ -133,6 +141,18 @@ public sealed class DataTableRole<T>
     public void RenderTooltip(in T model)
     {
         TooltipRender?.Invoke(in model);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void RenderRowHead(in T model)
+    {
+        RowHeadRender?.Invoke(in model);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void RenderRowFoot(in T model)
+    {
+        RowFootRender?.Invoke(in model);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -18,16 +18,14 @@ public class NodeViewer : BaseWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        ChildWindows.ForEach(w => w.RenderImObject(utcNow, deltaSec));
-
         Editor.Render(utcNow, deltaSec);
+        ChildWindows.ForEach(w => w.RenderImObject(utcNow, deltaSec));
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
-        ChildWindows.ForEach(w => w.UpdateImObject(utcNow, deltaSec));
-
         Editor.Update(utcNow, deltaSec);
+        ChildWindows.ForEach(w => w.UpdateImObject(utcNow, deltaSec));
     }
 
     public void InitSample()

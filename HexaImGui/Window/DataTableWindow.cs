@@ -1,13 +1,13 @@
-
+﻿
 namespace ELImGui.Window;
 
 using System.Numerics;
 
 public class DataTableWindow<TData> : BaseWindow
 {
-    public DataTableWindow(string windowName, DataTableRole<TData> role, Vector2? parentPosition = null) : base(windowName, parentPosition)
+    public DataTableWindow(string windowName, DataTableRule<TData> rule, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {
-        TableWidget = new DataTableWidget<TData>($"{windowName}#{nameof(DataTableWidget<TData>)}", role);
+        TableWidget = new DataTableWidget<TData>($"{windowName}#{nameof(DataTableWidget<TData>)}", rule);
     }
 
     public DataTableWidget<TData> TableWidget { get; set; }
