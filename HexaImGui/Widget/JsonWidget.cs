@@ -108,8 +108,8 @@ public class JsonWidget : BaseWidget
 
                         DrawJsonTokenWithPath(prop.Value!, childPath);
                         ImGui.TreePop();
-                        ImGui.PopID();
                     }
+                    ImGui.PopID();
                 }
 
                 break;

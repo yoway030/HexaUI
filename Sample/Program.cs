@@ -87,7 +87,9 @@ internal class Program
         jsonWidgetWindow.Widget.JsonText = jsonString;
 
         DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow");
-        
+        jsonDoubleWidgetWindow.WidgetFirst.JsonText = jsonString;
+        jsonDoubleWidgetWindow.WidgetSecond.JsonText = jsonString;
+
 
         TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
         CommandConsole console = new CommandConsole("CommandConsole");
