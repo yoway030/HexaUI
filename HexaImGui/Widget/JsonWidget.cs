@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using System.Numerics;
 using Hexa.NET.ImGui;
@@ -40,9 +40,21 @@ public class JsonWidget : BaseWidget
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
+        RenderImpl();
+    }
+
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    {
+        UpdateImpl();
+    }
+
+    public void RenderImpl()
+    {
         if (_exception != null)
         {
             ImGui.TextColored(new Vector4(1f, 0f, 0f, 1f), _exception);
+            ImGui.Separator();
+            ImGui.TextUnformatted(JsonText);
             return;
         }
         else if (ParsedJson == null)
@@ -54,7 +66,7 @@ public class JsonWidget : BaseWidget
         DrawJsonTokenWithPath(ParsedJson, "$");
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public void UpdateImpl()
     {
         if (_jsonChanged == true)
         {
@@ -65,7 +77,6 @@ public class JsonWidget : BaseWidget
             }
             catch (Exception e)
             {
-                _jsonText = String.Empty;
                 ParsedJson = null;
                 _exception = "Invalid JSON format : " + e.Message;
             }
@@ -82,13 +93,13 @@ public class JsonWidget : BaseWidget
                 foreach (var prop in (JObject)token)
                 {
                     string childPath = path + "." + prop.Key;
-                    
+
                     ImGui.PushID(childPath);
                     if (ImGui.TreeNodeEx(prop.Key, ImGuiTreeNodeFlags.DefaultOpen))
                     {
                         var valueType = prop.Value!.Type;
-                        if (valueType != JTokenType.Object &&
-                            valueType != JTokenType.Array)
+                        if (valueType is not JTokenType.Object and
+                            not JTokenType.Array)
                         {
                             ImGui.SameLine();
                             ImGui.TextUnformatted(":");
@@ -100,6 +111,7 @@ public class JsonWidget : BaseWidget
                         ImGui.PopID();
                     }
                 }
+
                 break;
 
             case JTokenType.Array:
@@ -115,8 +127,8 @@ public class JsonWidget : BaseWidget
                     ImGui.PopStyleColor();
 
                     var valueType = array[i].Type;
-                    if (valueType != JTokenType.Object &&
-                        valueType != JTokenType.Array)
+                    if (valueType is not JTokenType.Object and
+                        not JTokenType.Array)
                     {
                         ImGui.SameLine();
                         ImGui.TextUnformatted(":");
@@ -126,31 +138,33 @@ public class JsonWidget : BaseWidget
                     DrawJsonTokenWithPath(array[i], childPath);
                     ImGui.PopID();
                 }
+
                 break;
 
             default:
+            {
+                string childPath = $"{path}.value";
+                string display = GetValueString(token);
+                var color = GetColorForToken(token.Type);
+
+                ImGui.PushID(childPath);
+                ImGui.PushStyleColor(ImGuiCol.Text, color);
+                if (ImGui.Selectable(display, false))
                 {
-                    string childPath = $"{path}.value";
-                    string display = GetValueString(token);
-                    var color = GetColorForToken(token.Type);
-
-                    ImGui.PushID(childPath);
-                    ImGui.PushStyleColor(ImGuiCol.Text, color);
-                    if (ImGui.Selectable(display, false))
+                    // Ctrl+C 눌렸으면 복사
+                    if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyDown(ImGuiKey.C))
                     {
-                        // Ctrl+C 눌렸으면 복사
-                        if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyDown(ImGuiKey.C))
-                        {
-                            ImGui.SetClipboardText(display);
-                        }
+                        ImGui.SetClipboardText(display);
                     }
-
-                    ImGui.PopStyleColor();
-                    ImGui.PopID();
-                    //ImGui.SameLine();
-                    //ImGui.TextUnformatted($"({token.Type})");
                 }
-                break;
+
+                ImGui.PopStyleColor();
+                ImGui.PopID();
+                //ImGui.SameLine();
+                //ImGui.TextUnformatted($"({token.Type})");
+            }
+
+            break;
         }
     }
 
@@ -164,7 +178,7 @@ public class JsonWidget : BaseWidget
         {
             return JsonConvert.ToString(token.ToString());
         }
-        
+
         return token.ToString() ?? String.Empty;
     }
 

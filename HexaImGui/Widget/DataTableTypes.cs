@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
 using System.Runtime.CompilerServices;

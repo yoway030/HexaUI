@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
 using ELImGui.Utils;
@@ -120,6 +120,7 @@ public class DataTableWidget<TData> : BaseWidget
                     string fieldsToString = Rule.RowToString(indexedRow.RowData);
                     bool isHighlighted = _filterWidget.IsFiltering &&
                         fieldsToString.Contains(_filterWidget.FilterText, StringComparison.OrdinalIgnoreCase) == true;
+                    bool isRowHovered = false;
 
                     // row시작
                     ImGui.TableNextRow();
@@ -140,13 +141,18 @@ public class DataTableWidget<TData> : BaseWidget
 
                         if (ImGui.IsItemHovered())
                         {
-                            Rule.RenderTooltip(indexedRow.RowData);
+                            isRowHovered = true;
                         }
                     }
 
                     // 데이터 필드 출력
                     Rule.RenderRow(indexedRow.RowData);
                     Rule.RenderRowFoot(indexedRow.RowData);
+
+                    if (isRowHovered)
+                    {
+                        Rule.RenderTooltip(indexedRow.RowData);
+                    }
                 }
             }
 
