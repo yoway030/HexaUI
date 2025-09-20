@@ -119,9 +119,9 @@ public class ImVisualizer
         _builder
             .AddDefaultFont()
             .SetOption(config => { config.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor; })
+            .SetOption(config => { config.MergeMode = true; })
             .AddFontFromFileTTF("font/NanumGothicCoding.ttf", 13.0f, [0x1, 0x1FFFF])
             .AddFontFromFileTTF("font/seguiemj.ttf", 13.0f, [0x1F300, 0x1F6FF])
-            .SetOption(cfg => cfg.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor)
             .Build();
 
         ImGuiImplGLFW.SetCurrentContext(_guiContext);

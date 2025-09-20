@@ -81,7 +81,8 @@ internal class Program
                 {
                     return $"{row.Name} {row.Level} {row.DPS} {row.Class}";
                 });
-        DataTableWindow<PlayerRow> dataTable = new("LogSurfer1111", tableRole);
+        const string EmogiCodePointSurfer = "\U0001F3C4";
+        DataTableWindow<PlayerRow> dataTable = new($"{EmogiCodePointSurfer}LogSurfer", tableRole);
 
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
@@ -113,7 +114,7 @@ internal class Program
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", Level = logIndex, Class = "EEEE", DPS = 10 });
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAA{EmogiCodePointSurfer}AAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
 
             Thread.Sleep(100);
             logIndex++;
