@@ -42,6 +42,8 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         }
     }
 
+    public ImGuiWindowFlags WindowFlags { get; set; } = ImGuiWindowFlags.None;
+
     public void RenderImObject(DateTime utcNow, double deltaSec)
     {
         OnPrevRender(utcNow, deltaSec);
@@ -62,7 +64,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         }
 
         bool isVisible = IsVisibleImObject;
-        if (ImGui.Begin(WindowName, ref isVisible))
+        if (ImGui.Begin(WindowName, ref isVisible, WindowFlags))
         {
             if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {

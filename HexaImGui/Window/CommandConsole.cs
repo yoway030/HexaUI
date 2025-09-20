@@ -8,6 +8,10 @@ public class CommandConsole : SingleWidgetWindow<CommandConsoleWidget>
     public CommandConsole(string windowName = $"{nameof(CommandConsole)}")
         : base(windowName)
     {
+        WindowFlags = ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoCollapse;
     }
 
     public override void OnPrevRender(DateTime utcNow, double deltaSec)
