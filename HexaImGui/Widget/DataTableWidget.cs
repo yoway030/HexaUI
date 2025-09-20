@@ -26,7 +26,7 @@ public class DataTableWidget<TData> : BaseWidget
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
 
-        _filterWidget = new("Filter", ParentWindowName);
+        _filterWidget = new("Filter", OwnerWindowName);
         _filterWidget.FilterChangingFunc += OnFilterChanging;
     }
 
@@ -47,7 +47,7 @@ public class DataTableWidget<TData> : BaseWidget
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         // Freeze check box
-        ImGui.Checkbox($"Freeze##{ParentWindowName}", ref Freeze);
+        ImGui.Checkbox($"Freeze##{OwnerWindowName}", ref Freeze);
         ImGuiHelper.HelpMarkerSameLine("큐에 쌓이고 있는 데이터 화면 출력을 정지");
         ImGuiHelper.SpacingSameLine();
 
@@ -81,7 +81,7 @@ public class DataTableWidget<TData> : BaseWidget
             ImGui.TableSetupScrollFreeze(0, 1);
 
             // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{ParentWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
+            ImGui.TableSetupColumn($"##Idx#{OwnerWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
             Rule.SetupColumns();
             ImGui.TableHeadersRow();
 
@@ -137,7 +137,7 @@ public class DataTableWidget<TData> : BaseWidget
                         // 선택기능을 위한 첫번째 컬럼
                         bool item_is_selected = _selection.Contains(indexedRow.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
-                        ImGui.Selectable($"##{indexedRow.Index}#{ParentWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{indexedRow.Index}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
 
                         if (ImGui.IsItemHovered())
                         {

@@ -6,21 +6,22 @@ using Hexa.NET.ImGui;
 using System;
 
 public class DoubleWidgetWindow<TWidget1, TWidget2> : BaseWindow
-    where TWidget1 : BaseWidget, new()
-    where TWidget2 : BaseWidget, new()
+    where TWidget1 : BaseWidget
+    where TWidget2 : BaseWidget
 {
     public DoubleWidgetWindow(string windowName)
         : base(windowName)
     {
-        WidgetFirst = new TWidget1();
-        WidgetFirst.InitializeName($"{windowName}#{typeof(TWidget1).Name}", windowName);
-
-        WidgetSecond = new TWidget2();
-        WidgetSecond.InitializeName($"{windowName}#{typeof(TWidget2).Name}", windowName);
     }
 
-    public TWidget1 WidgetFirst { get; set; }
-    public TWidget2 WidgetSecond { get; set; }
+    public TWidget1 WidgetFirst { get; set; } = null!;
+    public TWidget2 WidgetSecond { get; set; } = null!;
+
+    public virtual void InitializeWidgets(TWidget1 widgetFirst, TWidget2 widgetSecond)
+    {
+        WidgetFirst = widgetFirst;
+        WidgetSecond = widgetSecond;
+    }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {

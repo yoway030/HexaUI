@@ -30,7 +30,7 @@ internal class Program
 
         ProcessMonitor processMonitor = new("ProcessMonitor");
 
-        string jsonString = 
+        string jsonString =
 """
 {           
     "name": "John \"Johnny\" Smith",
@@ -54,7 +54,7 @@ internal class Program
 """;
 
         var tableRole = new DataTableRuleBuilder<PlayerRow>()
-            .AddColumn("Name", 160, getter: (in PlayerRow p) => p.Name)
+            .AddColumn(name: "Name", width: 160, getter: (in PlayerRow p) => p.Name)
             .AddColumn(
                 name: "Level",
                 width: 60,
@@ -84,9 +84,13 @@ internal class Program
         DataTableWindow<PlayerRow> dataTable = new("LogSurfer1111", tableRole);
 
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
+        jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
         jsonWidgetWindow.Widget.JsonText = jsonString;
 
         DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow");
+        jsonDoubleWidgetWindow.InitializeWidgets(
+            new JsonWidget("JsonWidgetFirst", jsonDoubleWidgetWindow.WindowName),
+            new JsonWidget("JsonWidgetSecond", jsonDoubleWidgetWindow.WindowName));
         jsonDoubleWidgetWindow.WidgetFirst.JsonText = jsonString;
         jsonDoubleWidgetWindow.WidgetSecond.JsonText = jsonString;
 
@@ -109,7 +113,7 @@ internal class Program
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}", Level = logIndex, Class = "EEEE", DPS = 10 });
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", Level = logIndex, Class = "EEEE", DPS = 10 });
 
             Thread.Sleep(100);
             logIndex++;

@@ -23,7 +23,7 @@ public interface IImWindow
 public interface IImWidget
 {
     public string WidgetName { get; set; }
-    public string ParentWindowName { get; set; }
+    public string OwnerWindowName { get; set; }
 }
 
 public interface IImMenu

@@ -10,11 +10,6 @@ public class JsonWidget : BaseWidget
 {
     public static readonly Vector4 HighLightColor = new(0.0f, 1.0f, 0.0f, 0.5f);
 
-    public JsonWidget()
-    {
-        InitializeName(widgetName: $"{nameof(JsonWidget)}", parentWindowName: String.Empty);
-    }
-
     public JsonWidget(string widgetName, string parentWindowName) : base(widgetName, parentWindowName)
     {
     }

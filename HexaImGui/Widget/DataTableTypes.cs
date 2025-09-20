@@ -96,7 +96,6 @@ public sealed class DataTableRule<T>
     public RendererFunc? TooltipRender { get; }
     public RendererFunc? RowHeadRender { get; }
     public RendererFunc? RowFootRender { get; }
-
     public RowToStringConverterFunc? RowToStringConverter { get; }
 
     public DataTableRule(

@@ -1,3 +1,5 @@
+using ELImGui.Window;
+
 namespace ELImGui.Widget;
 
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
@@ -6,21 +8,15 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
     {
     }
 
-    public BaseWidget(string widgetName, string parentWindowName)
+    public BaseWidget(string widgetName, string ownerWindowName)
     {
         WidgetName = widgetName;
-        ParentWindowName = parentWindowName;
+        OwnerWindowName = ownerWindowName;
     }
 
     public string WidgetName { get; set; }
-    public string ParentWindowName { get; set; }
+    public string OwnerWindowName { get; set; }
     public bool IsVisibleImObject { get; set; } = true;
-
-    public void InitializeName(string widgetName, string parentWindowName = "")
-    {
-        WidgetName = widgetName;
-        ParentWindowName = parentWindowName;
-    }
 
     public void RenderImObject(DateTime utcNow, double deltaSec)
     {
@@ -43,4 +39,5 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);
+    public virtual void OnWindowFocused(BaseWindow ownerWindow) { }
 }
