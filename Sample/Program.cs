@@ -95,8 +95,10 @@ internal class Program
         jsonDoubleWidgetWindow.WidgetFirst.JsonText = jsonString;
         jsonDoubleWidgetWindow.WidgetSecond.JsonText = jsonString;
 
+        SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
+        textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
+        textViewerWindow.Widget.Initialize(jsonString, false);
 
-        TextViewer textViewer = new TextViewer("TextViewer", jsonString, false);
         CommandConsole console = new CommandConsole("CommandConsole");
         console.IsVisibleImObject = false;
         NodeViewer nodeView = new NodeViewer("NodeViewer");
@@ -107,6 +109,7 @@ internal class Program
         visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
         visualizer.UiWindows.TryAdd(jsonWidgetWindow.WindowName, jsonWidgetWindow);
         visualizer.UiWindows.TryAdd(jsonDoubleWidgetWindow.WindowName, jsonDoubleWidgetWindow);
+        visualizer.UiWindows.TryAdd(textViewerWindow.WindowName, textViewerWindow);
 
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);

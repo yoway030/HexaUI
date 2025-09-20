@@ -1,22 +1,36 @@
-namespace ELImGui.Window;
+namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
 using System.Text;
 using ELImGui.Utils;
+using System.IO;
+using ELImGui.Window;
 
-public class TextViewer : BaseWindow
+public class TextViewWidget : BaseWidget
 {
-    public TextViewer(string windowName, string textOrPath, bool isPath)
-        : base(windowName)
+    public TextViewWidget(string widgetName, string ownerWindowName)
+        : base(widgetName, ownerWindowName)
     {
-        WindowName = windowName;
+    }
 
+    private ImGuiSelectionBasicStorage _selection = new();
+
+    public string? ErrorText { get; private set; } = null;
+    public string Text { get; private set; } = string.Empty;
+    public List<string> Lines { get; private set; } = null!;
+    public string? Path { get; private set; } = null;
+    
+    public string HighlightText = string.Empty;
+    private HashSet<int>? _highlightedLines = null;
+
+    public void Initialize(string value, bool isPath)
+    {
         if (isPath == true)
         {
-            Path = textOrPath;
+            Path = value;
 
-            if (String.IsNullOrWhiteSpace(Path))
+            if (string.IsNullOrWhiteSpace(Path))
             {
                 ErrorText = "파일 경로가 null이거나 비어 있습니다.";
             }
@@ -30,7 +44,7 @@ public class TextViewer : BaseWindow
 
                 Text = File.ReadAllText(Path);
 
-                if (String.IsNullOrWhiteSpace(Text))
+                if (string.IsNullOrWhiteSpace(Text))
                 {
                     ErrorText = "파일 내용이 비어 있습니다.";
                 }
@@ -47,30 +61,15 @@ public class TextViewer : BaseWindow
         }
         else
         {
-            Text = textOrPath;
+            Text = value;
         }
 
         Lines = Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
     }
 
-    public string? ErrorText { get; private set; } = null;
-    public string Text { get; private set; } = String.Empty;
-    public List<string> Lines { get; private set; } = null!;
-    public string? Path { get; private set; } = null;
-    private ImGuiSelectionBasicStorage _selection = new();
-
-    public string HighlightText = String.Empty;
-    private HashSet<int>? _highlightedLines = null;
-
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         int lineCount = Lines.Count;
-
-        if (ImGui.BeginChild($"{WindowName}Panel", ImGuiChildFlags.AutoResizeY) == false)
-        {
-            ImGui.EndChild();
-            return;
-        }
 
         ImGui.Text($"FromFile: {Path ?? "null"}");
         ImGuiHelper.SpacingSameLine();
@@ -81,19 +80,12 @@ public class TextViewer : BaseWindow
         ImGuiHelper.SpacingSameLine();
 
         ImGui.SetNextItemWidth(ImGui.GetFontSize() * 20.0f);
-        if (ImGui.InputText($"##{WindowName}Highlight", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
+        if (ImGui.InputText($"##{WidgetName}Highlight", ref HighlightText, 100, ImGuiInputTextFlags.EnterReturnsTrue) == true)
         {
             OnHighlightChange();
         }
 
         ImGui.SeparatorText("Text");
-        ImGui.EndChild();
-
-        if (ImGui.BeginChild($"{WindowName}Text") == false)
-        {
-            ImGui.EndChild();
-            return;
-        }
 
         if (ErrorText != null)
         {
@@ -129,7 +121,7 @@ public class TextViewer : BaseWindow
 
                 ImGui.TextColored(
                     _highlightedLines?.Contains(i) == true
-                        ? ColorTextHighLight
+                        ? BaseWindow.ColorTextHighLight
                         : ImGui.GetStyle().Colors[(int)ImGuiCol.Text], // Default text color
                     line);
             }
@@ -145,15 +137,9 @@ public class TextViewer : BaseWindow
                 _selection.Clear();
             }
         }
-
-        ImGui.EndChild();
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
-    {
-    }
-
-    public override void OnWindowFocused()
+    public override void OnWindowFocused(BaseWindow baseWindow)
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
@@ -172,7 +158,7 @@ public class TextViewer : BaseWindow
 
     private void OnHighlightChange()
     {
-        if (String.IsNullOrWhiteSpace(HighlightText))
+        if (string.IsNullOrWhiteSpace(HighlightText))
         {
             _highlightedLines = null;
         }
@@ -187,5 +173,9 @@ public class TextViewer : BaseWindow
                 }
             }
         }
+    }
+
+    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    {
     }
 }
