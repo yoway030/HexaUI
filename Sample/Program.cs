@@ -99,8 +99,13 @@ internal class Program
         textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
         textViewerWindow.Widget.Initialize(jsonString, false);
 
+        SingleWidgetWindow<CommandConsoleWidget> ConsoleWindow = new("ConsoleWindow");
+        ConsoleWindow.InitializeWidget(new CommandConsoleWidget("CommandConsoleWidget", ConsoleWindow.WindowName));
+
         CommandConsole console = new CommandConsole("CommandConsole");
+        console.InitializeWidget(new CommandConsoleWidget("CommandConsoleWidget", console.WindowName));
         console.IsVisibleImObject = false;
+        console.Widget.InitSampleCommands();
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
         visualizer.UiWindows.TryAdd(dataTable.WindowName, dataTable);
@@ -110,6 +115,7 @@ internal class Program
         visualizer.UiWindows.TryAdd(jsonWidgetWindow.WindowName, jsonWidgetWindow);
         visualizer.UiWindows.TryAdd(jsonDoubleWidgetWindow.WindowName, jsonDoubleWidgetWindow);
         visualizer.UiWindows.TryAdd(textViewerWindow.WindowName, textViewerWindow);
+        visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
 
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);
