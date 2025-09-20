@@ -19,8 +19,8 @@ public class DataTableWidget<TData> : BaseWidget
     {
     }
 
-    public DataTableWidget(string widgetName, DataTableRule<TData> rule, string parentWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
-        : base(widgetName, parentWindowName)
+    public DataTableWidget(string widgetName, DataTableRule<TData> rule, string ownerWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
+        : base(widgetName, ownerWindowName)
     {
         Rule = rule;
         MaxLocalStorage = maxLocalStorage;
