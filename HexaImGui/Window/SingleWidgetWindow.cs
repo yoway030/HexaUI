@@ -21,9 +21,21 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
         Widget = widget;
     }
 
+    public override void OnPrevRender(DateTime utcNow, double deltaSec)
+    {
+        base.OnPrevRender(utcNow, deltaSec);
+        Widget.OnPrevRender(utcNow, deltaSec);
+    }
+
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         Widget.OnRender(utcNow, deltaSec);
+    }
+
+    public override void OnAfterRender(DateTime utcNow, double deltaSec)
+    {
+        base.OnAfterRender(utcNow, deltaSec);
+        Widget.OnAfterRender(utcNow, deltaSec);
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
@@ -34,7 +46,6 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
     public override void OnWindowFocused()
     {
         base.OnWindowFocused();
-
         Widget.OnWindowFocused(this);
     }
 }
