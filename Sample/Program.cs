@@ -106,6 +106,17 @@ internal class Program
         console.InitializeWidget(new CommandConsoleWidget("CommandConsoleWidget", console.WindowName));
         console.IsVisibleImObject = false;
         console.Widget.InitSampleCommands();
+
+        MultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
+        var mmjson = new JsonWidget("JsonWidget1", multiWidgetWindow.WindowName);
+        mmjson.JsonText = jsonString;
+        multiWidgetWindow.AddWidget(mmjson);
+
+        var mmtext = new TextViewWidget("TextViewWidget", multiWidgetWindow.WindowName);
+        mmtext.Initialize(jsonString, false);
+        multiWidgetWindow.AddWidget(mmtext);
+
+
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
         visualizer.UiWindows.TryAdd(dataTable.WindowName, dataTable);
@@ -116,6 +127,7 @@ internal class Program
         visualizer.UiWindows.TryAdd(jsonDoubleWidgetWindow.WindowName, jsonDoubleWidgetWindow);
         visualizer.UiWindows.TryAdd(textViewerWindow.WindowName, textViewerWindow);
         visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
+        visualizer.UiWindows.TryAdd(multiWidgetWindow.WindowName, multiWidgetWindow);
 
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);
