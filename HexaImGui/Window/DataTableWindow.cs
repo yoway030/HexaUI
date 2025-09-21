@@ -5,9 +5,9 @@ using System.Numerics;
 
 public class DataTableWindow<TData> : SingleWidgetWindow<DataTableWidget<TData>>
 {
-    public DataTableWindow(string windowName, DataTableRule<TData> rule, Vector2? parentPosition = null) : base(windowName, parentPosition)
+    public DataTableWindow(DataTableRule<TData> rule, string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {
-        Widget = new DataTableWidget<TData>($"{windowName}#{nameof(DataTableWidget<TData>)}", rule);
+        Widget = new DataTableWidget<TData>(rule, $"{windowName}#{nameof(DataTableWidget<TData>)}");
     }
 
     public void PushData(TData data)

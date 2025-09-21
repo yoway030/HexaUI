@@ -14,12 +14,12 @@ public class DataTableWidget<TData> : BaseWidget
     public static readonly Vector4 ColorTextHighLight = new(0.0f, 1.0f, 0.0f, 0.5f);
     public static readonly Vector4 ColorBgHighLight = new(0.4f, 1.0f, 0.4f, 0.3f);
 
-    public DataTableWidget(string widgetName, DataTableRule<TData> rule)
-        : this($"{nameof(DataTableWidget<TData>)}", rule, String.Empty)
+    public DataTableWidget(DataTableRule<TData> rule, string widgetName)
+        : this(rule, $"{nameof(DataTableWidget<TData>)}", String.Empty)
     {
     }
 
-    public DataTableWidget(string widgetName, DataTableRule<TData> rule, string ownerWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
+    public DataTableWidget(DataTableRule<TData> rule, string widgetName, string ownerWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
         : base(widgetName, ownerWindowName)
     {
         Rule = rule;

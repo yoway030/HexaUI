@@ -81,8 +81,7 @@ internal class Program
                 {
                     return $"{row.Name} {row.Level} {row.DPS} {row.Class}";
                 });
-        const string EmogiCodePointSurfer = "\U0001F3C4";
-        DataTableWindow<PlayerRow> dataTable = new($"{EmogiCodePointSurfer}LogSurfer", tableRole);
+        DataTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
 
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
@@ -117,7 +116,6 @@ internal class Program
         visualizer.UiWindows.TryAdd(console.WindowName, console);
         visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
         visualizer.UiWindows.TryAdd(jsonWidgetWindow.WindowName, jsonWidgetWindow);
-        visualizer.UiWindows.TryAdd(jsonDoubleWidgetWindow.WindowName, jsonDoubleWidgetWindow);
         visualizer.UiWindows.TryAdd(textViewerWindow.WindowName, textViewerWindow);
         visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
         visualizer.UiWindows.TryAdd(multiWidgetWindow.WindowName, multiWidgetWindow);
@@ -128,7 +126,7 @@ internal class Program
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAA{EmogiCodePointSurfer}AAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
 
             Thread.Sleep(100);
             logIndex++;
