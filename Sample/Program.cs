@@ -88,13 +88,6 @@ internal class Program
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
         jsonWidgetWindow.Widget.JsonText = jsonString;
 
-        DoubleWidgetWindow<JsonWidget, JsonWidget> jsonDoubleWidgetWindow = new("jsonDoubleWidgetWindow");
-        jsonDoubleWidgetWindow.InitializeWidgets(
-            new JsonWidget("JsonWidgetFirst", jsonDoubleWidgetWindow.WindowName),
-            new JsonWidget("JsonWidgetSecond", jsonDoubleWidgetWindow.WindowName));
-        jsonDoubleWidgetWindow.WidgetFirst.JsonText = jsonString;
-        jsonDoubleWidgetWindow.WidgetSecond.JsonText = jsonString;
-
         SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
         textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
         textViewerWindow.Widget.Initialize(jsonString, false);
