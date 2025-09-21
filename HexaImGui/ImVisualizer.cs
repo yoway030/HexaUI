@@ -63,7 +63,7 @@ public class ImVisualizer
 
     public ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
     public ConcurrentDictionary<string, IImMenu> UiMenus = new();
-    public Action? RenderDelegate;
+    public Action? PostRenderFunc;
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -192,7 +192,7 @@ public class ImVisualizer
             // UI 윈도우처리
             RenderWindows(currentTime, deltaSec);
 
-            RenderDelegate?.Invoke();
+            PostRenderFunc?.Invoke();
 
             ImGui.Render();
             ImGui.EndFrame();

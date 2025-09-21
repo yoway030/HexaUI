@@ -120,6 +120,68 @@ internal class Program
         visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
         visualizer.UiWindows.TryAdd(multiWidgetWindow.WindowName, multiWidgetWindow);
 
+        visualizer.PostRenderFunc += () =>
+        {
+            const float size = 40;
+
+            uint red50 = ImGui.ColorConvertFloat4ToU32(new(0.5f, 0f, 0f, 1f));
+            uint boarderColor = ImGui.ColorConvertFloat4ToU32(new(0f, 0f, 0f, 1.0f));
+
+            var pio = ImGui.GetPlatformIO();
+            for (int i = 0; i < pio.Viewports.Size; i++)
+            {
+                var vp = pio.Viewports[i];
+                var vmin = vp.Pos;
+                var vmax = new Vector2(vp.Pos.X + vp.Size.X, vp.Pos.Y + vp.Size.Y);
+
+                float width = vmax.X - vmin.X;
+                float height = vmax.Y - vmin.Y;
+
+                // Pointy-top (윗/아랫면이 꼭짓점)
+                float r = size;                                // center-to-vertex
+                float stepX = r*2;
+                float stepY = r*2;
+                int cols = (int)(width / stepX) + 3;
+                int rows = (int)(height / stepY) + 3;
+
+                var dl = ImGui.GetForegroundDrawList(vp);
+
+                for (int cx = 0; cx < cols; cx++)
+                {
+                    // 홀수 열은 세로로 반 칸 내려 배치 (벌집 오프셋)
+                    float colYOffset = ((cx & 1) == 1) ? r : 0f;
+
+                    for (int cy = 0; cy < rows; cy++)
+                    {
+                        var center = new Vector2(
+                            vmin.X + cx * stepX,
+                            vmin.Y + cy * stepY + colYOffset
+                        );
+
+                        // 꼭짓점 계산: -90°에서 시작해 60°씩 (12시 방향이 꼭짓점)
+                        Span<Vector2> pts = stackalloc Vector2[6];
+                        for (int k = 0; k < 6; k++)
+                        {
+                            float ang = (60f * k) * (float)Math.PI / 180f;
+                            pts[k] = new Vector2(
+                                center.X + r * (float)Math.Cos(ang) * 1.3f,
+                                center.Y + r * (float)Math.Sin(ang) * 1.115f
+                            );
+                        }
+
+                        dl.AddConvexPolyFilled(ref pts[0], 6, red50);
+                        dl.AddPolyline(ref pts[0], 6, boarderColor, ImDrawFlags.Closed, 4.0f);
+                        dl.AddPolyline(ref pts[0], 6, red50, ImDrawFlags.Closed, 1.0f);
+                        ImGui.SetWindowFontScale(2.0f); // 2배 확대
+                        dl.AddText(center - new Vector2(ImGui.GetFontSize()/2 * 2.5f, ImGui.GetFontSize() / 2), boarderColor, "ERROR");
+                    }
+                }
+            }
+        };
+
+        ////////////////////////////
+        ///Log
+
         SampleWindow sample = new();
         visualizer.UiWindows.TryAdd(sample.WindowName, sample);
         Random random = new Random();
@@ -138,6 +200,7 @@ internal class Program
             //    recentDataViewer.PushData(key, new DataSample { Column1 = key, Column2 = value });
             //}
         }
+
 
         thread.Join();
     }
