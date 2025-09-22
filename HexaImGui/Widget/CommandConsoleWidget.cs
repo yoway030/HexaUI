@@ -1,6 +1,5 @@
 namespace ELImGui.Widget;
 
-using ELImGui.Window;
 using Hexa.NET.ImGui;
 using System.Numerics;
 using System.Text;
@@ -22,7 +21,7 @@ public class CommandConsoleWidget : BaseWidget
     private readonly List<string> _history = new();
     private int _historyIndex = -1;
 
-    private string _commandInput = string.Empty;
+    private string _commandInput = String.Empty;
     private bool _scrollToBottom = false;
 
     public void InitSampleCommands()
@@ -41,7 +40,7 @@ public class CommandConsoleWidget : BaseWidget
 
         Register("echo", args =>
         {
-            AddLog(string.Join(' ', args));
+            AddLog(String.Join(' ', args));
         });
 
         Register("time", _ =>
@@ -153,7 +152,7 @@ public class CommandConsoleWidget : BaseWidget
                 else
                 {
                     _historyIndex = -1;
-                    foundHistory = string.Empty;
+                    foundHistory = String.Empty;
                 }
             }
         }
@@ -222,7 +221,7 @@ public class CommandConsoleWidget : BaseWidget
             AddLog($"Unknown command: {cmd}", ErrorTextColor);
         }
 
-        _commandInput = string.Empty;
+        _commandInput = String.Empty;
         _scrollToBottom = true;
     }
 
@@ -241,7 +240,7 @@ public class CommandConsoleWidget : BaseWidget
                 continue;
             }
 
-            if (!inQuotes && char.IsWhiteSpace(ch))
+            if (!inQuotes && Char.IsWhiteSpace(ch))
             {
                 if (cur.Length > 0)
                 {
@@ -262,7 +261,7 @@ public class CommandConsoleWidget : BaseWidget
 
         if (tokens.Count == 0)
         {
-            return (string.Empty, Array.Empty<string>());
+            return (String.Empty, Array.Empty<string>());
         }
 
         string cmd = tokens[0];

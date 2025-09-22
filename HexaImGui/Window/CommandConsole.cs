@@ -8,6 +8,7 @@ public class CommandConsole : SingleWidgetWindow<CommandConsoleWidget>
     public CommandConsole(string windowName = $"{nameof(CommandConsole)}")
         : base(windowName)
     {
+        // 타이틀등 창 속성 설정
         WindowFlags = ImGuiWindowFlags.NoTitleBar |
             ImGuiWindowFlags.NoResize |
             ImGuiWindowFlags.NoMove |

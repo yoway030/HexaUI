@@ -11,7 +11,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
     {
         WindowName = windowName;
         IsVisibleImObject = true;
-        _windowSize = new Vector2(300, 200);
+        _windowSize = new Vector2(600, 400);
         _windowPosition = parentPosition != null ?
             new Vector2(parentPosition.Value.X, parentPosition.Value.Y) :
             new Vector2(400, 400);
@@ -66,6 +66,9 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         bool isVisible = IsVisibleImObject;
         if (ImGui.Begin(WindowName, ref isVisible, WindowFlags))
         {
+            _windowPosition = ImGui.GetWindowPos();
+            _windowSize = ImGui.GetWindowSize();
+
             if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {
                 OnWindowFocused();

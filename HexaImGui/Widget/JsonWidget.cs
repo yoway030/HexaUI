@@ -1,10 +1,10 @@
 namespace ELImGui.Widget;
 
-using System.Numerics;
 using Hexa.NET.ImGui;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Numerics;
 
 public class JsonWidget : BaseWidget
 {
@@ -32,6 +32,47 @@ public class JsonWidget : BaseWidget
     }
 
     public JToken? ParsedJson { get; private set; } = null;
+
+    public void Initialize(string value, bool isPath)
+    {
+        JsonText = String.Empty;
+
+        if (isPath == true)
+        {
+            if (String.IsNullOrWhiteSpace(value))
+            {
+                _exception = "파일 경로가 null이거나 비어 있습니다.";
+            }
+
+            try
+            {
+                if (!File.Exists(value))
+                {
+                    _exception = "지정된 파일을 찾을 수 없습니다.";
+                }
+
+                JsonText = File.ReadAllText(value);
+
+                if (String.IsNullOrWhiteSpace(JsonText))
+                {
+                    _exception = "파일 내용이 비어 있습니다.";
+                }
+            }
+
+            catch (IOException ex)
+            {
+                _exception = $"파일 입출력 오류: {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                _exception = $"알 수 없는 오류: {ex.Message}";
+            }
+        }
+        else
+        {
+            JsonText = value;
+        }
+    }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
@@ -104,6 +145,7 @@ public class JsonWidget : BaseWidget
                         DrawJsonTokenWithPath(prop.Value!, childPath);
                         ImGui.TreePop();
                     }
+
                     ImGui.PopID();
                 }
 

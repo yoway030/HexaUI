@@ -17,11 +17,11 @@ public class TextViewWidget : BaseWidget
     private ImGuiSelectionBasicStorage _selection = new();
 
     public string? ErrorText { get; private set; } = null;
-    public string Text { get; private set; } = string.Empty;
+    public string Text { get; private set; } = String.Empty;
     public List<string> Lines { get; private set; } = null!;
     public string? Path { get; private set; } = null;
-    
-    public string HighlightText = string.Empty;
+
+    public string HighlightText = String.Empty;
     private HashSet<int>? _highlightedLines = null;
 
     public void Initialize(string value, bool isPath)
@@ -30,7 +30,7 @@ public class TextViewWidget : BaseWidget
         {
             Path = value;
 
-            if (string.IsNullOrWhiteSpace(Path))
+            if (String.IsNullOrWhiteSpace(Path))
             {
                 ErrorText = "파일 경로가 null이거나 비어 있습니다.";
             }
@@ -44,7 +44,7 @@ public class TextViewWidget : BaseWidget
 
                 Text = File.ReadAllText(Path);
 
-                if (string.IsNullOrWhiteSpace(Text))
+                if (String.IsNullOrWhiteSpace(Text))
                 {
                     ErrorText = "파일 내용이 비어 있습니다.";
                 }
@@ -158,7 +158,7 @@ public class TextViewWidget : BaseWidget
 
     private void OnHighlightChange()
     {
-        if (string.IsNullOrWhiteSpace(HighlightText))
+        if (String.IsNullOrWhiteSpace(HighlightText))
         {
             _highlightedLines = null;
         }

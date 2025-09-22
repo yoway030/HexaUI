@@ -212,9 +212,10 @@ public class DataTableWidget<TData> : BaseWidget
         if (_selection.Size == 0)
         {
             // 로컬스토리지는 MaxLocalStorage 만큼만 데이터 저장
-            while (_localStorage.Count > MaxLocalStorage)
+            int removeCount = _localStorage.Count - MaxLocalStorage;
+            if (removeCount > 0)
             {
-                _localStorage.RemoveAt(0);
+                _localStorage.RemoveRange(0, removeCount);
             }
 
             // 선택한 데이터가 있는 경우 MaxLocalStorage 적용을 유예시키는 이유는 MultiSelect중 앞의 데이터가 삭제될때,
@@ -238,7 +239,7 @@ public class DataTableWidget<TData> : BaseWidget
             : null;
     }
 
-    public void OnWindowFocused()
+    public override void OnWindowFocused(BaseWindow ownerWindow)
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
@@ -247,16 +248,14 @@ public class DataTableWidget<TData> : BaseWidget
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                uint dataIndexKey = _selection.Storage.Data[i].Key;
-                uint showStorageStartIndex = DataIdx - (uint)_showStorage.Count;
-                uint surfableDataIndexInShowStorage = dataIndexKey - showStorageStartIndex;
-
-                if (surfableDataIndexInShowStorage < 0 || surfableDataIndexInShowStorage >= _showStorage.Count)
+                uint selectedIndexKey = _selection.Storage.Data[i].Key;
+                if (selectedIndexKey < _localStorage.First().Index || selectedIndexKey > _localStorage.Last().Index)
                 {
                     continue;
                 }
 
-                string rowToString = Rule.RowToString(_showStorage[(int)surfableDataIndexInShowStorage].RowData);
+                int targetIdx = (int)(selectedIndexKey - _localStorage.First().Index);
+                string rowToString = Rule.RowToString(_localStorage[targetIdx].RowData);
                 sb.AppendLine(rowToString);
             }
 

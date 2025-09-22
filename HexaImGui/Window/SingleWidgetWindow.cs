@@ -2,7 +2,6 @@
 namespace ELImGui.Window;
 
 using ELImGui.Widget;
-using Hexa.NET.ImGui;
 using System;
 using System.Numerics;
 

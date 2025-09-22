@@ -1,6 +1,6 @@
-using ELImGui.Window;
-
 namespace ELImGui.Widget;
+
+using ELImGui.Window;
 
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {

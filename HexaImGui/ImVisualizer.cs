@@ -23,7 +23,7 @@ public class ImVisualizer
 
     public static ImVisualizer Instance { get; private set; } = default!;
 
-    public static ImVisualizer CreateInstance()
+    public static void CreateInstance()
     {
         if (Instance != null)
         {
@@ -31,14 +31,12 @@ public class ImVisualizer
         }
 
         Instance = new ImVisualizer();
-        return Instance;
     }
 
     public static void DestroyInstance()
     {
         if (Instance != null)
         {
-            Instance.Cleanup();
             Instance = null!;
         }
     }
