@@ -120,12 +120,15 @@ internal class Program
         visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
         visualizer.UiWindows.TryAdd(multiWidgetWindow.WindowName, multiWidgetWindow);
 
+        //DateTime now = DateTime.UtcNow.AddSeconds(2);
         //visualizer.PostRenderFunc += () =>
         //{
         //    const float size = 40;
+        //    const long tickUnit = 3000000;
 
-        //    uint red50 = ImGui.ColorConvertFloat4ToU32(new(0.5f, 0f, 0f, 1f));
+        //    uint red50 = ImGui.ColorConvertFloat4ToU32(new(0.7f, 0f, 0f, 1f));
         //    uint boarderColor = ImGui.ColorConvertFloat4ToU32(new(0f, 0f, 0f, 1.0f));
+        //    int renderPercent = (int)Math.Clamp(DateTime.UtcNow.Ticks - now.Ticks, 0, tickUnit);
 
         //    var pio = ImGui.GetPlatformIO();
         //    for (int i = 0; i < pio.Viewports.Size; i++)
@@ -139,8 +142,8 @@ internal class Program
 
         //        // Pointy-top (윗/아랫면이 꼭짓점)
         //        float r = size;                                // center-to-vertex
-        //        float stepX = r*2;
-        //        float stepY = r*2;
+        //        float stepX = r * 2;
+        //        float stepY = r * 2;
         //        int cols = (int)(width / stepX) + 3;
         //        int rows = (int)(height / stepY) + 3;
 
@@ -153,6 +156,14 @@ internal class Program
 
         //            for (int cy = 0; cy < rows; cy++)
         //            {
+        //                string identifier = $"{i}_{cx}_{cy}";
+        //                uint hash = Identicon.Fnv1aHash(identifier);
+
+        //                if (hash % tickUnit > renderPercent)
+        //                {
+        //                    continue;
+        //                }
+
         //                var center = new Vector2(
         //                    vmin.X + cx * stepX,
         //                    vmin.Y + cy * stepY + colYOffset
@@ -173,7 +184,7 @@ internal class Program
         //                dl.AddPolyline(ref pts[0], 6, boarderColor, ImDrawFlags.Closed, 4.0f);
         //                dl.AddPolyline(ref pts[0], 6, red50, ImDrawFlags.Closed, 1.0f);
         //                ImGui.SetWindowFontScale(2.0f); // 2배 확대
-        //                dl.AddText(center - new Vector2(ImGui.GetFontSize()/2 * 2.5f, ImGui.GetFontSize() / 2), boarderColor, "ERROR");
+        //                dl.AddText(center - new Vector2(ImGui.GetFontSize() / 2 * 2.5f, ImGui.GetFontSize() / 2), boarderColor, "ERROR");
         //            }
         //        }
         //    }
