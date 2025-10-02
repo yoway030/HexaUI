@@ -12,13 +12,18 @@ public readonly record struct DataTableColumn(
 public readonly struct DataTableCellRenderer<T>
 {
     public delegate string StringGetter(in T value);
-    private readonly StringGetter _stringGetter;
+    private readonly StringGetter? _stringGetter;
 
     public delegate void CustomRenderer(in T value);
     private readonly CustomRenderer? _customRenderer;
 
-    public DataTableCellRenderer(StringGetter getter, CustomRenderer? renderer = null)
+    public DataTableCellRenderer(StringGetter? getter = null, CustomRenderer? renderer = null)
     {
+        if (getter == null && renderer == null)
+        {
+            throw new ArgumentException("Either getter or renderer must be provided.");
+        }
+
         _stringGetter = getter;
         _customRenderer = renderer;
     }
@@ -32,7 +37,7 @@ public readonly struct DataTableCellRenderer<T>
         }
         else
         {
-            ImGui.TextUnformatted(_stringGetter(model));
+            ImGui.TextUnformatted(_stringGetter!(model));
         }
     }
 }
@@ -49,26 +54,10 @@ public sealed class DataTableRuleBuilder<T>
     }
 
     public DataTableRuleBuilder<T> AddColumn(
-        string name,
-        DataTableCellRenderer<T>.StringGetter getter)
-    {
-        return AddColumn(name, 100f, ImGuiTableColumnFlags.WidthFixed, getter, null);
-    }
-
-    public DataTableRuleBuilder<T> AddColumn(
-        string name,
-        float width,
-        DataTableCellRenderer<T>.StringGetter getter,
-        DataTableCellRenderer<T>.CustomRenderer? renderer = null)
-    {
-        return AddColumn(name, width, ImGuiTableColumnFlags.WidthFixed, getter, renderer);
-    }
-
-    public DataTableRuleBuilder<T> AddColumn(
-        string name,
-        float width,
-        ImGuiTableColumnFlags flags,
-        DataTableCellRenderer<T>.StringGetter getter,
+        string name = "",
+        float width = 100,
+        ImGuiTableColumnFlags flags = ImGuiTableColumnFlags.WidthFixed,
+        DataTableCellRenderer<T>.StringGetter? getter = null,
         DataTableCellRenderer<T>.CustomRenderer? renderer = null)
     {
         _columns.Add(new DataTableColumn(name, width, flags));

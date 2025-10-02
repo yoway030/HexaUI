@@ -1,7 +1,7 @@
-﻿using Hexa.NET.ImGui;
-using System.Runtime.CompilerServices;
-
 namespace ELImGui.Utils;
+
+using Hexa.NET.ImGui;
+using System.Runtime.CompilerServices;
 
 public static class ImGuiIOPtrExtensions
 {

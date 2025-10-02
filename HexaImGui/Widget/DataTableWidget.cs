@@ -80,9 +80,10 @@ public class DataTableWidget<TData> : BaseWidget
             // 헤더 고정
             ImGui.TableSetupScrollFreeze(0, 1);
 
-            // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{OwnerWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
             Rule.SetupColumns();
+
+            // 선택기능을 위한 컬럼 설정
+            ImGui.TableSetupColumn($"##Idx#{OwnerWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
             ImGui.TableHeadersRow();
 
             // 멀티셀렉트 처리
@@ -132,9 +133,12 @@ public class DataTableWidget<TData> : BaseWidget
 
                     Rule.RenderRowHead(indexedRow.RowData);
 
+                    // 데이터 필드 출력
+                    Rule.RenderRow(indexedRow.RowData);
+
                     ImGui.TableNextColumn();
                     {
-                        // 선택기능을 위한 첫번째 컬럼
+                        // 선택기능 컬럼
                         bool item_is_selected = _selection.Contains(indexedRow.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
                         ImGui.Selectable($"##{indexedRow.Index}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
@@ -145,8 +149,6 @@ public class DataTableWidget<TData> : BaseWidget
                         }
                     }
 
-                    // 데이터 필드 출력
-                    Rule.RenderRow(indexedRow.RowData);
                     Rule.RenderRowFoot(indexedRow.RowData);
 
                     if (isRowHovered)
@@ -189,6 +191,15 @@ public class DataTableWidget<TData> : BaseWidget
     public void PushData(TData data)
     {
         DataQueue.Enqueue(data);
+    }
+
+    public void ClearData()
+    {
+        DataQueue.Clear();
+        _localStorage.Clear();
+        _filteredStorage?.Clear();
+        _selection.Clear();
+        DataIdx = 1;
     }
 
     private void AdjustData()

@@ -1,7 +1,7 @@
-﻿using Hexa.NET.ImGui;
-using System.Runtime.InteropServices;
-
 namespace ELImGui.Utils;
+
+using Hexa.NET.ImGui;
+using System.Runtime.InteropServices;
 
 public delegate uint AdapterIndexToStorageIdDelegate(ImGuiSelectionBasicStoragePtr self, int idx);
 public unsafe delegate uint AdapterIndexToStorageIdDelegateUnsafed(ImGuiSelectionBasicStorage* self, int idx);
