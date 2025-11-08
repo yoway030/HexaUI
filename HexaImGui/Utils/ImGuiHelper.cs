@@ -18,7 +18,7 @@ public static class ImGuiHelper
 
     static public void HelpMarkerSameLine(string desc)
     {
-        ImGui.SameLine();
+        ImGui.SameLine(0, 0);
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.DelayShort) && ImGui.BeginTooltip())
         {
