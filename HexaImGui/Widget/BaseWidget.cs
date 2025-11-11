@@ -1,4 +1,4 @@
-namespace ELImGui.Widget;
+﻿namespace ELImGui.Widget;
 
 using ELImGui.Window;
 

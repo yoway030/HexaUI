@@ -1,4 +1,4 @@
-
+﻿
 namespace ELImGui.Window;
 
 using ELImGui.Widget;
@@ -13,16 +13,16 @@ public class MultiWidgetWindow : BaseWindow
     {
     }
 
-    public List<BaseWidget> Widgets { get; set; } = new();
+    public List<(BaseWidget Widget, float HeightRatio)> Widgets { get; set; } = new();
 
-    public void AddWidget(BaseWidget widget)
+    public void AddWidget(BaseWidget widget, float heightRatio)
     {
-        Widgets.Add(widget);
+        Widgets.Add((widget, heightRatio));
     }
 
     public void RemoveWidget(BaseWidget widget)
     {
-        Widgets.Remove(widget);
+        Widgets.RemoveAll(x => x.Widget == widget);
     }
 
     public override void OnPrevRender(DateTime utcNow, double deltaSec)
@@ -31,7 +31,7 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.OnPrevRender(utcNow, deltaSec);
+            widget.Widget.OnPrevRender(utcNow, deltaSec);
         }
     }
 
@@ -39,9 +39,13 @@ public class MultiWidgetWindow : BaseWindow
     {
         ImGui.Separator();
 
+        float totalHeight = Widgets.Sum(x => x.HeightRatio);
         foreach (var widget in Widgets)
         {
-            widget.OnRender(utcNow, deltaSec);
+            float childHeight = ImGui.GetWindowHeight() * widget.HeightRatio / totalHeight * 0.9f;
+            ImGui.BeginChild(widget.Widget.WidgetName + "Region", new Vector2(0.0f, childHeight));
+            widget.Widget.OnRender(utcNow, deltaSec);
+            ImGui.EndChild();
             ImGui.Separator();
         }
     }
@@ -52,7 +56,7 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.OnAfterRender(utcNow, deltaSec);
+            widget.Widget.OnAfterRender(utcNow, deltaSec);
         }
     }
 
@@ -60,7 +64,7 @@ public class MultiWidgetWindow : BaseWindow
     {
         foreach (var widget in Widgets)
         {
-            widget.OnUpdate(utcNow, deltaSec);
+            widget.Widget.OnUpdate(utcNow, deltaSec);
         }
     }
 
@@ -70,7 +74,7 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.OnWindowFocused(this);
+            widget.Widget.OnWindowFocused(this);
         }
     }
 }

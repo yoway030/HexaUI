@@ -1,4 +1,4 @@
-namespace ELImGui.demo;
+﻿namespace ELImGui.demo;
 
 using Hexa.NET.ImGui;
 using ELImGui.Utils;

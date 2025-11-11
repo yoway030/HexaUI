@@ -1,4 +1,4 @@
-namespace ELImGui;
+﻿namespace ELImGui;
 
 public interface IImRenderable
 {

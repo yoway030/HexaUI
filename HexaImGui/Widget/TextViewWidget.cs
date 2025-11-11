@@ -1,4 +1,4 @@
-namespace ELImGui.Widget;
+﻿namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
 using System.Numerics;

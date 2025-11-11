@@ -1,21 +1,24 @@
 ﻿namespace ELImGui;
 
+using ELImGui.demo;
+using ELImGui.Utils;
+using ELImGui.Window;
 using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
 using Hexa.NET.ImGui.Backends.OpenGL3;
 using Hexa.NET.ImGui.Utilities;
+using Hexa.NET.ImGuizmo;
 using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
-using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 using NLog;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using ELImGui.demo;
-using ELImGui.Utils;
+using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
 public class ImVisualizer
 {
@@ -59,9 +62,11 @@ public class ImVisualizer
     private HexaDemo _hexaImGuiDemo = new();
     private ImGuiDemo _imGuiDemo = new();
 
-    public ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
-    public ConcurrentDictionary<string, IImMenu> UiMenus = new();
+    public readonly ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
+    public readonly ConcurrentDictionary<string, IImMenu> UiMenus = new();
     public Action? PostRenderFunc;
+
+    private ImmutableArray<IImWindow> _mainWindows;
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -92,6 +97,7 @@ public class ImVisualizer
 
         _guiContext = ImGui.CreateContext();
         ImGui.SetCurrentContext(_guiContext);
+        ImGuizmo.SetImGuiContext(_guiContext);
 
         ImPlot.SetImGuiContext(_guiContext);
         _plotContext = ImPlot.CreateContext();
@@ -143,6 +149,34 @@ public class ImVisualizer
         return true;
     }
 
+    public void InitializeMainWindows(IEnumerable<IImWindow> windows)
+    {
+        _mainWindows = windows.ToImmutableArray();
+
+        foreach (var window in _mainWindows)
+        {
+            UiWindows.TryAdd(window.WindowName, window);
+        }
+    }
+
+    public void RegisterMainMenu(IEnumerable<IImMenu> menus)
+    {
+        foreach (var menu in menus)
+        {
+            UiMenus.TryAdd(menu.GetType().Name, menu);
+        }
+    }
+
+    public T? GetWindow<T>(string windowName) where T : BaseWindow
+    {
+        if (UiWindows.TryGetValue(windowName, out var window) == false)
+        {
+            return null;
+        }
+
+        return window as T;
+    }
+
     public void Loop()
     {
         int loopCount = 0;
@@ -177,6 +211,7 @@ public class ImVisualizer
             ImGuiImplOpenGL3.NewFrame();
             ImGuiImplGLFW.NewFrame();
             ImGui.NewFrame();
+            ImGuizmo.BeginFrame();
 
             RenderMainMenu(currentTime, deltaSec);
 
@@ -305,8 +340,7 @@ public class ImVisualizer
 
             if (ImGui.BeginMenu("Windows"))
             {
-                var uiWindows = UiWindows.Values.ToArray();
-                foreach (var uiWindow in uiWindows)
+                foreach (var uiWindow in _mainWindows)
                 {
                     ImGui.Spacing();
 
@@ -365,7 +399,7 @@ public class ImVisualizer
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.25f, 0.25f, 0.25f, 1.0f)); // 짙은 회색 배경
 
-        ImGui.Begin(LabelBackground,
+        using var background = new ImGuiScopedWindow(LabelBackground,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoBringToFrontOnFocus |
@@ -375,8 +409,6 @@ public class ImVisualizer
 
         ImGui.PopStyleVar(3);
         ImGui.PopStyleColor();
-
-        ImGui.End(); // Background
     }
 
     private void DrawGridBackground(ImDrawListPtr drawList, Vector2 origin, Vector2 size)

@@ -1,10 +1,9 @@
-﻿using System.Numerics;
-
 namespace ELImGui.Utils;
 
-public class HighlightHelper
-{
-    public static readonly Vector4 DefaultHighLightColor = new(0.0f, 1.0f, 0.0f, 0.2f);
+using System.Numerics;
 
-    public Vector4 HighLightColor = DefaultHighLightColor;
+public static class HighlightHelper
+{
+    public static readonly Vector4 HighLightColor = new(0.0f, 1.0f, 0.0f, 0.3f);
+    public static readonly Vector4 FoucusColor = new(1.0f, 0.0f, 0.0f, 0.3f);
 }

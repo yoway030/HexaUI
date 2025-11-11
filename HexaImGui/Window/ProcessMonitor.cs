@@ -1,4 +1,4 @@
-namespace ELImGui.Window;
+﻿namespace ELImGui.Window;
 
 using System.Runtime.InteropServices;
 using System.Diagnostics;

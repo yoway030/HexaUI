@@ -1,4 +1,4 @@
-namespace ELImGui.NodeEditor;
+﻿namespace ELImGui.NodeEditor;
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;

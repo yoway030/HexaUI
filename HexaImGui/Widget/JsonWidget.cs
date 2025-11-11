@@ -1,5 +1,6 @@
-namespace ELImGui.Widget;
+﻿namespace ELImGui.Widget;
 
+using ELImGui.Utils;
 using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -129,8 +130,8 @@ public class JsonWidget : BaseWidget
                 foreach (var prop in (JObject)token)
                 {
                     string childPath = path + "." + prop.Key;
+                    using var child = new ImGuiScopedId(childPath);
 
-                    ImGui.PushID(childPath);
                     if (ImGui.TreeNodeEx(prop.Key, ImGuiTreeNodeFlags.DefaultOpen))
                     {
                         var valueType = prop.Value!.Type;
@@ -145,8 +146,6 @@ public class JsonWidget : BaseWidget
                         DrawJsonTokenWithPath(prop.Value!, childPath);
                         ImGui.TreePop();
                     }
-
-                    ImGui.PopID();
                 }
 
                 break;
@@ -158,7 +157,7 @@ public class JsonWidget : BaseWidget
                     var color = GetColorForToken(token.Type);
                     string childPath = $"{path}[{i}]";
 
-                    ImGui.PushID(childPath);
+                    using var child = new ImGuiScopedId(childPath);
                     ImGui.PushStyleColor(ImGuiCol.Text, color);
                     ImGui.TextUnformatted($"[{i}]");
                     ImGui.PopStyleColor();
@@ -173,7 +172,6 @@ public class JsonWidget : BaseWidget
                     }
 
                     DrawJsonTokenWithPath(array[i], childPath);
-                    ImGui.PopID();
                 }
 
                 break;
@@ -184,7 +182,7 @@ public class JsonWidget : BaseWidget
                 string display = GetValueString(token);
                 var color = GetColorForToken(token.Type);
 
-                ImGui.PushID(childPath);
+                using var child = new ImGuiScopedId(childPath);
                 ImGui.PushStyleColor(ImGuiCol.Text, color);
                 if (ImGui.Selectable(display, false))
                 {
@@ -196,7 +194,6 @@ public class JsonWidget : BaseWidget
                 }
 
                 ImGui.PopStyleColor();
-                ImGui.PopID();
                 //ImGui.SameLine();
                 //ImGui.TextUnformatted($"({token.Type})");
             }

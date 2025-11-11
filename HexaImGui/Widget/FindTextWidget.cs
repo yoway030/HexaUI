@@ -1,9 +1,8 @@
-namespace ELImGui.Widget;
+ï»¿namespace ELImGui.Widget;
 
 using System.Text.RegularExpressions;
 using Hexa.NET.ImGui;
 using ELImGui.Utils;
-using ELImGui.Window;
 
 class FindTextWidget<TData> : BaseWidget
 {
@@ -21,7 +20,7 @@ class FindTextWidget<TData> : BaseWidget
     public Action? FindingTargetChangedFunc = null;
 
     public List<TData>? FoundedList = null;
-    public int FoundedFocusIndex = 0;   // 0Àº Æ÷Ä¿½º ¾øÀ½. 1ºÎÅÍ FoundedList.Count±îÁö
+    public int FoundedFocusIndex = 0;   // 0ì€ í¬ì»¤ìŠ¤ ì—†ìŒ. 1ë¶€í„° FoundedList.Countê¹Œì§€
     public Action? FoundedFocusMovedFunc = null;
 
     public override void OnRender(DateTime utcNow, double deltaSec)
@@ -48,11 +47,12 @@ class FindTextWidget<TData> : BaseWidget
                 FindingTargetChange();
             }
         }
-        ImGuiHelper.HelpMarkerSameLine("Á¤±ÔÇ¥Çö½Ä »ç¿ë");
+
+        ImGuiHelper.HelpMarkerSameLine("ì •ê·œí‘œí˜„ì‹ ì‚¬ìš©");
 
         if (IsFinding == false)
         {
-            // Ã£´Â ÁßÀÌ ¾Æ´Ï¶ó¸é Ãß°¡ÀûÀÎ ÄÁÆ®·ÑÀº Ãâ·ÂÇÏÁö ¾ÊÀ½.
+            // ì°¾ëŠ” ì¤‘ì´ ì•„ë‹ˆë¼ë©´ ì¶”ê°€ì ì¸ ì»¨íŠ¸ë¡¤ì€ ì¶œë ¥í•˜ì§€ ì•ŠìŒ.
             return;
         }
 
@@ -66,7 +66,7 @@ class FindTextWidget<TData> : BaseWidget
 
         ImGuiHelper.SpacingSameLine();
         ImGui.Checkbox($"Filter##{WidgetName}#{OwnerWindowName}", ref _onlyFiltered);
-        ImGuiHelper.HelpMarkerSameLine("Ã£´Â ¹®ÀÚ¿­°ú ¸ÅÄªµÇ°Í ¸¸ º¸±â");
+        ImGuiHelper.HelpMarkerSameLine("ì°¾ëŠ” ë¬¸ìì—´ê³¼ ë§¤ì¹­ë˜ê²ƒ ë§Œ ë³´ê¸°");
 
         ImGui.SameLine();
         if (ImGui.Button($"<##{WidgetName}#{OwnerWindowName}") == true)
@@ -80,11 +80,11 @@ class FindTextWidget<TData> : BaseWidget
             FoundedRowFocusMove(1);
         }
 
-        ImGuiHelper.HelpMarkerSameLine("¸ÅÄªµÇ´Â ¹®ÀÚ¿­°£ Æ÷Ä¿½º ÀÌµ¿");
+        ImGuiHelper.HelpMarkerSameLine("ë§¤ì¹­ë˜ëŠ” ë¬¸ìì—´ê°„ í¬ì»¤ìŠ¤ ì´ë™");
 
         ImGui.SameLine();
         ImGui.Text($"{FoundedFocusIndex}/{FoundedList?.Count}");
-        ImGuiHelper.HelpMarkerSameLine("ÇöÀç Æ÷Ä¿½º / Ã£Àº ¼ö");
+        ImGuiHelper.HelpMarkerSameLine("í˜„ì¬ í¬ì»¤ìŠ¤ / ì°¾ì€ ìˆ˜");
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
@@ -136,7 +136,7 @@ class FindTextWidget<TData> : BaseWidget
             }
             catch
             {
-                // Á¤±ÔÇ¥Çö½ÄÀÌ Àß¸øµÈ °æ¿ì ¸ÅÄª ½ÇÆĞ·Î Ã³¸®
+                // ì •ê·œí‘œí˜„ì‹ì´ ì˜ëª»ëœ ê²½ìš° ë§¤ì¹­ ì‹¤íŒ¨ë¡œ ì²˜ë¦¬
                 return false;
             }
         }
@@ -146,3 +146,4 @@ class FindTextWidget<TData> : BaseWidget
         }
     }
 }
+

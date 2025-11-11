@@ -1,13 +1,13 @@
 namespace ELImGui.Window;
 
-using Hexa.NET.ImGui;
 using ELImGui.Utils;
 using ELImGui.Widget;
-using System.Collections.Concurrent;
-using System.Text;
+using Hexa.NET.ImGui;
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Numerics;
+using System.Text;
 
 public class DataTableWidget<TData> : BaseWidget
 {
@@ -22,49 +22,54 @@ public class DataTableWidget<TData> : BaseWidget
         Rule = rule;
         MaxLocalStorage = maxLocalStorage;
         DataIdx = 1;
+        ShouldScrollToEnd = ShouldScrollToEndInternal;
 
         _findWidget = new("Find", OwnerWindowName);
         _findWidget.FindingTargetChangedFunc += OnFindingTargetChanged;
         _findWidget.FoundedFocusMovedFunc += OnFoundedFocusMoved;
     }
 
-    public DataTableRule<TData> Rule;
-    public HighlightHelper HighlightHelper = new();
-
-    public bool Freeze = false;
-    public int MaxLocalStorage { get; init; }
-    public ConcurrentQueue<TData> DataQueue = new();
     private List<IndexedRow<TData>> _localStorage = new();
     private List<IndexedRow<TData>> _showStorage = null!;
-
-    public uint DataIdx { get; private set; }
     private ImGuiSelectionBasicStorage _selection = new();
-    private IndexedRow<TData>? _focusedRow = null;
-
     private FindTextWidget<IndexedRow<TData>> _findWidget;
+    private IndexedRow<TData>? _focusedRow = null;
+    private bool _focusMove = false;
+
+    public DataTableRule<TData> Rule;
+
+    public bool AutoScroll = false;
+    public bool UseHeader { get; set; } = true;
+    public Func<bool> ShouldScrollToEnd { get; set; }
+
+    public int MaxLocalStorage { get; init; }
+    public ConcurrentQueue<TData> DataQueue = new();
+    public uint DataIdx { get; private set; }
+    public float RowHeightWithSpacing { get; private set; }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        // Freeze check box
-        ImGui.Checkbox($"Freeze##{OwnerWindowName}", ref Freeze);
-        ImGuiHelper.HelpMarkerSameLine("데이터가 추가 대기\n" +
-            "로그창의 경우 로그 행을 선택하면 자동 스크롤이 정지\n(로그는 계속 추가되고 있음)\n" +
-            "Freeze는 로그창에 로그 추가를 대기\n");
+        // header
+        if (UseHeader)
+        {
+            ImGui.Checkbox($"AutoScroll##{OwnerWindowName}", ref AutoScroll);
 
-        // Queue size
-        ImGuiHelper.SpacingSameLine();
-        ImGui.Text($"Queue:{DataQueue.Count}");
-        ImGuiHelper.HelpMarkerSameLine("추가 대기 중인 데이터 수");
+            // Queue size
+            ImGuiHelper.SpacingSameLine();
+            ImGui.Text($"Queue:{DataQueue.Count}");
+            ImGuiHelper.HelpMarkerSameLine("추가 대기 중인 데이터 수");
 
-        // Selection info
-        ImGuiHelper.SpacingSameLine();
-        ImGui.Text($"Select:{_selection.Size}/{_localStorage.Count}");
-        ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
+            // Selection info
+            ImGuiHelper.SpacingSameLine();
+            ImGui.Text($"Select:{_selection.Size}/{_localStorage.Count}");
+            ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
 
-        // Filter
-        ImGuiHelper.SpacingSameLine();
-        _findWidget.RenderImObject(utcNow, deltaSec);
+            // Filter
+            ImGuiHelper.SpacingSameLine();
+            _findWidget.RenderImObject(utcNow, deltaSec);
+        }
 
+        // body data
         if (_showStorage.Any() == false)
         {
             ImGui.Text("No data available.");
@@ -78,12 +83,10 @@ public class DataTableWidget<TData> : BaseWidget
             // 헤더 고정
             ImGui.TableSetupScrollFreeze(0, 1);
 
-            // 설정값 로딩
-            float currentRowHeight = ImGui.GetTextLineHeightWithSpacing();
-
-            // 선택기능을 위한 첫번째 컬럼
-            ImGui.TableSetupColumn($"##Idx#{OwnerWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
             Rule.SetupColumns();
+
+            // 선택기능을 위한 컬럼 설정
+            ImGui.TableSetupColumn($"##Idx#{OwnerWindowName}", ImGuiTableColumnFlags.WidthFixed, 0);
             ImGui.TableHeadersRow();
 
             // 멀티셀렉트 처리
@@ -113,21 +116,26 @@ public class DataTableWidget<TData> : BaseWidget
             }
 
             int displayRowCount = 0;
+            float beforeDrawPosY = 0;
+            float afterDrawPosY = 0;
+
             while (clipper.Step())
             {
                 // 클리핑 처리
                 for (int displayIndex = clipper.DisplayStart; displayIndex < clipper.DisplayEnd; displayIndex++)
                 {
                     displayRowCount++;
-                    Vector4 colorEffect = Vector4.Zero;
+
+                    var colorEffect = Vector4.Zero;
                     var indexedRow = _showStorage[displayIndex];
                     string fieldsToString = Rule.RowToString(indexedRow.RowData);
                     bool isHighlighted = _findWidget.IsMachted(fieldsToString);
                     bool isRowHovered = false;
+                    beforeDrawPosY = ImGui.GetCursorPosY();
 
                     // color 조정
                     colorEffect = _findWidget.IsMachted(fieldsToString) ? HighlightHelper.HighLightColor : Vector4.Zero;
-                    colorEffect = _focusedRow?.Index == indexedRow.Index ? new(1.0f, 0.0f, 0.0f, 0.2f) : colorEffect;
+                    colorEffect = _focusedRow?.Index == indexedRow.Index ? HighlightHelper.FoucusColor : colorEffect;
 
                     // row시작
                     ImGui.TableNextRow();
@@ -139,9 +147,12 @@ public class DataTableWidget<TData> : BaseWidget
 
                     Rule.RenderRowHead(indexedRow.RowData);
 
+                    // 데이터 필드 출력
+                    Rule.RenderRow(indexedRow.RowData);
+
                     ImGui.TableNextColumn();
                     {
-                        // 선택기능을 위한 첫번째 컬럼
+                        // 선택기능 컬럼
                         bool item_is_selected = _selection.Contains(indexedRow.Index);
                         ImGui.SetNextItemSelectionUserData(displayIndex);
                         ImGui.Selectable($"##{indexedRow.Index}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
@@ -152,9 +163,9 @@ public class DataTableWidget<TData> : BaseWidget
                         }
                     }
 
-                    // 데이터 필드 출력
-                    Rule.RenderRow(indexedRow.RowData);
                     Rule.RenderRowFoot(indexedRow.RowData);
+
+                    afterDrawPosY = ImGui.GetCursorPosY();
 
                     if (isRowHovered)
                     {
@@ -163,25 +174,35 @@ public class DataTableWidget<TData> : BaseWidget
                 }
             }
 
-            if (_focusedRow != null)
+            RowHeightWithSpacing = afterDrawPosY - beforeDrawPosY;
+
             {
-                // 포커스된 행이 있으면 해당 행이 보이도록 스크롤 조정
-                float posY = 0;
-                if (_findWidget.IsOnlyFiltered == true)
+                // 스크롤 처리 블록
+                if (_focusMove == true)
                 {
-                    posY = ImGui.GetCursorStartPos().Y + _findWidget.FoundedFocusIndex * currentRowHeight;
+                    // 포커스된 행이 있으면 해당 행이 보이도록 스크롤 조정
+                    float? posY = null;
+                    if (_findWidget.IsOnlyFiltered == true)
+                    {
+                        posY = _findWidget.FoundedFocusIndex * RowHeightWithSpacing;
+                    }
+                    else if (IndexKeyToLocalStorageIdx(_focusedRow?.Index ?? 0) is int localStorageIdx && localStorageIdx > 0)
+                    {
+                        posY = localStorageIdx * RowHeightWithSpacing;
+                    }
+
+                    if (posY.HasValue == true)
+                    {
+                        ImGui.SetScrollFromPosY(ImGui.GetCursorStartPos().Y + posY.Value, 0.5f);
+                    }
+
+                    _focusMove = false;
                 }
-                else
+
+                if (ShouldScrollToEnd() == true)
                 {
-                    posY = ImGui.GetCursorStartPos().Y + (float)(_focusedRow?.Index ?? 0) * currentRowHeight;
+                    ImGui.SetScrollHereY(1.0f);
                 }
-                    
-                ImGui.SetScrollFromPosY(posY, 0.5f);
-            }
-            else if (Freeze == false && _selection.Size == 0)
-            {
-                // Freeze가 걸려있지 않고, 선택된 데이터가 없으면 마지막 행이 보이도록 스크롤 조정
-                ImGui.SetScrollHereY(1.0f);
             }
 
             ms_io = ImGui.EndMultiSelect();
@@ -201,24 +222,25 @@ public class DataTableWidget<TData> : BaseWidget
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)
     {
-        if (Freeze == false)
-        {
-            AdjustData();
-        }
+        AdjustData();
 
-        if (_findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null)
-        {
-            _showStorage = _findWidget.FoundedList;
-        }
-        else
-        {
-            _showStorage = _localStorage;
-        }
+        _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null
+            ? _findWidget.FoundedList
+            : _localStorage;
     }
 
     public void PushData(TData data)
     {
         DataQueue.Enqueue(data);
+    }
+
+    public void ClearData()
+    {
+        DataQueue.Clear();
+        _localStorage.Clear();
+        _selection.Clear();
+        DataIdx = 1;
+        _findWidget.FindingTargetChange();
     }
 
     private void AdjustData()
@@ -240,9 +262,10 @@ public class DataTableWidget<TData> : BaseWidget
         if (_selection.Size == 0)
         {
             // 로컬스토리지는 MaxLocalStorage 만큼만 데이터 저장
-            while (_localStorage.Count > MaxLocalStorage)
+            int removeCount = _localStorage.Count - MaxLocalStorage;
+            if (removeCount > 0)
             {
-                _localStorage.RemoveAt(0);
+                _localStorage.RemoveRange(0, removeCount);
             }
 
             // 선택한 데이터가 있는 경우 MaxLocalStorage 적용을 유예시키는 이유는 MultiSelect중 앞의 데이터가 삭제될때,
@@ -257,19 +280,38 @@ public class DataTableWidget<TData> : BaseWidget
         }
     }
 
-    private uint GetLocalStorageStartIndex()
+    private bool ShouldScrollToEndInternal()
     {
-        if (_localStorage.Any() == false)
+        if (_selection.Size != 0)
         {
-            return 0;
+            return false;
+        }
+        else if (_findWidget.FoundedFocusIndex != 0)
+        {
+            // 단순 찾기 상태는 오토스크롤 유지, 포커스를 갖는 상태에서는 스크롤 정지
+            return false;
         }
 
-        return _localStorage[0].Index;
+        return AutoScroll;
+    }
+
+    /// <summary>
+    /// IndexKey를 로컬 스토리지의 인덱스로 변환. LocalStorage 가 중간에 삭제되지 않는 다는 가정. 삭제되는 구조로 변경시 수정 필요.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    private int IndexKeyToLocalStorageIdx(uint index)
+    {
+        if (index < _localStorage.First().Index || index > _localStorage.Last().Index)
+        {
+            return -1;
+        }
+
+        return (int)(index - _localStorage.First().Index);
     }
 
     private void OnFindingTargetChanged()
     {
-        _selection.Clear();
         _focusedRow = null;
 
         _findWidget.FoundedList =
@@ -287,15 +329,16 @@ public class DataTableWidget<TData> : BaseWidget
 
         _selection.Clear();
 
-        var focusedRow = _findWidget.FoundedList?[_findWidget.FoundedFocusIndex - 1];
-        int showStorageIndex = _showStorage.FindIndex(r => r.Index == focusedRow?.Index);
+        var foundedFocusedRow = _findWidget.FoundedList?[_findWidget.FoundedFocusIndex - 1];
+        int showStorageIndex = _showStorage.FindIndex(r => r.Index == foundedFocusedRow?.Index);
         if (showStorageIndex != -1)
         {
             _focusedRow = _showStorage[showStorageIndex];
+            _focusMove = true;
         }
     }
 
-    public override void OnWindowFocused(BaseWindow baseWindow)
+    public override void OnWindowFocused(BaseWindow ownerWindow)
     {
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
@@ -304,16 +347,14 @@ public class DataTableWidget<TData> : BaseWidget
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                uint dataKey = _selection.Storage.Data[i].Key;
-                uint storageStartIndex = GetLocalStorageStartIndex();
-                uint dataStorageIndex = dataKey - storageStartIndex;
-
-                if (dataStorageIndex < 0 || dataStorageIndex >= _localStorage.Count)
+                uint selectedIndexKey = _selection.Storage.Data[i].Key;
+                int targetIdx = IndexKeyToLocalStorageIdx(selectedIndexKey);
+                if (targetIdx == -1)
                 {
                     continue;
                 }
 
-                string rowToString = Rule.RowToString(_localStorage[(int)dataStorageIndex].RowData);
+                string rowToString = Rule.RowToString(_localStorage[targetIdx].RowData);
                 sb.AppendLine(rowToString);
             }
 

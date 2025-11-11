@@ -1,5 +1,6 @@
-namespace ELImGui.Window;
+﻿namespace ELImGui.Window;
 
+using ELImGui.Utils;
 using Hexa.NET.ImGui;
 using System.Numerics;
 
@@ -63,23 +64,23 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
             _isChangingWindowPosSize = false;
         }
 
-        bool isVisible = IsVisibleImObject;
-        if (ImGui.Begin(WindowName, ref isVisible, WindowFlags))
+        using (var imObject = new ImGuiScopedWindow(WindowName, WindowFlags, IsVisibleImObject))
         {
-            _windowPosition = ImGui.GetWindowPos();
-            _windowSize = ImGui.GetWindowSize();
-
-            if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+            if (imObject.BeginSuccess)
             {
-                OnWindowFocused();
+                _windowPosition = ImGui.GetWindowPos();
+                _windowSize = ImGui.GetWindowSize();
+
+                if (ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+                {
+                    OnWindowFocused();
+                }
+
+                OnRender(utcNow, deltaSec);
             }
 
-            OnRender(utcNow, deltaSec);
+            IsVisibleImObject = imObject.IsVisible;
         }
-
-        // ImGui.Begin의 반환값과 무관하게 ImGui.End를 호출해야 한다.
-        ImGui.End();
-        IsVisibleImObject = isVisible;
 
         OnAfterRender(utcNow, deltaSec);
     }

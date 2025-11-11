@@ -102,11 +102,11 @@ internal class Program
         MultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
         var mmjson = new JsonWidget("JsonWidget1", multiWidgetWindow.WindowName);
         mmjson.JsonText = jsonString;
-        multiWidgetWindow.AddWidget(mmjson);
+        multiWidgetWindow.AddWidget(mmjson, 0.5f);
 
         var mmtext = new TextViewWidget("TextViewWidget", multiWidgetWindow.WindowName);
         mmtext.Initialize(jsonString, false);
-        multiWidgetWindow.AddWidget(mmtext);
+        multiWidgetWindow.AddWidget(mmtext, 0.5f);
 
 
         NodeViewer nodeView = new NodeViewer("NodeViewer");

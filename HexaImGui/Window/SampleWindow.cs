@@ -1,6 +1,7 @@
-
+﻿
 namespace ELImGui.Window;
 
+using ELImGui.Utils;
 using Hexa.NET.ImGui;
 
 public class SampleWindow : IImWindow, IImRenderable
@@ -20,7 +21,8 @@ public class SampleWindow : IImWindow, IImRenderable
 
     public void RenderImObject(DateTime utcNow, double deltaSec)
     {
-        if (ImGui.Begin(WindowId))
+        using var imObject = new ImGuiScopedWindow(WindowId);
+        if (imObject.BeginSuccess)
         {
             if (ImGui.Button("button1"))
             {
@@ -34,7 +36,5 @@ public class SampleWindow : IImWindow, IImRenderable
                 ImGui.Text($"hello {_butonClick}");
             }
         }
-
-        ImGui.End();
     }
 }
