@@ -91,6 +91,12 @@ internal class Program
         textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
         textViewerWindow.Widget.Initialize(jsonString, false);
 
+        SingleWidgetWindow<SimpleTableWidget> simpleTableWindow = new("SimpleTableWindow");
+        simpleTableWindow.InitializeWidget(new SimpleTableWidget("SimpleTableWidget", simpleTableWindow.WindowName));
+        simpleTableWindow.Widget.Headers.Add("asd");
+        simpleTableWindow.Widget.Headers.Add("asd1");
+        simpleTableWindow.Widget.Headers.Add("asd2");
+
         SingleWidgetWindow<CommandConsoleWidget> ConsoleWindow = new("ConsoleWindow");
         ConsoleWindow.InitializeWidget(new CommandConsoleWidget("CommandConsoleWidget", ConsoleWindow.WindowName));
 
@@ -117,6 +123,7 @@ internal class Program
         visualizer.UiWindows.TryAdd(nodeView.WindowName, nodeView);
         visualizer.UiWindows.TryAdd(jsonWidgetWindow.WindowName, jsonWidgetWindow);
         visualizer.UiWindows.TryAdd(textViewerWindow.WindowName, textViewerWindow);
+        visualizer.UiWindows.TryAdd(simpleTableWindow.WindowName, simpleTableWindow);
         visualizer.UiWindows.TryAdd(ConsoleWindow.WindowName, ConsoleWindow);
         visualizer.UiWindows.TryAdd(multiWidgetWindow.WindowName, multiWidgetWindow);
 
