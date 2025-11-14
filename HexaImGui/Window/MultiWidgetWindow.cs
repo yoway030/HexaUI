@@ -1,8 +1,7 @@
-﻿
+
 namespace ELImGui.Window;
 
 using ELImGui.Widget;
-using Hexa.NET.ImGui;
 using System;
 using System.Numerics;
 
@@ -13,16 +12,16 @@ public class MultiWidgetWindow : BaseWindow
     {
     }
 
-    public List<(BaseWidget Widget, float HeightRatio)> Widgets { get; set; } = new();
+    public List<BaseWidget> Widgets { get; set; } = new();
 
-    public void AddWidget(BaseWidget widget, float heightRatio)
+    public void AddWidget(BaseWidget widget)
     {
-        Widgets.Add((widget, heightRatio));
+        Widgets.Add(widget);
     }
 
     public void RemoveWidget(BaseWidget widget)
     {
-        Widgets.RemoveAll(x => x.Widget == widget);
+        Widgets.RemoveAll(w => w == widget);
     }
 
     public override void OnPrevRender(DateTime utcNow, double deltaSec)
@@ -31,23 +30,13 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.Widget.OnPrevRender(utcNow, deltaSec);
+            widget.OnPrevRender(utcNow, deltaSec);
         }
     }
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        ImGui.Separator();
-
-        float totalHeight = Widgets.Sum(x => x.HeightRatio);
-        foreach (var widget in Widgets)
-        {
-            float childHeight = ImGui.GetWindowHeight() * widget.HeightRatio / totalHeight * 0.9f;
-            ImGui.BeginChild(widget.Widget.WidgetName + "Region", new Vector2(0.0f, childHeight));
-            widget.Widget.OnRender(utcNow, deltaSec);
-            ImGui.EndChild();
-            ImGui.Separator();
-        }
+        throw new NotImplementedException();
     }
 
     public override void OnAfterRender(DateTime utcNow, double deltaSec)
@@ -56,7 +45,7 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.Widget.OnAfterRender(utcNow, deltaSec);
+            widget.OnAfterRender(utcNow, deltaSec);
         }
     }
 
@@ -64,7 +53,7 @@ public class MultiWidgetWindow : BaseWindow
     {
         foreach (var widget in Widgets)
         {
-            widget.Widget.OnUpdate(utcNow, deltaSec);
+            widget.OnUpdate(utcNow, deltaSec);
         }
     }
 
@@ -74,7 +63,7 @@ public class MultiWidgetWindow : BaseWindow
 
         foreach (var widget in Widgets)
         {
-            widget.Widget.OnWindowFocused(this);
+            widget.OnWindowFocused(this);
         }
     }
 }

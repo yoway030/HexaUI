@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
@@ -16,13 +16,13 @@ public class CommandConsoleWidget : BaseWidget
     {
     }
 
-    private readonly Dictionary<string, Action<string[]>> _commands = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<(string text, Vector4 color)> _log = new();
-    private readonly List<string> _history = new();
-    private int _historyIndex = -1;
+    protected readonly Dictionary<string, Action<string[]>> _commands = new(StringComparer.OrdinalIgnoreCase);
+    protected readonly List<(string text, Vector4 color)> _log = new();
+    protected readonly List<string> _history = new();
+    protected int _historyIndex = -1;
 
-    private string _commandInput = String.Empty;
-    private bool _scrollToBottom = false;
+    protected string _commandInput = String.Empty;
+    protected bool _scrollToBottom = false;
 
     public void InitSampleCommands()
     {
@@ -120,7 +120,17 @@ public class CommandConsoleWidget : BaseWidget
 
         if (pressedEnter)
         {
-            ExecuteCurrentInput();
+            string line = _commandInput.Trim();
+            if (String.IsNullOrEmpty(line) == false)
+            {
+                AddLog($"> {line}", EchoTextColor);
+                AddHistory(line);
+
+                OnExecuteCommandLine(line);
+
+                _commandInput = String.Empty;
+                _scrollToBottom = true;
+            }
 
             // 입력 후 포커스 유지
             ImGui.SetKeyboardFocusHere(-1);
@@ -182,25 +192,18 @@ public class CommandConsoleWidget : BaseWidget
         return 0;
     }
 
-    private void ExecuteCurrentInput()
+    private void AddHistory(string line)
     {
-        string line = _commandInput.Trim();
-        if (line.Length == 0)
-        {
-            return;
-        }
-
-        // 로그에 커맨드 에코
-        AddLog($"> {line}", EchoTextColor);
-
-        // 히스토리
         if (_history.Count == 0 || _history[^1] != line)
         {
             _history.Add(line);
         }
 
         _historyIndex = -1;
+    }
 
+    protected virtual void OnExecuteCommandLine(string line)
+    {
         // 파싱
         var (cmd, args) = Parse(line);
 
@@ -220,9 +223,6 @@ public class CommandConsoleWidget : BaseWidget
         {
             AddLog($"Unknown command: {cmd}", ErrorTextColor);
         }
-
-        _commandInput = String.Empty;
-        _scrollToBottom = true;
     }
 
     private static (string cmd, string[] args) Parse(string line)

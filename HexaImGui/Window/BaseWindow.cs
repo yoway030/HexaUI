@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using ELImGui.Utils;
 using Hexa.NET.ImGui;
@@ -14,7 +14,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         IsVisibleImObject = true;
         _windowSize = new Vector2(600, 400);
         _windowPosition = parentPosition != null ?
-            new Vector2(parentPosition.Value.X, parentPosition.Value.Y) :
+            new Vector2(parentPosition.Value.X + 30, parentPosition.Value.Y + 30) :
             new Vector2(400, 400);
     }
 

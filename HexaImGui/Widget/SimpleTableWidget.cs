@@ -1,8 +1,7 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
 using System;
-using System.Net.Mime;
 
 public class SimpleTableWidget : BaseWidget
 {
@@ -10,38 +9,68 @@ public class SimpleTableWidget : BaseWidget
     {
     }
 
-    public List<string> Headers = new();
+    public ImGuiTableFlags TableFlags =
+        ImGuiTableFlags.SizingFixedFit
+        | ImGuiTableFlags.Resizable
+        | ImGuiTableFlags.ScrollX
+        | ImGuiTableFlags.ScrollY;
+
+    public string[] Headers = Array.Empty<string>();
+    public List<string[]> Rows = new();
 
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
-        ImGuiTableFlags flags = ImGuiTableFlags.SizingStretchSame | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV | ImGuiTableFlags.ContextMenuInBody;
-
-        if (Headers.Count <= 0)
+        if (Headers.Length <= 0)
         {
             return;
         }
 
-        if (ImGui.BeginTable("table1", Headers.Count, flags))
+        if (ImGui.BeginTable($"{WidgetName}#table", Headers.Length + 1, TableFlags))
         {
-            // Display headers so we can inspect their interaction with borders
-            // (Headers are not the main purpose of this section of the demo, so we are not elaborating on them now. See other sections for details)
-            if (Headers.Count > 0)
+            foreach (string h in Headers)
             {
-                ImGui.TableSetupColumn("One");
-                ImGui.TableSetupColumn("Two");
-                ImGui.TableSetupColumn("Three");
-                ImGui.TableHeadersRow();
+                ImGui.TableSetupColumn(h, ImGuiTableColumnFlags.WidthFixed);
             }
 
-            for (int row = 0; row < 5; row++)
+            ImGui.TableHeadersRow();
+
+            if (Rows.Count > 0)
             {
-                ImGui.TableNextRow();
-                for (int column = 0; column < 3; column++)
+                foreach (string[] row in Rows)
                 {
-                    ImGui.TableSetColumnIndex(column);
-                    ImGui.TextUnformatted($"asdf");
+                    ImGui.TableNextRow();
+
+                    for (int column = 0; column < Headers.Length; column++)
+                    {
+                        ImGui.TableSetColumnIndex(column);
+                        if (column < row.Length)
+                        {
+                            ImGui.TextUnformatted(row[column]);
+
+                            if (ImGui.IsItemHovered())
+                            {
+                                if (ImGui.BeginTooltip())
+                                {
+                                    ImGui.TextUnformatted(row[column]);
+                                    ImGui.Separator();
+                                    ImGui.TextUnformatted("Double click to copy to clipboard.");
+                                    ImGui.EndTooltip();
+                                }
+
+                                if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                                {
+                                    ImGui.SetClipboardText(row[column]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ImGui.TextUnformatted(String.Empty);
+                        }
+                    }
                 }
             }
+
             ImGui.EndTable();
         }
     }

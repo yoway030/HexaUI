@@ -1,4 +1,4 @@
-﻿namespace ELImGui;
+namespace ELImGui;
 
 using ELImGui.demo;
 using ELImGui.Utils;
@@ -16,6 +16,7 @@ using NLog;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
@@ -26,7 +27,8 @@ public class ImVisualizer
 
     public static ImVisualizer Instance { get; private set; } = default!;
 
-    public static void CreateInstance()
+    [MemberNotNullWhen(true, nameof(Instance))]
+    public static bool CreateInstance()
     {
         if (Instance != null)
         {
@@ -34,6 +36,7 @@ public class ImVisualizer
         }
 
         Instance = new ImVisualizer();
+        return true;
     }
 
     public static void DestroyInstance()
