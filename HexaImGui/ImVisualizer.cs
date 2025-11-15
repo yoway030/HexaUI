@@ -1,6 +1,7 @@
 namespace ELImGui;
 
 using ELImGui.demo;
+using ELImGui.Effect;
 using ELImGui.Utils;
 using ELImGui.Window;
 using Hexa.NET.GLFW;
@@ -67,9 +68,10 @@ public class ImVisualizer
 
     public readonly ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
     public readonly ConcurrentDictionary<string, IImMenu> UiMenus = new();
-    public Action? PostRenderFunc;
+    public readonly ConcurrentQueue<ForegroundEffect> ForegroundEffects = new();
 
     private ImmutableArray<IImWindow> _mainWindows;
+    private List<ForegroundEffect> _runningForegroundEffects = new();
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -228,7 +230,7 @@ public class ImVisualizer
             // UI 윈도우처리
             RenderWindows(currentTime, deltaSec);
 
-            PostRenderFunc?.Invoke();
+            RenderForegroundEffect(currentTime, deltaSec);
 
             ImGui.Render();
             ImGui.EndFrame();
@@ -325,13 +327,6 @@ public class ImVisualizer
             if (ImGui.BeginMenu("Process"))
             {
                 ImGui.Spacing();
-                ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
-                ImGui.Spacing();
-                ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
-                ImGui.Spacing();
-                ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
-
-                ImGui.Spacing();
                 if (ImGui.MenuItem("Exit"))
                 {
                     IsWindowShouldClose = true;
@@ -385,7 +380,41 @@ public class ImVisualizer
                 UiMenu.RenderImObject(utcNow, deltaSec);
             }
 
+            if (ImGui.BeginMenu("Help"))
+            {
+                ImGui.Spacing();
+                ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
+                ImGui.Spacing();
+                ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
+                ImGui.Spacing();
+                ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
+                ImGui.Spacing();
+                ImGui.EndMenu();
+            }
+
             ImGui.EndMainMenuBar();
+        }
+    }
+
+    private void RenderForegroundEffect(DateTime utcNow, double deltaSec)
+    {
+        while (ForegroundEffects.TryDequeue(out var effect))
+        {
+            _runningForegroundEffects.Add(effect);
+        }
+
+        foreach(var effect in _runningForegroundEffects.ToArray())
+        {
+            effect.UpdateImObject(utcNow, deltaSec);
+
+            if (effect.IsEnd == true)
+            {
+                _runningForegroundEffects.Remove(effect);
+            }
+            else if (effect.IsStart == true)
+            {
+                effect.RenderImObject(utcNow, deltaSec);
+            }
         }
     }
 
