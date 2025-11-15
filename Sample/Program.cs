@@ -93,9 +93,7 @@ internal class Program
 
         SingleWidgetWindow<SimpleTableWidget> simpleTableWindow = new("SimpleTableWindow");
         simpleTableWindow.InitializeWidget(new SimpleTableWidget("SimpleTableWidget", simpleTableWindow.WindowName));
-        simpleTableWindow.Widget.Headers.Add("asd");
-        simpleTableWindow.Widget.Headers.Add("asd1");
-        simpleTableWindow.Widget.Headers.Add("asd2");
+        simpleTableWindow.Widget.Headers = new string[] { "asd", "asd1", "asd2" };
 
         SingleWidgetWindow<CommandConsoleWidget> ConsoleWindow = new("ConsoleWindow");
         ConsoleWindow.InitializeWidget(new CommandConsoleWidget("CommandConsoleWidget", ConsoleWindow.WindowName));
@@ -105,7 +103,7 @@ internal class Program
         console.IsVisibleImObject = false;
         console.Widget.InitSampleCommands();
 
-        MultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
+        VerticalMultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
         var mmjson = new JsonWidget("JsonWidget1", multiWidgetWindow.WindowName);
         mmjson.JsonText = jsonString;
         multiWidgetWindow.AddWidget(mmjson, 0.5f);
