@@ -1,9 +1,14 @@
 ﻿namespace ELImGui.Utils;
 
 using Hexa.NET.ImGui;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Unicode;
 
 public static class ImGuiHelper
 {
+    public const byte NewLineByte = (byte)'\n';
+
     static public void HelpMarker(string desc)
     {
         ImGui.TextDisabled("(?)");
@@ -40,5 +45,21 @@ public static class ImGuiHelper
         ImGui.SameLine();
         ImGui.Spacing();
         ImGui.SameLine();
+    }
+
+    static public void TextUnformattedUntil(string text, byte target)
+    {
+        Span<byte> buffer = stackalloc byte[Encoding.UTF8.GetByteCount(text)];
+        int written = Encoding.UTF8.GetBytes(text, buffer);
+        int index = buffer.IndexOf(target);
+
+        if (index >= 0)
+        {
+            ImGui.TextUnformatted(buffer, ref buffer[index]);
+        }
+        else
+        {
+            ImGui.TextUnformatted(buffer);
+        }
     }
 }

@@ -55,7 +55,9 @@ internal class Program
 """;
 
         var tableRole = new DataTableRuleBuilder<PlayerRow>()
-            .AddColumn(name: "Name", width: 160, getter: (in PlayerRow p) => p.Name)
+            .AddColumn(name: "Name", width: 160,
+                getter: (in PlayerRow p) => p.Name,
+                renderer: (in PlayerRow p) => ImGuiHelper.TextUnformattedUntil(p.Name, ImGuiHelper.NewLineByte))
             .AddColumn(
                 name: "Level",
                 width: 60,
@@ -129,9 +131,9 @@ internal class Program
 
         visualizer.ForegroundEffects.Enqueue(new HexagonOverlayEffect(
             DateTime.UtcNow, 
-            DateTime.UtcNow.AddSeconds(2.5),
-            new TimeSpan(0,0,1),
-            new TimeSpan(0,0,1),
+            DateTime.UtcNow.AddSeconds(1.5),
+            new TimeSpan(0,0,0),
+            new TimeSpan(5500000),
             new string[] { "EL", "Server", "On", "Your", "Mark" },
             new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)));
 
@@ -139,7 +141,7 @@ internal class Program
             DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
             new TimeSpan(3000000),
             new TimeSpan(2000000),
-            new string[] { "Error" },
+            new string[] { "Error", "Err" },
             new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
 
         ////////////////////////////
@@ -151,7 +153,7 @@ internal class Program
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀\n\rAAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
 
             Thread.Sleep(100);
             logIndex++;
