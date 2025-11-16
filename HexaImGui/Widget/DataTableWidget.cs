@@ -31,6 +31,9 @@ public class DataTableWidget<TData> : BaseWidget
 
     private List<IndexedRow<TData>> _localStorage = new();
     private List<IndexedRow<TData>> _showStorage = null!;
+
+    private List<BaseWindow> _floatTooltip = null!;
+
     private ImGuiSelectionBasicStorage _selection = new();
     private FindTextWidget<IndexedRow<TData>> _findWidget;
     private IndexedRow<TData>? _focusedRow = null;
@@ -161,6 +164,35 @@ public class DataTableWidget<TData> : BaseWidget
                         {
                             isRowHovered = true;
                         }
+
+                        if (Rule.TooltipRender != null && ImGui.BeginPopupContextItem())
+                        {
+                            if (ImGui.Button("floating Tooltip"))
+                            {
+                                string windowName = $"{WidgetName}#{indexedRow.Index}";
+
+                                _floatTooltip ??= new();
+
+                                if (_floatTooltip.Where(w => w.WindowName == windowName).Any())
+                                {
+                                    ImGui.SetWindowFocus(windowName);
+                                }
+                                else
+                                {
+                                    var widget = new RenderActionWidget<TData>(indexedRow.RowData, Rule.TooltipRender);
+                                    var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
+                                    window.InitializeWidget(widget);
+                                    window.IsVisibleImObject = true;
+
+                                    _floatTooltip.Add(window);
+                                }
+
+                                ImGui.CloseCurrentPopup();
+                            }
+
+                            Rule.RenderTooltip(indexedRow.RowData);
+                            ImGui.EndPopup();
+                        }
                     }
 
                     Rule.RenderRowFoot(indexedRow.RowData);
@@ -169,7 +201,11 @@ public class DataTableWidget<TData> : BaseWidget
 
                     if (isRowHovered)
                     {
-                        Rule.RenderTooltip(indexedRow.RowData);
+                        if (Rule.TooltipRender != null && ImGui.BeginTooltip())
+                        {
+                            Rule.RenderTooltip(indexedRow.RowData);
+                            ImGui.EndTooltip();
+                        }
                     }
                 }
             }
@@ -217,6 +253,21 @@ public class DataTableWidget<TData> : BaseWidget
             }
 
             ImGui.EndTable();
+        }
+
+        if (_floatTooltip != null)
+        {
+            foreach (var window in _floatTooltip.ToArray())
+            {
+                if (window.IsVisibleImObject == false)
+                {
+                    _floatTooltip.Remove(window);
+                }
+                else
+                {
+                    window.RenderImObject(utcNow, deltaSec);
+                }
+            }
         }
     }
 

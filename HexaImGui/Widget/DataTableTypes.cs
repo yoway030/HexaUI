@@ -1,6 +1,7 @@
 ﻿namespace ELImGui.Window;
 
 using Hexa.NET.ImGui;
+using System;
 using System.Runtime.CompilerServices;
 
 public readonly record struct DataTableColumn(
@@ -14,10 +15,9 @@ public readonly struct DataTableCellRenderer<T>
     public delegate string StringGetter(in T value);
     private readonly StringGetter? _stringGetter;
 
-    public delegate void CustomRenderer(in T value);
-    private readonly CustomRenderer? _customRenderer;
+    private readonly InAction<T>? _customRenderer;
 
-    public DataTableCellRenderer(StringGetter? getter = null, CustomRenderer? renderer = null)
+    public DataTableCellRenderer(StringGetter? getter = null, InAction<T>? renderer = null)
     {
         if (getter == null && renderer == null)
         {
@@ -58,7 +58,7 @@ public sealed class DataTableRuleBuilder<T>
         float width = 100,
         ImGuiTableColumnFlags flags = ImGuiTableColumnFlags.WidthFixed,
         DataTableCellRenderer<T>.StringGetter? getter = null,
-        DataTableCellRenderer<T>.CustomRenderer? renderer = null)
+        InAction<T>? renderer = null)
     {
         _columns.Add(new DataTableColumn(name, width, flags));
         _renderers.Add(new DataTableCellRenderer<T>(getter, renderer));
@@ -66,34 +66,33 @@ public sealed class DataTableRuleBuilder<T>
     }
 
     public DataTableRule<T> Build(
-        DataTableRule<T>.RendererFunc? tooltipRender = null,
-        DataTableRule<T>.RendererFunc? rowHeadRender = null,
-        DataTableRule<T>.RendererFunc? rowFootRender = null,
+        InAction<T>? tooltipRender = null,
+        InAction<T>? rowHeadRender = null,
+        InAction<T>? rowFootRender = null,
         DataTableRule<T>.RowToStringConverterFunc? getRowToString = null)
         => new(_columns.ToArray(), _renderers.ToArray(), _tableFlags, tooltipRender, rowHeadRender, rowFootRender, getRowToString);
 }
 
 public sealed class DataTableRule<T>
 {
-    public delegate void RendererFunc(in T model);
     public delegate string RowToStringConverterFunc(in T model);
 
     public DataTableColumn[] Columns { get; }
     public DataTableCellRenderer<T>[] Renderers { get; }
     public ImGuiTableFlags TableFlags { get; }
 
-    public RendererFunc? TooltipRender { get; }
-    public RendererFunc? RowHeadRender { get; }
-    public RendererFunc? RowFootRender { get; }
+    public InAction<T>? TooltipRender { get; }
+    public InAction<T>? RowHeadRender { get; }
+    public InAction<T>? RowFootRender { get; }
     public RowToStringConverterFunc? RowToStringConverter { get; }
 
     public DataTableRule(
         DataTableColumn[] cols,
         DataTableCellRenderer<T>[] renderers,
         ImGuiTableFlags flags,
-        RendererFunc? tooltipRenderer,
-        RendererFunc? rowHeadRender,
-        RendererFunc? rowFootRender,
+        InAction<T>? tooltipRenderer,
+        InAction<T>? rowHeadRender,
+        InAction<T>? rowFootRender,
         RowToStringConverterFunc? rowStringConverter)
     {
         Columns = cols;

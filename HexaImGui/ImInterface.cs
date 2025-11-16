@@ -29,3 +29,5 @@ public interface IImWidget
 public interface IImMenu
 {
 }
+
+public delegate void InAction<T>(in T value);

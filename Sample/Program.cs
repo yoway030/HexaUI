@@ -4,7 +4,6 @@ using System.Numerics;
 using ELImGui.Window;
 using ELImGui.Widget;
 using ELImGui.Utils;
-using Hexa.NET.ImGui.Widgets;
 using ELImGui.Effect;
 
 namespace Sample;
@@ -73,12 +72,10 @@ internal class Program
             .Build(
                 tooltipRender : (in PlayerRow row) =>
                 {
-                    ImGui.BeginTooltip();
                     ImGui.TextUnformatted($"Name: {row.Name}");
                     ImGui.TextUnformatted($"Level: {row.Level}");
                     ImGui.TextUnformatted($"DPS: {row.DPS}");
                     ImGui.TextUnformatted($"Class: {row.Class}");
-                    ImGui.EndTooltip();
                 },
                 getRowToString: (in PlayerRow row) =>
                 {
