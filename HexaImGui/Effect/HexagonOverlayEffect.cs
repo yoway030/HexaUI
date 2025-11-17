@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Effect;
+namespace ELImGui.Effect;
 
 using ELImGui.Utils;
 using Hexa.NET.ImGui;
@@ -36,10 +36,10 @@ public class HexagonOverlayEffect : ForegroundEffect
     }
 
     public float Size { get; init; }
-    public string[] Words {  get; init; }
+    public string[] Words { get; init; }
     public uint InnerColor { get; init; }
     public uint BoarderColor { get; init; }
-    
+
     public override void OnRender(DateTime utcNow, double deltaSec)
     {
         long epochTick = utcNow.Ticks - StartDateTime.Ticks;
@@ -86,15 +86,15 @@ public class HexagonOverlayEffect : ForegroundEffect
                     }
                     else
                     {
-                        if (hash % _overlayClearTick + _overlayingTick + _overlayHoldTick  < progressTick)
+                        if ((hash % _overlayClearTick) + _overlayingTick + _overlayHoldTick < progressTick)
                         {
                             continue;
                         }
                     }
 
                     var center = new Vector2(
-                        vmin.X + cx * stepX,
-                        vmin.Y + cy * stepY + colYOffset
+                        vmin.X + (cx * stepX),
+                        vmin.Y + (cy * stepY) + colYOffset
                     );
 
                     // 꼭짓점 계산: -90°에서 시작해 60°씩 (12시 방향이 꼭짓점)
@@ -103,10 +103,10 @@ public class HexagonOverlayEffect : ForegroundEffect
 #pragma warning restore CA2014 // 루프에서 stackalloc을 사용하면 안 됨
                     for (int k = 0; k < 6; k++)
                     {
-                        float ang = (60f * k) * (float)Math.PI / 180f;
+                        float ang = 60f * k * (float)Math.PI / 180f;
                         pts[k] = new Vector2(
-                            center.X + r * (float)Math.Cos(ang) * 1.3f,
-                            center.Y + r * (float)Math.Sin(ang) * 1.115f
+                            center.X + (r * (float)Math.Cos(ang) * 1.3f),
+                            center.Y + (r * (float)Math.Sin(ang) * 1.115f)
                         );
                     }
 

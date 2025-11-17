@@ -1,7 +1,6 @@
 ﻿namespace ELImGui.Utils;
 
 using Hexa.NET.ImGui;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 

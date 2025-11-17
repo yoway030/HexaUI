@@ -164,40 +164,40 @@ public class DataTableWidget<TData> : BaseWidget
                         {
                             isRowHovered = true;
                         }
-
-                        if (Rule.TooltipRender != null && ImGui.BeginPopupContextItem())
-                        {
-                            if (ImGui.Button("floating Tooltip"))
-                            {
-                                string windowName = $"{WidgetName}#{indexedRow.Index}";
-
-                                _floatTooltip ??= new();
-
-                                if (_floatTooltip.Where(w => w.WindowName == windowName).Any())
-                                {
-                                    ImGui.SetWindowFocus(windowName);
-                                }
-                                else
-                                {
-                                    var widget = new RenderActionWidget<TData>(indexedRow.RowData, Rule.TooltipRender);
-                                    var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
-                                    window.InitializeWidget(widget);
-                                    window.IsVisibleImObject = true;
-
-                                    _floatTooltip.Add(window);
-                                }
-
-                                ImGui.CloseCurrentPopup();
-                            }
-
-                            Rule.RenderTooltip(indexedRow.RowData);
-                            ImGui.EndPopup();
-                        }
                     }
 
                     Rule.RenderRowFoot(indexedRow.RowData);
 
                     afterDrawPosY = ImGui.GetCursorPosY();
+
+                    if (Rule.TooltipRender != null && ImGui.BeginPopupContextItem())
+                    {
+                        if (ImGui.Button("floating Tooltip"))
+                        {
+                            string windowName = $"{WidgetName}:{indexedRow.Index}";
+
+                            _floatTooltip ??= new();
+
+                            if (_floatTooltip.Any(w => w.WindowName == windowName))
+                            {
+                                ImGui.SetWindowFocus(windowName);
+                            }
+                            else
+                            {
+                                var widget = new RenderActionWidget<TData>(indexedRow.RowData, Rule.TooltipRender);
+                                var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
+                                window.InitializeWidget(widget);
+                                window.IsVisibleImObject = true;
+
+                                _floatTooltip.Add(window);
+                            }
+
+                            ImGui.CloseCurrentPopup();
+                        }
+
+                        Rule.RenderTooltip(indexedRow.RowData);
+                        ImGui.EndPopup();
+                    }
 
                     if (isRowHovered)
                     {
