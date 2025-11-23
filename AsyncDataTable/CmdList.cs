@@ -84,12 +84,14 @@ public class CmdList<TData> : IAsyncDisposable, IDisposable
         return _cmdChannel.Writer.WriteAsync(cmd);
     }
 
+    // fire-and-forget commands
     public ValueTask Add(TData data) => Command(() => AddInternal(data));
     public ValueTask Update(int index, TData data) => Command(() => UpdateInternal(index, data));
     public ValueTask Upsert(TData data) => Command(() => UpsertInternal(data)); 
     public ValueTask RemoveAt(int index) => Command(() => RemoveAtInternal(index)); 
-    public ValueTask Clear() => Command(() => _datas.Clear()); 
+    public ValueTask Clear() => Command(() => ClearInternal());
 
+    // commands with response
     public Task<int> AddWithResponse(TData data) => CommandWithResponse(() => AddInternal(data));
     public Task<int> UpdateWithResponse(int index, TData data) => CommandWithResponse(() => UpdateInternal(index, data));
     public Task<int> UpsertWithResponse(TData data) => CommandWithResponse(() => UpsertInternal(data));
