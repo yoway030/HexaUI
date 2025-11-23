@@ -20,6 +20,7 @@ public class CmdList<TData> : IAsyncDisposable, IDisposable
     private readonly Channel<Action> _cmdChannel;
 
     private Task? _processorTask;
+    private bool _disposed;
 
     private readonly List<TData> _datas = new();
 
@@ -30,28 +31,36 @@ public class CmdList<TData> : IAsyncDisposable, IDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _cts.Cancel();
-        _cmdChannel.Writer.Complete();
+        DisposeCore();
 
         if (_processorTask != null)
         {
             await _processorTask.ConfigureAwait(false);
         }
-
-        _cts.Dispose();
     }
 
     public void Dispose()
     {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
+    private void DisposeCore()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _cmdChannel.Writer.TryComplete();
         _cts.Cancel();
-        _cmdChannel.Writer.Complete();
-        _processorTask?.Wait();
         _cts.Dispose();
     }
 
     private async Task<TResult> CommandWithResponse<TResult>(Func<TResult> cmd)
     {
-        var tcs = new TaskCompletionSource<TResult>();
+        var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Action cmdWrapper = () =>
         {
