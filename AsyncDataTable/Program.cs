@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace AsyncDataTable;
 
@@ -6,6 +7,29 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        //CancellationTokenSource cts = new();
+
+        //var task = Task.Run(async () =>
+        //{
+        //    ListActor<int> actor = new();
+        //    try
+        //    {
+        //        while (await _channel.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
+        //        {
+        //            actor.TryWork(cts.Token);
+        //        }
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        // 종료 시그널이 오면 작업을 멈춥니다.
+        //    }
+        //    finally
+        //    {
+        //        actor.Dispose();
+        //    }
+        //});
+
+        //task.Wait();
     }
 }
 
