@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading.Channels;
 
 namespace AsyncDataTable;
@@ -7,29 +8,52 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        //CancellationTokenSource cts = new();
+        ListActor<int> actor = new();
 
-        //var task = Task.Run(async () =>
-        //{
-        //    ListActor<int> actor = new();
-        //    try
-        //    {
-        //        while (await _channel.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
-        //        {
-        //            actor.TryWork(cts.Token);
-        //        }
-        //    }
-        //    catch (OperationCanceledException)
-        //    {
-        //        // 종료 시그널이 오면 작업을 멈춥니다.
-        //    }
-        //    finally
-        //    {
-        //        actor.Dispose();
-        //    }
-        //});
+        var thread = new Thread(() =>
+        {
+            while(true)
+            {
+                actor.TryWork();
 
-        //task.Wait();
+                var input = Console.ReadLine();
+                if (input == "exit")
+                    break;
+
+                actor.DebugPrint();
+            }
+            
+        });
+        thread.Start();
+
+        Task.Run(async () =>
+        {
+            _ = actor.Add(1);
+            _ = actor.Add(2);
+            _ = actor.Add(3);
+
+            var result1 = await actor.GetAsync(1);
+            Console.WriteLine("Snapshot: " + string.Join(", ", result1));
+
+            _ = actor.AddAsync(4);
+
+            var result2 = await actor.SnapshotAsync();
+            Console.WriteLine("Snapshot: " + string.Join(", ", result2));
+
+
+            _ = actor.Remove(1);
+            _ = actor.RemoveAt(1);
+
+            var result3 = await actor.SnapshotAsync();
+            Console.WriteLine("Snapshot: " + string.Join(", ", result3));
+
+            _ = actor.Clear();
+
+            var result4 = await actor.SnapshotAsync();
+            Console.WriteLine("Snapshot: " + string.Join(", ", result4));
+        }).Wait();
+
+        thread.Join();
     }
 }
 

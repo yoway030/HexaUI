@@ -1,153 +1,73 @@
 ﻿namespace AsyncDataTable;
 
-using System.Reflection.PortableExecutable;
 using System.Threading.Channels;
 
-public sealed class ListActor<T> : IAsyncDisposable
+public class ListActor<TData> : IAsyncDisposable
 {
-    private readonly List<T> _items = new();
-    private readonly Channel<IMessage> _channel;
-    private readonly CancellationTokenSource _cts = new();
-    private Task? _loopTask;
-
-    private interface IMessage
+    public enum CommandType
     {
-        ValueTask HandleAsync(List<T> items, CancellationToken ct);
+        Add,
+        Insert,
+        Remove,
+        RemoveAt,
+        Update,
+        Clear,
+        ExtendCommand
     }
 
-    private sealed class ActionMessage : IMessage
+    public readonly record struct Command(
+        CommandType CommandType,
+        TData? Item,
+        int? Index = null,
+        IExtensionCommand? Extension = null);
+
+    public interface IExtensionCommand
     {
-        private readonly Action<List<T>> _action;
-
-        public ActionMessage(Action<List<T>> action)
-        {
-            _action = action ?? throw new ArgumentNullException(nameof(action));
-        }
-
-        public ValueTask HandleAsync(List<T> items, CancellationToken ct)
-        {
-            ct.ThrowIfCancellationRequested();
-            _action(items);
-
-            return ValueTask.CompletedTask;
-        }
+        void Execute(List<TData> list);
     }
 
-    private sealed class FuncMessage<TResult> : IMessage
+    public sealed class AskExtensionCommand<TResult> : IExtensionCommand
     {
-        private readonly Func<List<T>, TResult> _func;
-        private readonly TaskCompletionSource<TResult> _tcs;
-
-        public FuncMessage(Func<List<T>, TResult> func, TaskCompletionSource<TResult> tcs)
+        public AskExtensionCommand(Func<List<TData>, TResult> func, TaskCompletionSource<TResult> tcs)
         {
-            _func = func ?? throw new ArgumentNullException(nameof(func));
-            _tcs = tcs ?? throw new ArgumentNullException(nameof(tcs));
+            Func = func;
+            Tcs = tcs;
         }
 
-        public ValueTask HandleAsync(List<T> items, CancellationToken ct)
+        public Func<List<TData>, TResult> Func { get; }
+        public TaskCompletionSource<TResult> Tcs { get; set; }
+
+        public void Execute(List<TData> list)
         {
             try
             {
-                ct.ThrowIfCancellationRequested();
-                TResult result = _func(items);
-                _tcs.SetResult(result);
+                var result = Func(list);
+                Tcs.SetResult(result);
             }
             catch (Exception ex)
             {
-                _tcs.SetException(ex);
+                Tcs.SetException(ex);
             }
-
-            return ValueTask.CompletedTask;
         }
     }
 
-    public ListActor()
+    public ListActor(bool useTask = true)
     {
-        _channel = Channel.CreateUnbounded<IMessage>(new UnboundedChannelOptions
-        {
-            SingleReader = true,
-            SingleWriter = false
-        });
-    }
-
-    public void InitalizeAsync()
-    {
-        _loopTask = Task.Run(() => WorkAsync(_cts.Token));
-    }
-
-    public async Task TryWork(CancellationToken ct = default)
-    {
-        while (_channel.Reader.TryRead(out var msg))
-        {
-            await msg.HandleAsync(_items, ct).ConfigureAwait(false);
-        }
-    }
-
-    private async Task WorkAsync(CancellationToken ct)
-    {
-        try
-        {
-            while (await _channel.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
+        _channel = Channel.CreateUnbounded<Command>(
+            new UnboundedChannelOptions
             {
-                await TryWork(ct);
-            }
-        }
-        catch (OperationCanceledException)
+                SingleReader = true,
+                SingleWriter = false
+            });
+
+        if (useTask == true)
         {
-        }
-        finally
-        {
+            InitAsyncTask();
         }
     }
-
-    private async ValueTask SendAsync(Action<List<T>> action, CancellationToken ct = default)
-    {
-        var msg = new ActionMessage(action);
-        await _channel.Writer.WriteAsync(msg, ct).ConfigureAwait(false);
-    }
-
-    private async Task<TResult> AskAsync<TResult>(Func<List<T>, TResult> func, CancellationToken ct = default)
-    {
-        var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var msg = new FuncMessage<TResult>(func, tcs);
-
-        await _channel.Writer.WriteAsync(msg, ct).ConfigureAwait(false);
-        return await tcs.Task.WaitAsync(ct).ConfigureAwait(false);
-    }
-
-    public ValueTask AddAsync(T item, CancellationToken ct = default)
-        => SendAsync(list => list.Add(item), ct);
-
-    public ValueTask AddRangeAsync(IEnumerable<T> items, CancellationToken ct = default)
-        => SendAsync(list => list.AddRange(items), ct);
-
-    public ValueTask ClearAsync(CancellationToken ct = default)
-        => SendAsync(list => list.Clear(), ct);
-
-    public ValueTask RemoveAtAsync(int index, CancellationToken ct = default)
-        => SendAsync(list => list.RemoveAt(index), ct);
-
-    public ValueTask RemoveAsync(Predicate<T> predicate, CancellationToken ct = default)
-        => SendAsync(list => list.RemoveAll(predicate), ct);
-
-    public Task<int> CountAsync(CancellationToken ct = default)
-        => AskAsync(list => list.Count, ct);
-
-    /// <summary>
-    /// 내부 리스트의 snapshot을 복사해서 반환.
-    /// </summary>
-    public Task<IReadOnlyList<T>> GetSnapshotAsync(CancellationToken ct = default)
-        => AskAsync<IReadOnlyList<T>>(list => list.ToArray(), ct);
-
-    /// <summary>
-    /// 임의의 연산을 Actor 스레드에서 실행하고 결과를 받는 범용 메서드
-    /// </summary>
-    public Task<TResult> RunAsync<TResult>(Func<List<T>, TResult> func, CancellationToken ct = default)
-        => AskAsync(func, ct);
 
     public async ValueTask DisposeAsync()
     {
-        _cts.Cancel();
         _channel.Writer.TryComplete();
 
         try
@@ -158,6 +78,167 @@ public sealed class ListActor<T> : IAsyncDisposable
         {
         }
 
+        _cts.Cancel();
         _cts.Dispose();
+    }
+
+    private readonly List<TData> _items = new();
+    private readonly Channel<Command> _channel;
+    private readonly CancellationTokenSource _cts = new();
+    private Task _loopTask = Task.CompletedTask;
+
+    public void InitAsyncTask()
+    {
+        _loopTask = Task.Run(() => WorkAsync());
+    }
+
+    private async Task WorkAsync()
+    {
+        try
+        {
+            while (await _channel.Reader.WaitToReadAsync(_cts.Token).ConfigureAwait(false))
+            {
+                TryWork();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+        }
+    }
+
+    public void TryWork()
+    {
+        while (_channel.Reader.TryRead(out var cmd))
+        {
+            _cts.Token.ThrowIfCancellationRequested();
+
+            switch (cmd.CommandType)
+            {
+                case CommandType.Add:
+                    AddInternal(cmd.Item!);
+                    break;
+                case CommandType.Insert:
+                    InsertInternal(cmd.Index!.Value, cmd.Item!);
+                    break;
+                case CommandType.Remove:
+                    RemoveInternal(cmd.Item!);
+                    break;
+                case CommandType.RemoveAt:
+                    RemoveAtInternal(cmd.Index!.Value);
+                    break;
+                case CommandType.Update:
+                    UpdateInternal(cmd.Index!.Value, cmd.Item!);
+                    break;
+                case CommandType.Clear:
+                    ClearInternal();
+                    break;
+                case CommandType.ExtendCommand:
+                    ExtendCommandInternal(cmd);
+                    break;
+            }
+        }
+    }
+
+    public void DebugPrint()
+    {
+        Console.WriteLine("Current Items:");
+        for (int i = 0; i < _items.Count; i++)
+        {
+            Console.WriteLine($"[{i}]: {_items[i]}");
+        }
+    }
+
+    public ValueTask SendCommand(Command cmd)
+    {
+        return _channel.Writer.WriteAsync(cmd);
+    }
+
+    public async Task<TResult> SendExtendCommand<TResult>(Func<List<TData>, TResult> func, TData? target, CancellationToken ct = default)
+    {
+        var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var action = new AskExtensionCommand<TResult>(func, tcs);
+        var cmd = new Command(CommandType.ExtendCommand, target, null, action);
+
+        await _channel.Writer.WriteAsync(cmd, ct).ConfigureAwait(false);
+        return await tcs.Task.WaitAsync(ct).ConfigureAwait(false);
+    }
+
+    public ValueTask Add(TData data)
+        => SendCommand(new Command(CommandType.Add, data, null));
+
+    public ValueTask Insert(int index, TData data)
+        => SendCommand(new Command(CommandType.Insert, data, index));
+
+    public ValueTask Remove(TData data)
+        => SendCommand(new Command(CommandType.Remove, data, null));
+
+    public ValueTask RemoveAt(int index)
+        => SendCommand(new Command(CommandType.RemoveAt, default, index));
+
+    public ValueTask Update(int index, TData data)
+        => SendCommand(new Command(CommandType.Update, data, index));
+
+    public ValueTask Clear()
+        => SendCommand(new Command(CommandType.Clear, default, null));
+
+    public Task<int> AddAsync(TData data, CancellationToken ct = default)
+        => SendExtendCommand(list => AddInternal(data), data, ct);
+
+    public Task<TData> GetAsync(int index, CancellationToken ct = default)
+        => SendExtendCommand(list => GetInternal(index), default, ct);
+
+    public Task<List<TData>> SnapshotAsync(CancellationToken ct = default)
+        => SendExtendCommand(list => SnapshotInternal(), default, ct);
+
+    private void ExtendCommandInternal(Command cmd)
+    {
+        if (cmd.Extension is IExtensionCommand)
+        {
+            cmd.Extension.Execute(_items);
+        }
+    }
+
+    private int AddInternal(TData data)
+    {
+        _items.Add(data);
+        return _items.Count - 1;
+    }
+
+    private void InsertInternal(int index, TData data)
+    {
+        _items.Insert(index, data);
+    }
+
+    private void RemoveInternal(TData data)
+    {
+        _items.Remove(data);
+    }
+
+    private void RemoveAtInternal(int index)
+    {
+        _items.RemoveAt(index);
+    }
+
+    private void UpdateInternal(int index, TData data)
+    {
+        _items[index] = data;
+    }
+
+    private void ClearInternal()
+    {
+        _items.Clear();
+    }
+
+    private TData GetInternal(int index)
+    {
+        return _items[index];
+    }
+
+    private List<TData> SnapshotInternal()
+    {
+        return new(_items);
     }
 }
