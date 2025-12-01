@@ -296,7 +296,7 @@ public class ImVisualizer
 
     private void RenderWindows(DateTime utcNow, double deltaSec)
     {
-        var uiWindows = UiWindows.ItemsCopy.Values.ToArray();
+        var uiWindows = UiWindows.ItemsRef.Values;
         foreach (var uiWindow in uiWindows.Select(w => w as IImUpdatable))
         {
             if (uiWindow is null)
@@ -336,7 +336,7 @@ public class ImVisualizer
 
             if (ImGui.BeginMenu("Windows"))
             {
-                foreach (var uiWindow in UiWindows.ItemsCopy.Values.ToArray())
+                foreach (var uiWindow in UiWindows.ItemsRef.Values)
                 {
                     ImGui.Spacing();
 
@@ -357,7 +357,7 @@ public class ImVisualizer
                 ImGui.EndMenu();
             }
 
-            var uiMenus = UiMenus.ItemsCopy;
+            var uiMenus = UiMenus.ItemsRef;
             foreach (var UiMenu in uiMenus.Select(w => w as IImUpdatable))
             {
                 if (UiMenu is null)
@@ -396,7 +396,7 @@ public class ImVisualizer
 
     private void RenderForegroundEffect(DateTime utcNow, double deltaSec)
     {
-        foreach (var effect in ForegroundEffects.ItemsCopy)
+        foreach (var effect in ForegroundEffects.ItemsRef)
         {
             effect.UpdateImObject(utcNow, deltaSec);
 

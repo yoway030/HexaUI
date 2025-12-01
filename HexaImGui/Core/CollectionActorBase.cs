@@ -40,7 +40,7 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     protected CancellationToken CancellationToken => _loopCts.Token;
 
     // read thread나 task에서만 접근할 때 사용하는 복사본
-    public TCollection ItemsCopy => Items;
+    public TCollection ItemsRef => Items;
 
     /// <summary>
     /// 채널 루프를 Task로 실행
