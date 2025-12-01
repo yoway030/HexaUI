@@ -40,7 +40,7 @@ public class DictionaryActor<TKey, TValue>
             string.Join(", ", dict.Select(kv => $"{kv.Key}={kv.Value}")));
     }
 
-    protected override void HandleCommand(in Command cmd)
+    protected override ValueTask HandleCommand(in Command cmd)
     {
         switch (cmd.CommandType)
         {
@@ -61,17 +61,23 @@ public class DictionaryActor<TKey, TValue>
                 break;
 
             case CommandType.ExtendCommand:
-                ExtendCommandInternal(cmd);
-                break;
+                return ExtendCommandInternal(cmd);
+
+            default:
+                throw new ArgumentOutOfRangeException();
         }
+
+        return ValueTask.CompletedTask;
     }
 
-    private void ExtendCommandInternal(in Command cmd)
+    private ValueTask ExtendCommandInternal(in Command cmd)
     {
         if (cmd.Extension is { } ext)
         {
-            ext.Execute(_items);
+            return ext.ExecuteAsync(_items);
         }
+
+        return ValueTask.CompletedTask;
     }
 
     private bool AddInternal(TKey key, TValue value)
@@ -117,13 +123,13 @@ public class DictionaryActor<TKey, TValue>
     public ValueTask Clear()
         => SendCommand(new Command(CommandType.Clear, default, default));
 
-    public async Task<TResult> SendExtendCommand<TResult>(
-        Func<Dictionary<TKey, TValue>, TResult> func,
+    public async Task<TResult> AskCommand<TResult>(
+        Func<IDictionary<TKey, TValue>, ValueTask<TResult>> func,
         TKey? targetKey,
         CancellationToken ct = default)
     {
         var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var action = new AskExtensionCommand<Dictionary<TKey, TValue>, TResult>(func, tcs);
+        var action = new AsyncCommand<Dictionary<TKey, TValue>, TResult>(func, tcs);
         var cmd = new Command(CommandType.ExtendCommand, targetKey, default, action);
 
         await Writer.WriteAsync(cmd, ct).ConfigureAwait(false);
@@ -131,11 +137,11 @@ public class DictionaryActor<TKey, TValue>
     }
 
     public Task<bool> AddAsync(TKey key, TValue value, CancellationToken ct = default)
-        => SendExtendCommand(_ => AddInternal(key, value), key, ct);
+        => AskCommand(_ => ValueTask.FromResult(AddInternal(key, value)), key, ct);
 
     public Task<TValue> GetAsync(TKey key, CancellationToken ct = default)
-        => SendExtendCommand(_ => GetInternal(key), key, ct);
+        => AskCommand(_ => ValueTask.FromResult(GetInternal(key)), key, ct);
 
     public Task<Dictionary<TKey, TValue>> SnapshotAsync(CancellationToken ct = default)
-        => SendExtendCommand(_ => SnapshotInternal(), default, ct);
+        => AskCommand(_ => ValueTask.FromResult(SnapshotInternal()), default, ct);
 }

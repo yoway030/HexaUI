@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposable
 {
     private readonly Channel<TCommand> _channel;
-    private readonly CancellationTokenSource _cts = new();
+    private readonly CancellationTokenSource _loopCts = new();
     private Task _loopTask = Task.CompletedTask;
 
     protected CollectionActorBase(bool useTask = true)
@@ -37,7 +37,7 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
 
     protected ChannelWriter<TCommand> Writer => _channel.Writer;
     protected ChannelReader<TCommand> Reader => _channel.Reader;
-    protected CancellationToken CancellationToken => _cts.Token;
+    protected CancellationToken CancellationToken => _loopCts.Token;
 
     /// <summary>
     /// 채널 루프를 Task로 실행
@@ -51,9 +51,9 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     {
         try
         {
-            while (await Reader.WaitToReadAsync(_cts.Token).ConfigureAwait(false))
+            while (await Reader.WaitToReadAsync(_loopCts.Token).ConfigureAwait(false))
             {
-                TryWork();
+                await TryWork();
             }
         }
         catch (OperationCanceledException)
@@ -67,26 +67,39 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     /// <summary>
     /// 파생 클래스의 Command 처리 로직
     /// </summary>
-    protected abstract void HandleCommand(in TCommand cmd);
+    protected abstract ValueTask HandleCommand(in TCommand cmd);
 
     /// <summary>
     /// 외부에서 수동으로 한 번씩 폴링할 때 사용.
     /// </summary>
-    public void TryWork()
+    public async ValueTask TryWork()
     {
         while (Reader.TryRead(out var cmd))
         {
-            _cts.Token.ThrowIfCancellationRequested();
-            HandleCommand(in cmd);
+            _loopCts.Token.ThrowIfCancellationRequested();
+            var task = HandleCommand(in cmd);
+
+            if (task.IsCompletedSuccessfully)
+            {
+                continue;
+            }
+
+            await AwaitSlow(task).ConfigureAwait(false);
+        }
+
+        static async ValueTask AwaitSlow(ValueTask task)
+        {
+            await task.ConfigureAwait(false);
         }
     }
 
-    protected ValueTask SendCommand(TCommand cmd)
+    protected ValueTask SendCommand(in TCommand cmd)
         => Writer.WriteAsync(cmd);
 
     public async ValueTask DisposeAsync()
     {
         Writer.TryComplete();
+        _loopCts.Cancel();
 
         try
         {
@@ -96,8 +109,7 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
         {
         }
 
-        _cts.Cancel();
-        _cts.Dispose();
+        _loopCts.Dispose();
     }
 
     protected string DebugStringImpl(Func<TCollection, string> toString)
@@ -109,36 +121,32 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
 /// </summary>
 public interface IExtensionCommand<TCollection>
 {
-    void Execute(TCollection collection);
+    ValueTask ExecuteAsync(TCollection collection);
 }
 
-/// <summary>
-/// 컬렉션을 읽어서 TResult 를 돌려주는 확장 커맨드 구현.
-/// List/Dictionary 양쪽에서 재사용.
-/// </summary>
-public sealed class AskExtensionCommand<TCollection, TResult> : IExtensionCommand<TCollection>
+public sealed class AsyncCommand<TCollection, TResult> : IExtensionCommand<TCollection>
 {
-    public AskExtensionCommand(
-        Func<TCollection, TResult> func,
+    private Func<TCollection, ValueTask<TResult>> _asyncFunc { get; }
+    private TaskCompletionSource<TResult> _tcs { get; }
+
+    public AsyncCommand(
+        Func<TCollection, ValueTask<TResult>> asyncFunc,
         TaskCompletionSource<TResult> tcs)
     {
-        Func = func;
-        Tcs = tcs;
+        _asyncFunc = asyncFunc;
+        _tcs = tcs;
     }
 
-    public Func<TCollection, TResult> Func { get; }
-    public TaskCompletionSource<TResult> Tcs { get; }
-
-    public void Execute(TCollection collection)
+    public async ValueTask ExecuteAsync(TCollection collection)
     {
         try
         {
-            var result = Func(collection);
-            Tcs.SetResult(result);
+            var result = await _asyncFunc(collection).ConfigureAwait(false);
+            _tcs.SetResult(result);
         }
         catch (Exception ex)
         {
-            Tcs.SetException(ex);
+            _tcs.SetException(ex);
         }
     }
 }

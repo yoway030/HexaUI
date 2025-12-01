@@ -16,12 +16,12 @@ internal class Program
     {
         DictionaryActor<int, string> actor = new(useTask: false);
 
-        var thread = new Thread(() =>
+        var thread = new Thread(async () =>
         {
             while (true)
             {
                 Thread.Sleep(1000);
-                actor.TryWork();
+                await actor.TryWork();
 
                 var input = Console.ReadLine();
                 if (input == "exit")
@@ -66,11 +66,11 @@ internal class Program
     {
         ListActor<int> actor = new(useTask:false);
 
-        var thread = new Thread(() =>
+        var thread = new Thread(async () =>
         {
             while (true)
             {
-                actor.TryWork();
+                await actor.TryWork();
 
                 var input = Console.ReadLine();
                 if (input == "exit")
@@ -88,8 +88,8 @@ internal class Program
             _ = actor.Add(2);
             _ = actor.Add(3);
 
-            var result1 = await actor.GetAsync(1);
-            Console.WriteLine("Snapshot: " + string.Join(", ", result1));
+            //var result1 = await actor.GetAsync(1);
+            //Console.WriteLine("Snapshot: " + string.Join(", ", result1));
 
             _ = actor.AddAsync(4);
 

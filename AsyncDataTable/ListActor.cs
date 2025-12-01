@@ -41,7 +41,7 @@ public class ListActor<TData>
             string.Join(",", list.Select(i => i?.ToString())));
     }
 
-    protected override void HandleCommand(in Command cmd)
+    protected override ValueTask HandleCommand(in Command cmd)
     {
         switch (cmd.CommandType)
         {
@@ -70,17 +70,23 @@ public class ListActor<TData>
                 break;
 
             case CommandType.ExtendCommand:
-                ExtendCommandInternal(cmd);
-                break;
+                return ExtendCommandInternal(cmd);
+
+            default:
+                throw new ArgumentOutOfRangeException();
         }
+
+        return ValueTask.CompletedTask;
     }
 
-    private void ExtendCommandInternal(in Command cmd)
+    private ValueTask ExtendCommandInternal(in Command cmd)
     {
         if (cmd.Extension is { } ext)
         {
-            ext.Execute(_items);
+            return ext.ExecuteAsync(_items);
         }
+
+        return ValueTask.CompletedTask;
     }
 
     private int AddInternal(TData data)
@@ -142,13 +148,13 @@ public class ListActor<TData>
     public ValueTask Clear()
         => SendCommand(new Command(CommandType.Clear, default, null));
 
-    public async Task<TResult> SendExtendCommand<TResult>(
-        Func<List<TData>, TResult> func,
+    public async Task<TResult> AskCommand<TResult>(
+        Func<List<TData>, ValueTask<TResult>> func,
         TData? target,
         CancellationToken ct = default)
     {
         var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var action = new AskExtensionCommand<List<TData>, TResult>(func, tcs);
+        var action = new AsyncCommand<List<TData>, TResult>(func, tcs);
         var cmd = new Command(CommandType.ExtendCommand, target, null, action);
 
         await Writer.WriteAsync(cmd, ct).ConfigureAwait(false);
@@ -156,11 +162,11 @@ public class ListActor<TData>
     }
 
     public Task<int> AddAsync(TData data, CancellationToken ct = default)
-        => SendExtendCommand(list => AddInternal(data), data, ct);
+        => AskCommand(list => ValueTask.FromResult(AddInternal(data)), data, ct);
 
     public Task<TData> GetAsync(int index, CancellationToken ct = default)
-        => SendExtendCommand(list => GetInternal(index), default, ct);
+        => AskCommand(list => ValueTask.FromResult(GetInternal(index)), default, ct);
 
     public Task<List<TData>> SnapshotAsync(CancellationToken ct = default)
-        => SendExtendCommand(list => SnapshotInternal(), default, ct);
+        => AskCommand(list => ValueTask.FromResult(SnapshotInternal()), default, ct);
 }
