@@ -4,6 +4,7 @@ using ELImGui.demo;
 using ELImGui.Effect;
 using ELImGui.Utils;
 using ELImGui.Window;
+using ELImGui.Core;
 using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
@@ -66,12 +67,9 @@ public class ImVisualizer
     private HexaDemo _hexaImGuiDemo = new();
     private ImGuiDemo _imGuiDemo = new();
 
-    public readonly ConcurrentDictionary<string /*windowName*/, IImWindow> UiWindows = new();
-    public readonly ConcurrentDictionary<string, IImMenu> UiMenus = new();
-    public readonly ConcurrentQueue<ForegroundEffect> ForegroundEffects = new();
-
-    private ImmutableArray<IImWindow> _mainWindows;
-    private List<ForegroundEffect> _runningForegroundEffects = new();
+    public readonly DictionaryActor<string /*windowName*/, IImWindow> UiWindows = new(useTask: false);
+    public readonly ListActor<IImMenu> UiMenus = new(useTask: false);
+    public readonly ListActor<ForegroundEffect> ForegroundEffects = new(useTask: false);
 
     public bool IsWindowShouldClose = false;
     public bool IsShowImGuiCppDemo = false;
@@ -156,11 +154,9 @@ public class ImVisualizer
 
     public void InitializeMainWindows(IEnumerable<IImWindow> windows)
     {
-        _mainWindows = windows.ToImmutableArray();
-
-        foreach (var window in _mainWindows)
+        foreach (var window in windows)
         {
-            UiWindows.TryAdd(window.WindowName, window);
+            UiWindows.Add(window.WindowName, window);
         }
     }
 
@@ -168,21 +164,17 @@ public class ImVisualizer
     {
         foreach (var menu in menus)
         {
-            UiMenus.TryAdd(menu.GetType().Name, menu);
+            UiMenus.Add(menu);
         }
     }
 
-    public T? GetWindow<T>(string windowName) where T : BaseWindow
+    public async Task<T?> GetWindow<T>(string windowName) where T : BaseWindow
     {
-        if (UiWindows.TryGetValue(windowName, out var window) == false)
-        {
-            return null;
-        }
-
+        var window = await UiWindows.GetAsync(windowName);
         return window as T;
     }
 
-    public void Loop()
+    public async ValueTask Loop()
     {
         int loopCount = 0;
 
@@ -217,6 +209,10 @@ public class ImVisualizer
             ImGuiImplGLFW.NewFrame();
             ImGui.NewFrame();
             ImGuizmo.BeginFrame();
+
+            await UiWindows.TryWork();
+            await UiMenus.TryWork();
+            await ForegroundEffects.TryWork();
 
             RenderMainMenu(currentTime, deltaSec);
 
@@ -276,6 +272,8 @@ public class ImVisualizer
         // Clean up and terminate GLFW
         GLFW.DestroyWindow(_window);
         GLFW.Terminate();
+
+        ForegroundEffects.DisposeAsync().AsTask().Wait();
     }
 
     private void RenderDemo()
@@ -298,7 +296,7 @@ public class ImVisualizer
 
     private void RenderWindows(DateTime utcNow, double deltaSec)
     {
-        var uiWindows = UiWindows.Values.ToArray();
+        var uiWindows = UiWindows.ItemsCopy.Values.ToArray();
         foreach (var uiWindow in uiWindows.Select(w => w as IImUpdatable))
         {
             if (uiWindow is null)
@@ -338,7 +336,7 @@ public class ImVisualizer
 
             if (ImGui.BeginMenu("Windows"))
             {
-                foreach (var uiWindow in _mainWindows)
+                foreach (var uiWindow in UiWindows.ItemsCopy.Values.ToArray())
                 {
                     ImGui.Spacing();
 
@@ -359,7 +357,7 @@ public class ImVisualizer
                 ImGui.EndMenu();
             }
 
-            var uiMenus = UiMenus.Values.ToArray();
+            var uiMenus = UiMenus.ItemsCopy;
             foreach (var UiMenu in uiMenus.Select(w => w as IImUpdatable))
             {
                 if (UiMenu is null)
@@ -398,18 +396,13 @@ public class ImVisualizer
 
     private void RenderForegroundEffect(DateTime utcNow, double deltaSec)
     {
-        while (ForegroundEffects.TryDequeue(out var effect))
-        {
-            _runningForegroundEffects.Add(effect);
-        }
-
-        foreach(var effect in _runningForegroundEffects.ToArray())
+        foreach (var effect in ForegroundEffects.ItemsCopy)
         {
             effect.UpdateImObject(utcNow, deltaSec);
 
             if (effect.IsEnd == true)
             {
-                _runningForegroundEffects.Remove(effect);
+                ForegroundEffects.Remove(effect);
             }
             else if (effect.IsStart == true)
             {

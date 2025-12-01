@@ -1,4 +1,4 @@
-﻿namespace AsyncDataTable;
+﻿namespace ELImGui.Core;
 
 using System;
 using System.Collections.Generic;
@@ -130,22 +130,22 @@ public class ListActor<TData>
         return new(_items);
     }
 
-    public ValueTask Add(TData data)
+    public void Add(TData data)
         => SendCommand(new Command(CommandType.Add, data, null));
 
-    public ValueTask Insert(int index, TData data)
+    public void Insert(int index, TData data)
         => SendCommand(new Command(CommandType.Insert, data, index));
 
-    public ValueTask Remove(TData data)
+    public void Remove(TData data)
         => SendCommand(new Command(CommandType.Remove, data, null));
 
-    public ValueTask RemoveAt(int index)
+    public void RemoveAt(int index)
         => SendCommand(new Command(CommandType.RemoveAt, default, index));
 
-    public ValueTask Update(int index, TData data)
+    public void Update(int index, TData data)
         => SendCommand(new Command(CommandType.Update, data, index));
 
-    public ValueTask Clear()
+    public void Clear()
         => SendCommand(new Command(CommandType.Clear, default, null));
 
     public async Task<TResult> AskCommand<TResult>(

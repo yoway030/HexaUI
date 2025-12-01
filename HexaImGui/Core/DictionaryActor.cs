@@ -1,4 +1,4 @@
-﻿namespace AsyncDataTable;
+﻿namespace ELImGui.Core;
 
 using System;
 using System.Collections.Generic;
@@ -111,16 +111,16 @@ public class DictionaryActor<TKey, TValue>
         return new Dictionary<TKey, TValue>(_items);
     }
 
-    public ValueTask Add(TKey key, TValue value)
+    public void Add(TKey key, TValue value)
         => SendCommand(new Command(CommandType.Add, key, value));
 
-    public ValueTask Update(TKey key, TValue value)
+    public void Update(TKey key, TValue value)
         => SendCommand(new Command(CommandType.Update, key, value));
 
-    public ValueTask Remove(TKey key)
+    public void Remove(TKey key)
         => SendCommand(new Command(CommandType.Remove, key, default));
 
-    public ValueTask Clear()
+    public void Clear()
         => SendCommand(new Command(CommandType.Clear, default, default));
 
     public async Task<TResult> AskCommand<TResult>(

@@ -9,108 +9,108 @@ internal class Program
     static void Main(string[] args)
     {
         //TestDictionaryActor();
-        TestListActor();
+        //TestListActor();
     }
 
-    static void TestDictionaryActor()
-    {
-        DictionaryActor<int, string> actor = new(useTask: false);
+    //static void TestDictionaryActor()
+    //{
+    //    DictionaryActor<int, string> actor = new(useTask: false);
 
-        var thread = new Thread(async () =>
-        {
-            while (true)
-            {
-                Thread.Sleep(1000);
-                await actor.TryWork();
+    //    var thread = new Thread(async () =>
+    //    {
+    //        while (true)
+    //        {
+    //            Thread.Sleep(1000);
+    //            await actor.TryWork();
 
-                var input = Console.ReadLine();
-                if (input == "exit")
-                    break;
+    //            var input = Console.ReadLine();
+    //            if (input == "exit")
+    //                break;
 
-                Console.WriteLine(actor.DebugString());
-            }
+    //            Console.WriteLine(actor.DebugString());
+    //        }
 
-        });
-        thread.Start();
+    //    });
+    //    thread.Start();
 
-        Task.Run(async () =>
-        {
-            _ = actor.Add(1, "111111111");
-            _ = actor.Add(2, "222222222");
-            _ = actor.Add(3, "333333333");
+    //    Task.Run(async () =>
+    //    {
+    //        _ = actor.Add(1, "111111111");
+    //        _ = actor.Add(2, "222222222");
+    //        _ = actor.Add(3, "333333333");
 
-            var result1 = await actor.GetAsync(1);
-            Console.WriteLine("Snapshot: " + string.Join(", ", result1));
+    //        var result1 = await actor.GetAsync(1);
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result1));
 
-            _ = actor.AddAsync(4, "444444444");
+    //        _ = actor.AddAsync(4, "444444444");
 
-            var result2 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result2));
-
-
-            _ = actor.Remove(3);
-
-            var result3 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result3));
-
-            _ = actor.Clear();
-
-            var result4 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result4));
-        }).Wait();
-
-        thread.Join();
-    }
-
-    static void TestListActor()
-    {
-        ListActor<int> actor = new(useTask:false);
-
-        var thread = new Thread(async () =>
-        {
-            while (true)
-            {
-                await actor.TryWork();
-
-                var input = Console.ReadLine();
-                if (input == "exit")
-                    break;
-
-                Console.WriteLine(actor.DebugString());
-            }
-
-        });
-        thread.Start();
-
-        Task.Run(async () =>
-        {
-            _ = actor.Add(1);
-            _ = actor.Add(2);
-            _ = actor.Add(3);
-
-            //var result1 = await actor.GetAsync(1);
-            //Console.WriteLine("Snapshot: " + string.Join(", ", result1));
-
-            _ = actor.AddAsync(4);
-
-            var result2 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result2));
+    //        var result2 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result2));
 
 
-            _ = actor.Remove(1);
-            _ = actor.RemoveAt(1);
+    //        _ = actor.Remove(3);
 
-            var result3 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result3));
+    //        var result3 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result3));
 
-            _ = actor.Clear();
+    //        _ = actor.Clear();
 
-            var result4 = await actor.SnapshotAsync();
-            Console.WriteLine("Snapshot: " + string.Join(", ", result4));
-        }).Wait();
+    //        var result4 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result4));
+    //    }).Wait();
 
-        thread.Join();
-    }
+    //    thread.Join();
+    //}
+
+    //static void TestListActor()
+    //{
+    //    ListActor<int> actor = new(useTask:false);
+
+    //    var thread = new Thread(async () =>
+    //    {
+    //        while (true)
+    //        {
+    //            await actor.TryWork();
+
+    //            var input = Console.ReadLine();
+    //            if (input == "exit")
+    //                break;
+
+    //            Console.WriteLine(actor.DebugString());
+    //        }
+
+    //    });
+    //    thread.Start();
+
+    //    Task.Run(async () =>
+    //    {
+    //        _ = actor.Add(1);
+    //        _ = actor.Add(2);
+    //        _ = actor.Add(3);
+
+    //        //var result1 = await actor.GetAsync(1);
+    //        //Console.WriteLine("Snapshot: " + string.Join(", ", result1));
+
+    //        _ = actor.AddAsync(4);
+
+    //        var result2 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result2));
+
+
+    //        _ = actor.Remove(1);
+    //        _ = actor.RemoveAt(1);
+
+    //        var result3 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result3));
+
+    //        _ = actor.Clear();
+
+    //        var result4 = await actor.SnapshotAsync();
+    //        Console.WriteLine("Snapshot: " + string.Join(", ", result4));
+    //    }).Wait();
+
+    //    thread.Join();
+    //}
 }
 
 public class SingleThreadSynchronizationContext : SynchronizationContext

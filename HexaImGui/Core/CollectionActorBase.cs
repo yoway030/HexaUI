@@ -1,4 +1,4 @@
-﻿namespace AsyncDataTable;
+﻿namespace ELImGui.Core;
 
 using System;
 using System.Threading;
@@ -39,6 +39,9 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     protected ChannelReader<TCommand> Reader => _channel.Reader;
     protected CancellationToken CancellationToken => _loopCts.Token;
 
+    // read thread나 task에서만 접근할 때 사용하는 복사본
+    public TCollection ItemsCopy => Items;
+
     /// <summary>
     /// 채널 루프를 Task로 실행
     /// </summary>
@@ -72,10 +75,13 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     /// <summary>
     /// 외부에서 수동으로 한 번씩 폴링할 때 사용.
     /// </summary>
-    public async ValueTask TryWork()
+    public async ValueTask<int> TryWork()
     {
+        int readCount = 0;
+
         while (Reader.TryRead(out var cmd))
         {
+            readCount++;
             _loopCts.Token.ThrowIfCancellationRequested();
             var task = HandleCommand(in cmd);
 
@@ -87,14 +93,16 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
             await AwaitSlow(task).ConfigureAwait(false);
         }
 
+        return readCount;
+
         static async ValueTask AwaitSlow(ValueTask task)
         {
             await task.ConfigureAwait(false);
         }
     }
 
-    protected ValueTask SendCommand(in TCommand cmd)
-        => Writer.WriteAsync(cmd);
+    protected void SendCommand(in TCommand cmd)
+        => _ = Writer.WriteAsync(cmd);
 
     public async ValueTask DisposeAsync()
     {
