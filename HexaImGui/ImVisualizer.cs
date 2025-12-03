@@ -154,6 +154,8 @@ public class ImVisualizer
 
     public void SetWindowTitle(string title)
     {
+        GLFW.SetWindowTitle(_window, title);
+    }
 
     public void InitializeMainWindows(IEnumerable<IImWindow> windows)
     {
