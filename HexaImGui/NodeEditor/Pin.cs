@@ -1,4 +1,4 @@
-﻿namespace ELImGui.NodeEditor;
+namespace ELImGui.NodeEditor;
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
@@ -13,9 +13,15 @@ public enum PinKind
 public class Pin
 {
     public Pin(int id, string name, Node parent, ImNodesPinShape shape, PinKind kind)
+        : this(id, name, String.Empty, parent, shape, kind)
+    {
+    }
+
+    public Pin(int id, string name, string displayInfo, Node parent, ImNodesPinShape shape, PinKind kind)
     {
         Id = id;
         Name = name;
+        DisplayInfo = displayInfo;
         Shape = shape;
         Kind = kind;
         Parent = parent;
@@ -23,6 +29,7 @@ public class Pin
 
     public int Id { get; init; }
     public string Name { get; set; }
+    public string DisplayInfo { get; set; }
     public Node Parent { get; init; }
     public ImNodesPinShape Shape { get; set; }
     public PinKind Kind { get; init; }
@@ -58,6 +65,11 @@ public class Pin
     private void RenderContent()
     {
         ImGui.Text(Name);
+        if (String.IsNullOrEmpty(DisplayInfo) == false)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled], $"[{DisplayInfo}]");
+        }
 
         UpdateCenterPos();
     }

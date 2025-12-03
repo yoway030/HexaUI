@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Utils;
+namespace ELImGui.Utils;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
@@ -16,6 +16,32 @@ public static class Identicon
 
         // 해시 & 색상
         uint h32 = Fnv1aHash(input);
+        RenderIdenticonRect(dl, h32, size, topLeft.X, topLeft.Y);
+
+        dl.Flags = oldFlags;
+
+        ImGui.Dummy(new(size, size)); // 커서 이동
+    }
+
+    public static void RenderIdenticonRect(uint h32)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var oldFlags = dl.Flags;
+        dl.Flags &= ~ImDrawListFlags.AntiAliasedFill;
+
+        var topLeft = ImGui.GetCursorScreenPos();
+        float size = ImGui.GetFontSize();
+
+        // 해시 & 색상
+        RenderIdenticonRect(dl, h32, size, topLeft.X, topLeft.Y);
+
+        dl.Flags = oldFlags;
+
+        ImGui.Dummy(new(size, size)); // 커서 이동
+    }
+
+    public static void RenderIdenticonRect(ImDrawListPtr dl, uint h32, float size, float left, float top)
+    {
         var rgb = ColorUtil.HslToRgb(h32, 0.65f, 0.55f);
         uint fg = ImGui.ColorConvertFloat4ToU32(new(rgb.X, rgb.Y, rgb.Z, 1f));
 
@@ -40,7 +66,7 @@ public static class Identicon
 
                 void FillCell(int gx)
                 {
-                    var p0 = topLeft + new Vector2(pad + (gx * cell), pad + (y * cell));
+                    var p0 = new Vector2(left, top) + new Vector2(pad + (gx * cell), pad + (y * cell));
                     var p1 = p0 + new Vector2(cell, cell);
                     dl.AddRectFilled(p0, p1, fg);
                 }
@@ -49,10 +75,6 @@ public static class Identicon
                 FillCell(4 - x); // 대칭
             }
         }
-
-        dl.Flags = oldFlags;
-
-        ImGui.Dummy(new(size, size)); // 커서 이동
     }
 
     public static uint Fnv1aHash(string input)

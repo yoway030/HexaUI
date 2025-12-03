@@ -12,7 +12,7 @@ using System.Text;
 public class DataTableWidget<TData> : BaseWidget
 {
     public DataTableWidget(DataTableRule<TData> rule, string widgetName)
-        : this(rule, $"{nameof(DataTableWidget<TData>)}", String.Empty)
+        : this(rule, widgetName, String.Empty)
     {
     }
 
@@ -31,8 +31,6 @@ public class DataTableWidget<TData> : BaseWidget
 
     private List<IndexedRow<TData>> _localStorage = new();
     private List<IndexedRow<TData>> _showStorage = null!;
-
-    private List<BaseWindow> _floatTooltip = null!;
 
     private ImGuiSelectionBasicStorage _selection = new();
     private FindTextWidget<IndexedRow<TData>> _findWidget;
@@ -56,11 +54,6 @@ public class DataTableWidget<TData> : BaseWidget
         if (UseHeader)
         {
             ImGui.Checkbox($"AutoScroll##{OwnerWindowName}", ref AutoScroll);
-
-            // Queue size
-            ImGuiHelper.SpacingSameLine();
-            ImGui.Text($"Queue:{DataQueue.Count}");
-            ImGuiHelper.HelpMarkerSameLine("추가 대기 중인 데이터 수");
 
             // Selection info
             ImGuiHelper.SpacingSameLine();
@@ -176,9 +169,7 @@ public class DataTableWidget<TData> : BaseWidget
                         {
                             string windowName = $"{WidgetName}:{indexedRow.Index}";
 
-                            _floatTooltip ??= new();
-
-                            if (_floatTooltip.Any(w => w.WindowName == windowName))
+                            if (ImVisualizer.Instance.FindSubWindow(windowName) != null)
                             {
                                 ImGui.SetWindowFocus(windowName);
                             }
@@ -189,7 +180,7 @@ public class DataTableWidget<TData> : BaseWidget
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
 
-                                _floatTooltip.Add(window);
+                                ImVisualizer.Instance.AddSubWindow(window);
                             }
 
                             ImGui.CloseCurrentPopup();
@@ -253,21 +244,6 @@ public class DataTableWidget<TData> : BaseWidget
             }
 
             ImGui.EndTable();
-        }
-
-        if (_floatTooltip != null)
-        {
-            foreach (var window in _floatTooltip.ToArray())
-            {
-                if (window.IsVisibleImObject == false)
-                {
-                    _floatTooltip.Remove(window);
-                }
-                else
-                {
-                    window.RenderImObject(utcNow, deltaSec);
-                }
-            }
         }
     }
 

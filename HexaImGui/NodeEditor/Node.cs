@@ -1,4 +1,4 @@
-﻿namespace ELImGui.NodeEditor;
+namespace ELImGui.NodeEditor;
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
@@ -13,6 +13,8 @@ public class Node
 
     private Dictionary<int, Pin> _pinsById = new();
     private Dictionary<string, Pin> _pinsByName = new();
+
+    private Dictionary<string, string> _infos = default!;
 
     public Node(int id, string name, int layer, NodeEditor editor, uint titleColor = Title_Color)
     {
@@ -36,7 +38,12 @@ public class Node
 
     public Pin? CreatePin(string name, PinKind kind, ImNodesPinShape shape = ImNodesPinShape.Circle)
     {
-        Pin pin = new(Editor.GetUniqueId(), name, this, shape, kind);
+        return CreatePin(name, String.Empty, kind, shape);
+    }
+
+    public Pin? CreatePin(string name, string displayInfo, PinKind kind, ImNodesPinShape shape = ImNodesPinShape.Circle)
+    {
+        Pin pin = new(Editor.GetUniqueId(), name, displayInfo, this, shape, kind);
         if (TryAddPin(pin) == false)
         {
             return null;
@@ -71,6 +78,41 @@ public class Node
         _pinsByName.Remove(pin.Name);
 
         pin.Destroy();
+    }
+
+    public void ClearPins()
+    {
+        foreach (var pin in _pinsById.Values.ToList())
+        {
+            RemovePin(pin);
+        }
+    }
+
+    public void UpsertInfo(string key, string value)
+    {
+        _infos ??= new Dictionary<string, string>();
+        _infos[key] = value;
+    }
+
+    public void RemoveInfo(string key)
+    {
+        _infos?.Remove(key);
+    }
+
+    public void ClearInfos()
+    {
+        _infos?.Clear();
+    }
+
+    public bool TryGetInfo(string key, [NotNullWhen(true)] out string? value)
+    {
+        if (_infos == null)
+        {
+            value = null;
+            return false;
+        }
+
+        return _infos.TryGetValue(key, out value);
     }
 
     public IEnumerable<Link> GetLinks(Node other)
@@ -109,6 +151,19 @@ public class Node
     {
         ImNodes.EndNode();
         ImNodes.PopColorStyle();
+    }
+
+    public virtual void RenderInfo()
+    {
+        if (_infos == null)
+        {
+            return;
+        }
+
+        foreach (var (key, value) in _infos)
+        {
+            ImGui.Text($"{key}:{value}");
+        }
     }
 
     public virtual void RenderPin()
@@ -160,15 +215,8 @@ public class Node
     {
         RenderHeader();
         RenderContent();
+        RenderInfo();
         RenderPin();
         RenderFooter();
-    }
-
-    public void Destroy()
-    {
-        foreach (var pin in _pinsById.Values.ToList())
-        {
-            RemovePin(pin);
-        }
     }
 }

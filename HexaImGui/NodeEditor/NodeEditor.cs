@@ -1,4 +1,4 @@
-﻿namespace ELImGui.NodeEditor;
+namespace ELImGui.NodeEditor;
 
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
@@ -7,24 +7,27 @@ using System.Numerics;
 
 public class NodeEditor
 {
+    public const float NodeWidth = 300f;
+    public const float NodeHeight = 100f;
+
+    public NodeEditor(bool showMinimap = true)
+    {
+        _editorContext = ImNodes.EditorContextCreate();
+        ShowMiniMap = showMinimap;
+    }
+
     private ImNodesEditorContextPtr _editorContext;
     private int _idOffset;
 
     private Dictionary<int, Node> _nodesById = new();
     private Dictionary<string, Node> _nodesByName = new();
-    private Dictionary<int, HashSet<Node>> _nodesByLayer { get; } = new();
-
-    public const float NodeWidth = 200f;
-    public const float NodeHeight = 80f;
-
-    public NodeEditor()
-    {
-        _editorContext = ImNodes.EditorContextCreate();
-    }
-
-    public List<Link> Links { get; } = new();
+    private Dictionary<int, HashSet<Node>> _nodesByLayer = new();
 
     public Vector2 AdjustCenter = new(NodeWidth, NodeHeight);
+
+    public bool ShowMiniMap { get; set; } = true;
+
+    public List<Link> Links { get; } = new();
 
     public int GetUniqueId()
     {
@@ -79,20 +82,14 @@ public class NodeEditor
 
     public bool TryRemoveNode(Node node)
     {
-        if (_nodesById.Remove(node.Id) == false)
+        if (_nodesById.Remove(node.Id) == false ||
+            _nodesByName.Remove(node.Name) == false ||
+            _nodesByLayer[node.Layer] == null)
         {
             return false;
         }
 
-        if (_nodesByName.Remove(node.Name) == false)
-        {
-            return false;
-        }
-
-        if (_nodesByLayer[node.Layer] == null)
-        {
-            return false;
-        }
+        node.ClearPins();
 
         return _nodesByLayer[node.Layer].Remove(node);
     }
@@ -113,6 +110,9 @@ public class NodeEditor
     public void AddLink(Link link)
     {
         Links.Add(link);
+
+        link.OutputPin.AddLink(link);
+        link.InputPin.AddLink(link);
     }
 
     public void RemoveLink(Link link)
@@ -132,6 +132,20 @@ public class NodeEditor
         }
 
         return null;
+    }
+
+    public IEnumerable<Link> FindLinks(Node from, Node to)
+    {
+        foreach (var link in Links)
+        {
+            if (link.OutputPin.Parent == from &&
+                link.InputPin.Parent == to)
+            {
+                yield return link;
+            }
+        }
+
+        yield break;
     }
 
     public void Update(DateTime utcNow, double deltaSec)
@@ -165,7 +179,11 @@ public class NodeEditor
             node.Render();
         }
 
-        ImNodes.MiniMap();
+        if (ShowMiniMap)
+        {
+            ImNodes.MiniMap();
+        }
+
         ImNodes.EndNodeEditor();
 
         RendLinkHover();
@@ -209,9 +227,10 @@ public class NodeEditor
                     link.Dots.Remove(dot);
                 }
 
+                float size = dot.DotRadius;
                 float positionRate = dot.Destination == PinKind.Input ? timeProgress : 1.0f - timeProgress;
                 var flowPos = CubicBezier(p0, p1, p2, p3, positionRate);
-                drawList.AddCircleFilled(flowPos, dot.DotRadius, dot.Color);
+                drawList.AddCircleFilled(flowPos, size, dot.Color);
             }
         }
     }
@@ -245,7 +264,7 @@ public class NodeEditor
     {
         foreach (var node in _nodesById.Values)
         {
-            node.Destroy();
+            node.ClearPins();
         }
 
         _nodesById.Clear();

@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using ELImGui.Utils;
 using Hexa.NET.ImGui;
@@ -100,6 +100,7 @@ public class JsonWidget : BaseWidget
             return;
         }
 
+        using var child = new ImGuiScopedId(WidgetName);
         DrawJsonTokenWithPath(ParsedJson, "$");
     }
 

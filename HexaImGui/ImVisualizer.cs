@@ -15,8 +15,6 @@ using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
 using NLog;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -27,9 +25,10 @@ public class ImVisualizer
 {
     private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-    public static ImVisualizer Instance { get; private set; } = default!;
+    public static ImVisualizer Instance => _instance;
+    protected static ImVisualizer _instance { get; set; } = default!;
 
-    [MemberNotNullWhen(true, nameof(Instance))]
+    [MemberNotNullWhen(true, nameof(_instance))]
     public static bool CreateInstance()
     {
         if (Instance != null)
@@ -37,15 +36,15 @@ public class ImVisualizer
             throw new InvalidOperationException("ImVisualizer instance already exists. Use DestroyInstance() before creating a new one.");
         }
 
-        Instance = new ImVisualizer();
+        _instance = new ImVisualizer();
         return true;
     }
 
     public static void DestroyInstance()
     {
-        if (Instance != null)
+        if (_instance != null)
         {
-            Instance = null!;
+            _instance = null!;
         }
     }
 
@@ -53,6 +52,7 @@ public class ImVisualizer
     private DateTime _checkPointTime = DateTime.UtcNow;
     private long _checkPointTick = Stopwatch.GetTimestamp();
     private long _lastTick = Stopwatch.GetTimestamp();
+    private long _loopCount = 0;
 
     private ImGuiContextPtr _guiContext;
     private ImPlotContextPtr _plotContext;
@@ -62,19 +62,19 @@ public class ImVisualizer
     private GLFWwindowPtr _window = null!;
     private GL _gl = null!;
 
-    public string LabelBackground = "VisualizerBackground";
-
     private HexaDemo _hexaImGuiDemo = new();
     private ImGuiDemo _imGuiDemo = new();
+    private bool _isShowImGuiCppDemo = false;
+    private bool _isShowImGuiCSharpDemo = false;
+    private bool _isShowHexaDemo = false;
 
+    // Actor들은 UI스레드에서 호출하는 함수와 외부 스레드에서 호출하는 함수를 혼용해서 쓰면 안됨.
     public readonly DictionaryActor<string /*windowName*/, IImWindow> UiWindows = new(useTask: false);
     public readonly ListActor<IImMenu> UiMenus = new(useTask: false);
     public readonly ListActor<ForegroundEffect> ForegroundEffects = new(useTask: false);
+    public readonly ListActor<BaseWindow> SubWindows = new();
 
     public bool IsWindowShouldClose = false;
-    public bool IsShowImGuiCppDemo = false;
-    public bool IsShowImGuiCSharpDemo = false;
-    public bool IsShowHexaDemo = false;
 
     public bool Initialize(string windowTitle)
     {
@@ -88,7 +88,7 @@ public class ImVisualizer
         GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
         GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
 
-        _window = GLFW.CreateWindow(1200, 900, windowTitle, null, null);
+        _window = GLFW.CreateWindow(1600, 1000, windowTitle, null, null);
         if (_window.IsNull)
         {
             Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to create GLFW window.");
@@ -152,6 +152,9 @@ public class ImVisualizer
         return true;
     }
 
+    public void SetWindowTitle(string title)
+    {
+
     public void InitializeMainWindows(IEnumerable<IImWindow> windows)
     {
         foreach (var window in windows)
@@ -168,86 +171,115 @@ public class ImVisualizer
         }
     }
 
-    public async Task<T?> GetWindow<T>(string windowName) where T : BaseWindow
+    public async Task<T?> GetWindowAsync<T>(string windowName) where T : BaseWindow
     {
         var window = await UiWindows.GetAsync(windowName);
         return window as T;
     }
 
+    public BaseWindow? FindSubWindow(string windowName)
+    {
+        return SubWindows.ItemsRef.Find(w => w.WindowName == windowName);
+    }
+
+    public T? GetSubWindow<T>(string windowName) where T : BaseWindow
+    {
+        return SubWindows.ItemsRef.Find(w => w.WindowName == windowName) as T;
+    }
+
+    public bool AddSubWindow(BaseWindow window)
+    {
+        if (FindSubWindow(window.WindowName) != null)
+        {
+            return false;
+        }
+
+        SubWindows.Add(window);
+        return true;
+    }
+
+    public bool AddOrUpdateSubWindow(BaseWindow window)
+    {
+        int foundIndex = SubWindows.ItemsRef.FindIndex(w => w.WindowName == window.WindowName);
+        if (foundIndex != -1)
+        {
+            SubWindows.ItemsRef[foundIndex] = window;
+            return true;
+        }
+
+        SubWindows.Add(window);
+        return true;
+    }
+
     public async ValueTask Loop()
     {
-        int loopCount = 0;
-
-        while (IsWindowShouldClose == false)
+        if (_loopCount % CheckPointRenewCount == 0)
         {
-            if (loopCount % CheckPointRenewCount == 0)
-            {
-                _checkPointTime = DateTime.UtcNow;
-                _checkPointTick = Stopwatch.GetTimestamp();
-            }
-
-            long currentTick = Stopwatch.GetTimestamp();
-            var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
-            double deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
-            _lastTick = currentTick;
-
-            // Poll for and process events
-            GLFW.PollEvents();
-            IsWindowShouldClose = GLFW.WindowShouldClose(_window) != 0;
-
-            if (GLFW.GetWindowAttrib(_window, GLFW.GLFW_ICONIFIED) != 0)
-            {
-                ImGuiImplGLFW.Sleep(10);
-                continue;
-            }
-
-            GLFW.MakeContextCurrent(_window);
-            _gl.ClearColor(1, 0.8f, 0.75f, 1);
-            _gl.Clear(GLClearBufferMask.ColorBufferBit);
-
-            ImGuiImplOpenGL3.NewFrame();
-            ImGuiImplGLFW.NewFrame();
-            ImGui.NewFrame();
-            ImGuizmo.BeginFrame();
-
-            await UiWindows.TryWork();
-            await UiMenus.TryWork();
-            await ForegroundEffects.TryWork();
-
-            RenderMainMenu(currentTime, deltaSec);
-
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
-            ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
-            ImGui.PopStyleColor(1);
-
-            RenderBackground();
-            RenderDemo();
-
-            // UI 윈도우처리
-            RenderWindows(currentTime, deltaSec);
-
-            RenderForegroundEffect(currentTime, deltaSec);
-
-            ImGui.Render();
-            ImGui.EndFrame();
-
-            GLFW.MakeContextCurrent(_window);
-            ImGuiImplOpenGL3.RenderDrawData(ImGui.GetDrawData());
-
-            if ((_io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
-            {
-                ImGui.UpdatePlatformWindows();
-                ImGui.RenderPlatformWindowsDefault();
-            }
-
-            GLFW.MakeContextCurrent(_window);
-
-            // Swap front and back buffers (double buffering)
-            GLFW.SwapBuffers(_window);
-
-            loopCount++;
-            Thread.Sleep(10);
+            _checkPointTime = DateTime.UtcNow;
+            _checkPointTick = Stopwatch.GetTimestamp();
         }
+
+        long currentTick = Stopwatch.GetTimestamp();
+        var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
+        double deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
+        _lastTick = currentTick;
+
+        await UiWindows.TryWork();
+        await UiMenus.TryWork();
+        await ForegroundEffects.TryWork();
+
+        // Poll for and process events
+        GLFW.PollEvents();
+        IsWindowShouldClose = GLFW.WindowShouldClose(_window) != 0;
+
+        if (GLFW.GetWindowAttrib(_window, GLFW.GLFW_ICONIFIED) != 0)
+        {
+            ImGuiImplGLFW.Sleep(10);
+            return;
+        }
+
+        GLFW.MakeContextCurrent(_window);
+        _gl.ClearColor(1, 0.8f, 0.75f, 1);
+        _gl.Clear(GLClearBufferMask.ColorBufferBit);
+
+        ImGuiImplOpenGL3.NewFrame();
+        ImGuiImplGLFW.NewFrame();
+        ImGui.NewFrame();
+        ImGuizmo.BeginFrame();
+
+        RenderMainMenu(currentTime, deltaSec);
+
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
+        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
+        ImGui.PopStyleColor(1);
+
+        RenderBackground();
+        RenderDemo();
+
+        // UI 윈도우처리
+        RenderWindows(currentTime, deltaSec);
+
+        RenderForegroundEffect(currentTime, deltaSec);
+
+        ImGui.Render();
+        ImGui.EndFrame();
+
+        GLFW.MakeContextCurrent(_window);
+        ImGuiImplOpenGL3.RenderDrawData(ImGui.GetDrawData());
+
+        if ((_io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+        {
+            ImGui.UpdatePlatformWindows();
+            ImGui.RenderPlatformWindowsDefault();
+        }
+
+        GLFW.MakeContextCurrent(_window);
+
+        // Swap front and back buffers (double buffering)
+        GLFW.SwapBuffers(_window);
+
+        _loopCount++;
+        Thread.Sleep(10);
     }
 
     public void Cleanup()
@@ -272,23 +304,21 @@ public class ImVisualizer
         // Clean up and terminate GLFW
         GLFW.DestroyWindow(_window);
         GLFW.Terminate();
-
-        ForegroundEffects.DisposeAsync().AsTask().Wait();
     }
 
     private void RenderDemo()
     {
-        if (IsShowImGuiCSharpDemo == true)
+        if (_isShowImGuiCSharpDemo == true)
         {
             _imGuiDemo.Draw();
         }
 
-        if (IsShowImGuiCppDemo == true)
+        if (_isShowImGuiCppDemo == true)
         {
             ImGui.ShowDemoWindow();
         }
 
-        if (IsShowHexaDemo == true)
+        if (_isShowHexaDemo == true)
         {
             _hexaImGuiDemo.Draw();
         }
@@ -307,6 +337,13 @@ public class ImVisualizer
             uiWindow.UpdateImObject(utcNow, deltaSec);
         }
 
+        var subWindows = SubWindows.ItemsRef;
+
+        foreach (var window in subWindows)
+        {
+            window.UpdateImObject(utcNow, deltaSec);
+        }
+
         foreach (var uiWindow in uiWindows.Select(w => w as IImRenderable))
         {
             if (uiWindow is null)
@@ -315,6 +352,16 @@ public class ImVisualizer
             }
 
             uiWindow.RenderImObject(utcNow, deltaSec);
+        }
+
+        foreach (var window in subWindows)
+        {
+            window.RenderImObject(utcNow, deltaSec);
+
+            if (window.IsVisibleImObject == false)
+            {
+                SubWindows.Remove(window);
+            }
         }
     }
 
@@ -381,11 +428,11 @@ public class ImVisualizer
             if (ImGui.BeginMenu("Help"))
             {
                 ImGui.Spacing();
-                ImGui.Checkbox("Show HexaDemo", ref IsShowHexaDemo);
+                ImGui.Checkbox("Show HexaDemo", ref _isShowHexaDemo);
                 ImGui.Spacing();
-                ImGui.Checkbox("Show ImGuiDemo CSharp", ref IsShowImGuiCSharpDemo);
+                ImGui.Checkbox("Show ImGuiDemo CSharp", ref _isShowImGuiCSharpDemo);
                 ImGui.Spacing();
-                ImGui.Checkbox("Show ImGuiDemo Cpp", ref IsShowImGuiCppDemo);
+                ImGui.Checkbox("Show ImGuiDemo Cpp", ref _isShowImGuiCppDemo);
                 ImGui.Spacing();
                 ImGui.EndMenu();
             }
@@ -413,6 +460,8 @@ public class ImVisualizer
 
     private void RenderBackground()
     {
+        const string labelBackground = "VisualizerBackground";
+
         // 전체 화면 덮기
         var viewport = ImGui.GetMainViewport();
         ImGui.SetNextWindowPos(viewport.Pos);
@@ -424,7 +473,7 @@ public class ImVisualizer
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.25f, 0.25f, 0.25f, 1.0f)); // 짙은 회색 배경
 
-        using var background = new ImGuiScopedWindow(LabelBackground,
+        using var background = new ImGuiScopedWindow(labelBackground,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoBringToFrontOnFocus |
