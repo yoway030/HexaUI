@@ -19,7 +19,7 @@ public class SampleWindow : IImWindow, IImRenderable
 
     private int _butonClick = 0;
 
-    public void RenderImObject(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         using var imObject = new ImGuiScopedWindow(WindowId);
         if (imObject.BeginSuccess)

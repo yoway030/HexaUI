@@ -62,7 +62,7 @@ public class ProcessMonitor : BaseWindow
         windowStyle.WindowPadding = _oldWindowPadding;
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         var windowSize = ImGui.GetContentRegionAvail();
 

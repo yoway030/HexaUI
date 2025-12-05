@@ -1,13 +1,15 @@
 ﻿namespace ELImGui.Core;
 
+using Hexa.NET.ImPlot;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 public class DictionaryActor<TKey, TValue>
-    : CollectionActorBase<Dictionary<TKey, TValue>, DictionaryActor<TKey, TValue>.Command>
+    : CollectionActorBase<Dictionary<TKey, TValue>, KeyValuePair<TKey, TValue>, DictionaryActor<TKey, TValue>.Command>
     where TKey : notnull
 {
     public enum CommandType
@@ -83,22 +85,26 @@ public class DictionaryActor<TKey, TValue>
     private bool AddInternal(TKey key, TValue value)
     {
         _items.Add(key, value);
+        Interlocked.Increment(ref _modifyCount);
         return true;
     }
 
     private void UpdateInternal(TKey key, TValue value)
     {
         _items[key] = value;
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void RemoveInternal(TKey key)
     {
         _items.Remove(key);
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void ClearInternal()
     {
         _items.Clear();
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private TValue GetInternal(TKey key)
@@ -142,6 +148,6 @@ public class DictionaryActor<TKey, TValue>
     public Task<TValue> GetAsync(TKey key, CancellationToken ct = default)
         => AskCommand(_ => ValueTask.FromResult(GetInternal(key)), key, ct);
 
-    public Task<Dictionary<TKey, TValue>> SnapshotAsync(CancellationToken ct = default)
-        => AskCommand(_ => ValueTask.FromResult(SnapshotInternal()), default, ct);
+    public override Task<ImmutableArray<KeyValuePair<TKey, TValue>>> SnapshotAsync(CancellationToken ct = default)
+        => AskCommand(dict => ValueTask.FromResult(dict.ToImmutableArray()), default, ct);
 }

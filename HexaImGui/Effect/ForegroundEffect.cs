@@ -25,9 +25,9 @@ public abstract class ForegroundEffect : IImRenderable, IImUpdatable
     public bool IsStart { get; private set; } = false;
     public bool IsEnd { get; private set; } = false;
 
-    public void RenderImObject(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        OnRender(utcNow, deltaSec);
+        OnRender(utcNow, deltaSec, imInternalContext);
     }
 
     public void UpdateImObject(DateTime utcNow, double deltaSec)
@@ -45,7 +45,7 @@ public abstract class ForegroundEffect : IImRenderable, IImUpdatable
         OnUpdate(utcNow, deltaSec);
     }
 
-    public abstract void OnRender(DateTime utcNow, double deltaSec);
+    public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);
 }

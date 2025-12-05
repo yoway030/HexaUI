@@ -108,7 +108,7 @@ public unsafe class Space3dWidget : BaseWidget
         }
     }
 
-    public override unsafe void OnRender(DateTime utcNow, double deltaSec)
+    public override unsafe void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         _onRender3dWidget?.Invoke();
 

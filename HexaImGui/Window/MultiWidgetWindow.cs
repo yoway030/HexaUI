@@ -34,7 +34,7 @@ public class MultiWidgetWindow : BaseWindow
         }
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         throw new NotImplementedException();
     }

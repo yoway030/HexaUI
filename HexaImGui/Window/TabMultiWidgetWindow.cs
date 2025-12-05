@@ -14,7 +14,7 @@ public class TabMultiWidgetWindow : MultiWidgetWindow
 
     public ImGuiTabBarFlags TabFlags = ImGuiTabBarFlags.None;
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         if (ImGui.BeginTabBar(WindowName, TabFlags))
         {
@@ -22,7 +22,7 @@ public class TabMultiWidgetWindow : MultiWidgetWindow
             {
                 if (ImGui.BeginTabItem(widget.WidgetName) == true)
                 {
-                    widget.OnRender(utcNow, deltaSec);
+                    widget.OnRender(utcNow, deltaSec, imInternalContext);
                     ImGui.EndTabItem();
                 }
             }

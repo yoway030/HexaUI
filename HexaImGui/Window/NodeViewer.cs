@@ -16,10 +16,10 @@ public class NodeViewer : BaseWindow
 
     public readonly List<BaseWindow> ChildWindows = new();
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         Editor.Render(utcNow, deltaSec);
-        ChildWindows.ForEach(w => w.RenderImObject(utcNow, deltaSec));
+        ChildWindows.ForEach(w => w.RenderImObject(utcNow, deltaSec, imInternalContext));
     }
 
     public override void OnUpdate(DateTime utcNow, double deltaSec)

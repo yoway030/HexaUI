@@ -1,6 +1,8 @@
 ﻿namespace ELImGui.Core;
 
+using NLog.Targets;
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -11,11 +13,15 @@ using System.Threading.Tasks;
 /// - CancellationTokenSource
 /// - InitAsyncTask / DisposeAsync / TryWork
 /// </summary>
-public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposable
+public abstract class CollectionActorBase<TCollection, TData, TCommand> : IAsyncDisposable
+    where TCollection : IEnumerable<TData>
+    where TCommand : struct
 {
     private readonly Channel<TCommand> _channel;
     private readonly CancellationTokenSource _loopCts = new();
     private Task _loopTask = Task.CompletedTask;
+
+    protected int _modifyCount = 0;
 
     protected CollectionActorBase(bool useTask = true)
     {
@@ -34,13 +40,16 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
 
     // 파생 클래스에서 컬렉션 자체를 가지고 있도록 강제
     protected abstract TCollection Items { get; }
-
     protected ChannelWriter<TCommand> Writer => _channel.Writer;
     protected ChannelReader<TCommand> Reader => _channel.Reader;
     protected CancellationToken CancellationToken => _loopCts.Token;
 
-    // read thread나 task에서만 접근할 때 사용하는 복사본
-    public TCollection ItemsRef => Items;
+    public bool IsModified(int modifyCount, out int outValue)
+    {
+        int original = Interlocked.CompareExchange(ref _modifyCount, _modifyCount, modifyCount);
+        outValue = _modifyCount;
+        return original != modifyCount;
+    }
 
     /// <summary>
     /// 채널 루프를 Task로 실행
@@ -75,7 +84,7 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
     /// <summary>
     /// 외부에서 수동으로 한 번씩 폴링할 때 사용.
     /// </summary>
-    public async ValueTask<int> TryWork()
+    private async ValueTask<int> TryWork()
     {
         int readCount = 0;
 
@@ -103,6 +112,8 @@ public abstract class CollectionActorBase<TCollection, TCommand> : IAsyncDisposa
 
     protected void SendCommand(in TCommand cmd)
         => _ = Writer.WriteAsync(cmd);
+
+    public abstract Task<ImmutableArray<TData>> SnapshotAsync(CancellationToken ct = default);
 
     public async ValueTask DisposeAsync()
     {

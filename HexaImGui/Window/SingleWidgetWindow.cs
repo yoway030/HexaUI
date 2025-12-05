@@ -26,9 +26,9 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
         Widget.OnPrevRender(utcNow, deltaSec);
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        Widget.OnRender(utcNow, deltaSec);
+        Widget.OnRender(utcNow, deltaSec, imInternalContext);
     }
 
     public override void OnAfterRender(DateTime utcNow, double deltaSec)

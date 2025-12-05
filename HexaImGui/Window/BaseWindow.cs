@@ -45,7 +45,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
 
     public ImGuiWindowFlags WindowFlags { get; set; } = ImGuiWindowFlags.None;
 
-    public void RenderImObject(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         OnPrevRender(utcNow, deltaSec);
 
@@ -76,7 +76,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
                     OnWindowFocused();
                 }
 
-                OnRender(utcNow, deltaSec);
+                OnRender(utcNow, deltaSec, imInternalContext);
             }
 
             IsVisibleImObject = imObject.IsVisible;
@@ -85,7 +85,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
         OnAfterRender(utcNow, deltaSec);
     }
 
-    public abstract void OnRender(DateTime utcNow, double deltaSec);
+    public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
 

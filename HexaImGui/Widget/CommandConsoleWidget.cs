@@ -69,7 +69,7 @@ public class CommandConsoleWidget : BaseWidget
     {
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         // 로그 영역
         string childId = $"{WidgetName}";

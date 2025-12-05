@@ -27,7 +27,7 @@ public class VerticalMultiWidgetWindow : MultiWidgetWindow
         _heightRatios.Remove(widget);
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         ImGui.Separator();
 
@@ -39,7 +39,7 @@ public class VerticalMultiWidgetWindow : MultiWidgetWindow
 
             if (ImGui.BeginChild(widget.WidgetName + "Region", new Vector2(0.0f, childHeight)) == true)
             {
-                widget.OnRender(utcNow, deltaSec);
+                widget.OnRender(utcNow, deltaSec, imInternalContext);
                 ImGui.EndChild();
             }
 

@@ -2,7 +2,7 @@
 
 public interface IImRenderable
 {
-    void RenderImObject(DateTime utcNow, double deltaSec);
+    void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 }
 
 public interface IImUpdatable

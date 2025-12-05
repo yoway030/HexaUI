@@ -23,7 +23,7 @@ class FindTextWidget<TData> : BaseWidget
     public int FoundedFocusIndex = 0;   // 0은 포커스 없음. 1부터 FoundedList.Count까지
     public Action? FoundedFocusMovedFunc = null;
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         string prevTarget = _target;
 

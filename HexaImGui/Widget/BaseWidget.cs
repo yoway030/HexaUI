@@ -18,7 +18,7 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
     public string OwnerWindowName { get; set; }
     public bool IsVisibleImObject { get; set; } = true;
 
-    public void RenderImObject(DateTime utcNow, double deltaSec)
+    public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         if (IsVisibleImObject == false)
         {
@@ -26,7 +26,7 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
         }
 
         OnPrevRender(utcNow, deltaSec);
-        OnRender(utcNow, deltaSec);
+        OnRender(utcNow, deltaSec, imInternalContext);
         OnAfterRender(utcNow, deltaSec);
     }
 
@@ -35,7 +35,7 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
         OnUpdate(utcNow, deltaSec);
     }
 
-    public abstract void OnRender(DateTime utcNow, double deltaSec);
+    public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
     public abstract void OnUpdate(DateTime utcNow, double deltaSec);

@@ -18,7 +18,7 @@ public class SimpleTableWidget : BaseWidget
     public string[] Headers = Array.Empty<string>();
     public List<string[]> Rows = new();
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         if (Headers.Length <= 0)
         {

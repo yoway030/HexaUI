@@ -40,7 +40,7 @@ public class HexagonOverlayEffect : ForegroundEffect
     public uint InnerColor { get; init; }
     public uint BoarderColor { get; init; }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         long epochTick = utcNow.Ticks - StartDateTime.Ticks;
         long progressTick = Math.Clamp(epochTick, 0, _durationTicks);

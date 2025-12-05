@@ -13,7 +13,7 @@ public class RenderActionWidget<T> : BaseWidget
         _renderAction = renderAction;
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         _renderAction.Invoke(_model);
     }

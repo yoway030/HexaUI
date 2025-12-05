@@ -75,7 +75,7 @@ public class JsonWidget : BaseWidget
         }
     }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         RenderImpl();
     }

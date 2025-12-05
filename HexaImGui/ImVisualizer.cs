@@ -68,11 +68,8 @@ public class ImVisualizer
     private bool _isShowImGuiCSharpDemo = false;
     private bool _isShowHexaDemo = false;
 
-    // Actor들은 UI스레드에서 호출하는 함수와 외부 스레드에서 호출하는 함수를 혼용해서 쓰면 안됨.
-    public readonly DictionaryActor<string /*windowName*/, IImWindow> UiWindows = new(useTask: false);
-    public readonly ListActor<IImMenu> UiMenus = new(useTask: false);
-    public readonly ListActor<ForegroundEffect> ForegroundEffects = new(useTask: false);
-    public readonly ListActor<BaseWindow> SubWindows = new();
+    private ImInternalContext _internalContext = new();
+    private bool _isInitInternalContext = false;
 
     public bool IsWindowShouldClose = false;
 
@@ -157,11 +154,11 @@ public class ImVisualizer
         GLFW.SetWindowTitle(_window, title);
     }
 
-    public void InitializeMainWindows(IEnumerable<IImWindow> windows)
+    public void InitializeMainWindows(IEnumerable<BaseWindow> windows)
     {
         foreach (var window in windows)
         {
-            UiWindows.Add(window.WindowName, window);
+            _internalContext.MainWindows.Add(window.WindowName, window);
         }
     }
 
@@ -169,51 +166,39 @@ public class ImVisualizer
     {
         foreach (var menu in menus)
         {
-            UiMenus.Add(menu);
+            _internalContext.MainMenus.Add(menu);
         }
     }
 
-    public async Task<T?> GetWindowAsync<T>(string windowName) where T : BaseWindow
+    public void InitializeInternalContext(
+        IEnumerable<BaseWindow> windows,
+        IEnumerable<IImMenu> menus,
+        IEnumerable<ForegroundEffect> foregroundEffects)
     {
-        var window = await UiWindows.GetAsync(windowName);
-        return window as T;
-    }
-
-    public BaseWindow? FindSubWindow(string windowName)
-    {
-        return SubWindows.ItemsRef.Find(w => w.WindowName == windowName);
-    }
-
-    public T? GetSubWindow<T>(string windowName) where T : BaseWindow
-    {
-        return SubWindows.ItemsRef.Find(w => w.WindowName == windowName) as T;
-    }
-
-    public bool AddSubWindow(BaseWindow window)
-    {
-        if (FindSubWindow(window.WindowName) != null)
+        if (_isInitInternalContext == true)
         {
-            return false;
+            throw new InvalidOperationException("ImVisualizer InternalContext is already initialized.");
         }
 
-        SubWindows.Add(window);
-        return true;
-    }
+        _isInitInternalContext = true;
 
-    public bool AddOrUpdateSubWindow(BaseWindow window)
-    {
-        int foundIndex = SubWindows.ItemsRef.FindIndex(w => w.WindowName == window.WindowName);
-        if (foundIndex != -1)
+        foreach (var window in windows)
         {
-            SubWindows.ItemsRef[foundIndex] = window;
-            return true;
+            _internalContext.MainWindows.Add(window.WindowName, window);
         }
 
-        SubWindows.Add(window);
-        return true;
+        foreach (var menu in menus)
+        {
+            _internalContext.MainMenus.Add(menu);
+        }
+
+        foreach (var effect in foregroundEffects)
+        {
+            _internalContext.ForegroundEffects.Add(effect);
+        }
     }
 
-    public async ValueTask Loop()
+    public void Loop()
     {
         if (_loopCount % CheckPointRenewCount == 0)
         {
@@ -225,10 +210,6 @@ public class ImVisualizer
         var currentTime = _checkPointTime.AddMilliseconds((currentTick - _checkPointTick) * 1000.0 / Stopwatch.Frequency);
         double deltaSec = (double)(currentTick - _lastTick) / Stopwatch.Frequency;
         _lastTick = currentTick;
-
-        await UiWindows.TryWork();
-        await UiMenus.TryWork();
-        await ForegroundEffects.TryWork();
 
         // Poll for and process events
         GLFW.PollEvents();
@@ -328,41 +309,31 @@ public class ImVisualizer
 
     private void RenderWindows(DateTime utcNow, double deltaSec)
     {
-        var uiWindows = UiWindows.ItemsRef.Values;
-        foreach (var uiWindow in uiWindows.Select(w => w as IImUpdatable))
-        {
-            if (uiWindow is null)
-            {
-                continue;
-            }
+        var mainWindows = _internalContext.MainWindows.Values;
+        var subWindows = _internalContext.SubWindows.Values;
 
-            uiWindow.UpdateImObject(utcNow, deltaSec);
+        foreach (var window in mainWindows)
+        { 
+            window.UpdateImObject(utcNow, deltaSec);
         }
-
-        var subWindows = SubWindows.ItemsRef;
 
         foreach (var window in subWindows)
         {
             window.UpdateImObject(utcNow, deltaSec);
         }
 
-        foreach (var uiWindow in uiWindows.Select(w => w as IImRenderable))
+        foreach (var window in mainWindows)
         {
-            if (uiWindow is null)
-            {
-                continue;
-            }
-
-            uiWindow.RenderImObject(utcNow, deltaSec);
+            window.RenderImObject(utcNow, deltaSec, _internalContext);
         }
 
         foreach (var window in subWindows)
         {
-            window.RenderImObject(utcNow, deltaSec);
+            window.RenderImObject(utcNow, deltaSec, _internalContext);
 
             if (window.IsVisibleImObject == false)
             {
-                SubWindows.Remove(window);
+                _internalContext.SubWindows.Remove(window.WindowName);
             }
         }
     }
@@ -385,7 +356,9 @@ public class ImVisualizer
 
             if (ImGui.BeginMenu("Windows"))
             {
-                foreach (var uiWindow in UiWindows.ItemsRef.Values)
+                var mainWindows = _internalContext.MainWindows.Values;
+
+                foreach (var uiWindow in mainWindows)
                 {
                     ImGui.Spacing();
 
@@ -406,7 +379,7 @@ public class ImVisualizer
                 ImGui.EndMenu();
             }
 
-            var uiMenus = UiMenus.ItemsRef;
+            var uiMenus = _internalContext.MainMenus;
             foreach (var UiMenu in uiMenus.Select(w => w as IImUpdatable))
             {
                 if (UiMenu is null)
@@ -424,7 +397,7 @@ public class ImVisualizer
                     continue;
                 }
 
-                UiMenu.RenderImObject(utcNow, deltaSec);
+                UiMenu.RenderImObject(utcNow, deltaSec, _internalContext);
             }
 
             if (ImGui.BeginMenu("Help"))
@@ -445,17 +418,18 @@ public class ImVisualizer
 
     private void RenderForegroundEffect(DateTime utcNow, double deltaSec)
     {
-        foreach (var effect in ForegroundEffects.ItemsRef)
+        var foregroundEffects = _internalContext.ForegroundEffects.ToArray();
+        foreach (var effect in foregroundEffects)
         {
             effect.UpdateImObject(utcNow, deltaSec);
 
             if (effect.IsEnd == true)
             {
-                ForegroundEffects.Remove(effect);
+                _internalContext.ForegroundEffects.Remove(effect);
             }
             else if (effect.IsStart == true)
             {
-                effect.RenderImObject(utcNow, deltaSec);
+                effect.RenderImObject(utcNow, deltaSec, _internalContext);
             }
         }
     }

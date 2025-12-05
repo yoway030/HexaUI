@@ -1,13 +1,15 @@
 ﻿namespace ELImGui.Core;
 
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 public class ListActor<TData>
-    : CollectionActorBase<List<TData>, ListActor<TData>.Command>
+    : CollectionActorBase<List<TData>, TData, ListActor<TData>.Command>
 {
     public enum CommandType
     {
@@ -92,42 +94,43 @@ public class ListActor<TData>
     private int AddInternal(TData data)
     {
         _items.Add(data);
+        Interlocked.Increment(ref _modifyCount);
         return _items.Count - 1;
     }
 
     private void InsertInternal(int index, TData data)
     {
         _items.Insert(index, data);
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void RemoveInternal(TData data)
     {
         _items.Remove(data);
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void RemoveAtInternal(int index)
     {
         _items.RemoveAt(index);
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void UpdateInternal(int index, TData data)
     {
         _items[index] = data;
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private void ClearInternal()
     {
         _items.Clear();
+        Interlocked.Increment(ref _modifyCount);
     }
 
     private TData GetInternal(int index)
     {
         return _items[index];
-    }
-
-    private List<TData> SnapshotInternal()
-    {
-        return new(_items);
     }
 
     public void Add(TData data)
@@ -167,6 +170,6 @@ public class ListActor<TData>
     public Task<TData> GetAsync(int index, CancellationToken ct = default)
         => AskCommand(list => ValueTask.FromResult(GetInternal(index)), default, ct);
 
-    public Task<List<TData>> SnapshotAsync(CancellationToken ct = default)
-        => AskCommand(list => ValueTask.FromResult(SnapshotInternal()), default, ct);
+    public override Task<ImmutableArray<TData>> SnapshotAsync(CancellationToken ct = default)
+        => AskCommand(list => ValueTask.FromResult(list.ToImmutableArray()), default, ct);
 }

@@ -15,20 +15,10 @@ internal class Program
         ImVisualizer.CreateInstance();
         ImVisualizer visualizer = ImVisualizer.Instance;
 
-        // 스레드 생성 및 시작
-        Thread thread = new Thread(async () =>
-        {
-            visualizer.Initialize("Sample");
 
-            while (visualizer.IsWindowShouldClose == false)
-            {
-                await visualizer.Loop();
-            }
 
-            visualizer.Cleanup();
-        });
-        thread.Start();
-
+        ////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////
         ProcessMonitor processMonitor = new("ProcessMonitor");
 
         string jsonString =
@@ -71,7 +61,7 @@ internal class Program
             .AddColumn("DPS", 80, getter: (in PlayerRow p) => p.DPS.ToString())
             .AddColumn("Class", 100, getter: (in PlayerRow p) => p.Class)
             .Build(
-                tooltipRender : (in PlayerRow row) =>
+                tooltipRender: (in PlayerRow row) =>
                 {
                     ImGui.TextUnformatted($"Name: {row.Name}");
                     ImGui.TextUnformatted($"Level: {row.Level}");
@@ -113,40 +103,61 @@ internal class Program
         mmtext.Initialize(jsonString, false);
         multiWidgetWindow.AddWidget(mmtext, 0.5f);
 
-
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
-        visualizer.UiWindows.AddAsync(dataTable.WindowName, dataTable);
-        visualizer.UiWindows.AddAsync(processMonitor.WindowName, processMonitor);
-        visualizer.UiWindows.AddAsync(console.WindowName, console);
-        visualizer.UiWindows.AddAsync(nodeView.WindowName, nodeView);
-        visualizer.UiWindows.AddAsync(jsonWidgetWindow.WindowName, jsonWidgetWindow);
-        visualizer.UiWindows.AddAsync(textViewerWindow.WindowName, textViewerWindow);
-        visualizer.UiWindows.AddAsync(simpleTableWindow.WindowName, simpleTableWindow);
-        visualizer.UiWindows.AddAsync(ConsoleWindow.WindowName, ConsoleWindow);
-        visualizer.UiWindows.AddAsync(multiWidgetWindow.WindowName, multiWidgetWindow);
+        visualizer.InitializeInternalContext(
+            new BaseWindow[]
+            {
+                dataTable,
+                processMonitor,
+                console,
+                nodeView,
+                jsonWidgetWindow,
+                textViewerWindow,
+                simpleTableWindow,
+                ConsoleWindow,
+                multiWidgetWindow,
+            },
+            new IImMenu[] { },
+            new ForegroundEffect[]
+            {
+                new HexagonOverlayEffect(
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddSeconds(1.5),
+                    new TimeSpan(0, 0, 0),
+                    new TimeSpan(5500000),
+                    new string[] { "EL", "Server", "On", "Your", "Mark" },
+                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)),
+                new HexagonOverlayEffect(
+                    DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
+                    new TimeSpan(3000000),
+                    new TimeSpan(2000000),
+                    new string[] { "Error", "Err" },
+                    new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1))
+            });
 
 
-        visualizer.ForegroundEffects.AddAsync(new HexagonOverlayEffect(
-            DateTime.UtcNow, 
-            DateTime.UtcNow.AddSeconds(1.5),
-            new TimeSpan(0,0,0),
-            new TimeSpan(5500000),
-            new string[] { "EL", "Server", "On", "Your", "Mark" },
-            new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)));
+        ////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////
 
-        visualizer.ForegroundEffects.AddAsync(new HexagonOverlayEffect(
-            DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
-            new TimeSpan(3000000),
-            new TimeSpan(2000000),
-            new string[] { "Error", "Err" },
-            new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
+        // 스레드 생성 및 시작
+        Thread thread = new Thread(() =>
+        {
+            visualizer.Initialize("Sample");
+
+            while (visualizer.IsWindowShouldClose == false)
+            {
+                visualizer.Loop();
+            }
+
+            visualizer.Cleanup();
+        });
+        thread.Start();
 
         ////////////////////////////
         ///Log
 
-        SampleWindow sample = new();
-        visualizer.UiWindows.AddAsync(sample.WindowName, sample);
+        
         Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
@@ -155,13 +166,6 @@ internal class Program
 
             Thread.Sleep(100);
             logIndex++;
-
-            //{
-            //    int rnd = random.Next();
-            //    string key = $"SampleKey{rnd % 100}";
-            //    string value = $"SampleValue{rnd % 100}";
-            //    recentDataViewer.PushData(key, new DataSample { Column1 = key, Column2 = value });
-            //}
         }
 
 

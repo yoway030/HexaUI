@@ -48,7 +48,7 @@ public class DataTableWidget<TData> : BaseWidget
     public uint DataIdx { get; private set; }
     public float RowHeightWithSpacing { get; private set; }
 
-    public override void OnRender(DateTime utcNow, double deltaSec)
+    public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         // header
         if (UseHeader)
@@ -62,7 +62,7 @@ public class DataTableWidget<TData> : BaseWidget
 
             // Filter
             ImGuiHelper.SpacingSameLine();
-            _findWidget.RenderImObject(utcNow, deltaSec);
+            _findWidget.RenderImObject(utcNow, deltaSec, imInternalContext);
         }
 
         // body data
@@ -169,7 +169,9 @@ public class DataTableWidget<TData> : BaseWidget
                         {
                             string windowName = $"{WidgetName}:{indexedRow.Index}";
 
-                            if (ImVisualizer.Instance.FindSubWindow(windowName) != null)
+                            imInternalContext.SubWindows.TryGetValue(windowName, out var subWindow);
+
+                            if (subWindow != null)
                             {
                                 ImGui.SetWindowFocus(windowName);
                             }
@@ -180,7 +182,7 @@ public class DataTableWidget<TData> : BaseWidget
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
 
-                                ImVisualizer.Instance.AddSubWindow(window);
+                                imInternalContext.SubWindows.Add(window.WindowName, window);
                             }
 
                             ImGui.CloseCurrentPopup();
