@@ -5,12 +5,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-public abstract class ImRenderQueue<T>
+public class ImRenderActionQueue
 {
     protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    protected readonly ConcurrentQueue<T> _queue = new();
-    protected readonly ConcurrentQueue<T> _nextFrameQueue = new();
+    protected readonly ConcurrentQueue<Action> _queue = new();
+    protected readonly ConcurrentQueue<Action> _nextFrameQueue = new();
     protected int _renderThreadId = -1;
 
     public void Initialize(int renderThreadId)
@@ -23,53 +23,14 @@ public abstract class ImRenderQueue<T>
     /// <summary>
     /// Fire-and-forget
     /// </summary>
-    public void Post(T item)
+    public void Post(Action item)
     {
         _queue.Enqueue(item);
     }
 
-    public void NextFramePost(T item)
+    public void NextFramePost(Action item)
     {
         _nextFrameQueue.Enqueue(item);
-    }
-
-    protected abstract void Work(T item);
-
-    /// <summary>
-    /// ImGui 렌더 스레드에서 호출되어야 함
-    /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
-    public void Flush()
-    {
-        if (!IsRenderThread)
-        {
-            throw new InvalidOperationException($"{nameof(ImRenderQueue<T>)}.{nameof(Flush)} must be called from the ImGui render thread.");
-        }
-
-        while (_queue.TryDequeue(out var item))
-        {
-            try 
-            {
-                Work(item);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, $"{nameof(ImRenderQueue<T>)}.{nameof(Flush)} item: {item}, exception : {ex}");
-            }
-        }
-
-        while (_nextFrameQueue.TryDequeue(out var work))
-        {
-            _queue.Enqueue(work);
-        }
-    }
-}
-
-public class ImRenderActionQueue : ImRenderQueue<Action>
-{
-    protected override void Work(Action item)
-    {
-        item();
     }
 
     public Task<TResult> Ask<TResult>(Func<TResult> func, CancellationToken cancellationToken = default)
@@ -113,5 +74,39 @@ public class ImRenderActionQueue : ImRenderQueue<Action>
         });
 
         return tcs.Task;
+    }
+
+    protected void Work(Action item)
+    {
+        item();
+    }
+
+    /// <summary>
+    /// ImGui 렌더 스레드에서 호출되어야 함
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public void Flush()
+    {
+        if (!IsRenderThread)
+        {
+            throw new InvalidOperationException($"{nameof(Flush)} must be called from the ImGui render thread.");
+        }
+
+        while (_queue.TryDequeue(out var item))
+        {
+            try 
+            {
+                Work(item);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"{nameof(Flush)} item: {item}, exception : {ex}");
+            }
+        }
+
+        while (_nextFrameQueue.TryDequeue(out var work))
+        {
+            _queue.Enqueue(work);
+        }
     }
 }

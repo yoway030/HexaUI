@@ -4,7 +4,6 @@ using ELImGui.demo;
 using ELImGui.Effect;
 using ELImGui.Utils;
 using ELImGui.Window;
-using ELImGui.Core;
 using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
@@ -72,6 +71,7 @@ public class ImVisualizer
     private bool _isInitInternalContext = false;
 
     public bool IsWindowShouldClose = false;
+    public ImRenderActionQueue RenderActionQueue { get; } = new ();
 
     public bool Initialize(string windowTitle)
     {
@@ -146,6 +146,9 @@ public class ImVisualizer
         }
 
         _gl = new(new BindingsContext(_window));
+
+        RenderActionQueue.Initialize(Environment.CurrentManagedThreadId);
+
         return true;
     }
 
@@ -220,6 +223,8 @@ public class ImVisualizer
             ImGuiImplGLFW.Sleep(10);
             return;
         }
+
+        RenderActionQueue.Flush();
 
         GLFW.MakeContextCurrent(_window);
         _gl.ClearColor(1, 0.8f, 0.75f, 1);
