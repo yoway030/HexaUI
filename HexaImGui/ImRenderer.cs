@@ -20,12 +20,12 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
-public class ImVisualizer
+public class ImRenderer
 {
     private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-    public static ImVisualizer Instance => _instance;
-    protected static ImVisualizer _instance { get; set; } = default!;
+    public static ImRenderer Instance => _instance;
+    protected static ImRenderer _instance { get; set; } = default!;
 
     [MemberNotNullWhen(true, nameof(_instance))]
     public static bool CreateInstance()
@@ -35,7 +35,7 @@ public class ImVisualizer
             throw new InvalidOperationException("ImVisualizer instance already exists. Use DestroyInstance() before creating a new one.");
         }
 
-        _instance = new ImVisualizer();
+        _instance = new ImRenderer();
         return true;
     }
 
@@ -71,7 +71,7 @@ public class ImVisualizer
     private bool _isInitInternalContext = false;
 
     public bool IsWindowShouldClose = false;
-    public ImRenderActionQueue RenderActionQueue { get; } = new ();
+    public ImRenderActionQueue<ImInternalContext> RenderActionQueue { get; } = new ();
 
     public bool Initialize(string windowTitle)
     {
@@ -235,18 +235,14 @@ public class ImVisualizer
         ImGui.NewFrame();
         ImGuizmo.BeginFrame();
 
-        RenderMainMenu(currentTime, deltaSec);
-
         ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
         ImGui.PopStyleColor(1);
 
+        RenderMainMenu(currentTime, deltaSec);
         RenderBackground();
         RenderDemo();
-
-        // UI 윈도우처리
         RenderWindows(currentTime, deltaSec);
-
         RenderForegroundEffect(currentTime, deltaSec);
 
         ImGui.Render();

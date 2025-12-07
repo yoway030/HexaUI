@@ -12,10 +12,8 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        ImVisualizer.CreateInstance();
-        ImVisualizer visualizer = ImVisualizer.Instance;
-
-
+        ImRenderer.CreateInstance();
+        ImRenderer visualizer = ImRenderer.Instance;
 
         ////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////
@@ -150,16 +148,23 @@ internal class Program
 
         ////////////////////////////
 
-        visualizer.RenderActionQueue.Post(
-            (context) =>
-            {
-                context.ForegroundEffects.Add(new HexagonOverlayEffect(
-                    DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
-                    new TimeSpan(3000000),
-                    new TimeSpan(2000000),
-                    new string[] { "!!!!", "!!!" },
-                    new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
-            });
+        var result0 = Task.Run(async () =>
+        {
+            var resultCount = await visualizer.RenderActionQueue.Ask(
+                (context) =>
+                {
+                    context.ForegroundEffects.Add(new HexagonOverlayEffect(
+                        DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
+                        new TimeSpan(3000000),
+                        new TimeSpan(2000000),
+                        new string[] { "!!!!", "!!!" },
+                        new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
+
+                    return context.ForegroundEffects.Count;
+                });
+
+            dataTable.PushData(new PlayerRow { Name = $"{resultCount}!!!!!!!!!!!!!!!!!!!!!!", Level = 0, Class = "0", DPS = 0 });
+        });
 
 
         Random random = new Random();

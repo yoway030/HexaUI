@@ -5,19 +5,19 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-public class ImRenderActionQueue
+public class ImRenderActionQueue<TContext>
 {
     protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    protected readonly ConcurrentQueue<Action<ImInternalContext>> _queue = new();
-    protected readonly ConcurrentQueue<Action<ImInternalContext>> _nextFrameQueue = new();
+    protected readonly ConcurrentQueue<Action<TContext>> _queue = new();
+    protected readonly ConcurrentQueue<Action<TContext>> _nextFrameQueue = new();
     protected int _renderThreadId = -1;
-    protected ImInternalContext _imInternalContext = null!;
+    protected TContext _context = default!;
 
-    public void Initialize(int renderThreadId, ImInternalContext imInternalContext)
+    public void Initialize(int renderThreadId, TContext context)
     {
         _renderThreadId = renderThreadId;
-        _imInternalContext = imInternalContext;
+        _context = context;
     }
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
@@ -25,62 +25,58 @@ public class ImRenderActionQueue
     /// <summary>
     /// Fire-and-forget
     /// </summary>
-    public void Post(Action<ImInternalContext> item)
+    public void Post(Action<TContext> action)
     {
-        _queue.Enqueue(item);
+        _queue.Enqueue(action);
     }
 
-    public void NextFramePost(Action<ImInternalContext> item)
+    public void NextFramePost(Action<TContext> action)
     {
-        _nextFrameQueue.Enqueue(item);
+        _nextFrameQueue.Enqueue(action);
     }
 
-    public Task<TResult> Ask<TResult>(Func<ImInternalContext, TResult> func, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// await 가능. ImGui 렌더 스레드에서 호출시 await 하면 데드락
+    /// </summary>
+    public Task<TResult> Ask<TResult>(Func<TContext, TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_queue, func, cancellationToken);
     }
 
-    public Task<TResult> NextFrameAsk<TResult>(Func<ImInternalContext, TResult> func, CancellationToken cancellationToken = default)
+    public Task<TResult> NextFrameAsk<TResult>(Func<TContext, TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_nextFrameQueue, func, cancellationToken);
     }
 
-    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<Action<ImInternalContext>> queue, Func<ImInternalContext, TResult> func, CancellationToken cancellationToken)
+    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<Action<TContext>> queue, Func<TContext, TResult> func, CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var ctr = cancellationToken.Register(() =>
-        {
-            tcs.TrySetCanceled(cancellationToken);
-        });
 
-        queue.Enqueue((imInternalContext) =>
+        queue.Enqueue((context) =>
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 tcs.TrySetCanceled(cancellationToken);
-                ctr.Dispose();
                 return;
             }
 
             try
             {
-                tcs.TrySetResult(func(imInternalContext));
+                tcs.TrySetResult(func(context));
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"{nameof(ImRenderActionQueue)}.{nameof(AskToQueue)} exception : {ex}");
+                Logger.Error(ex, $"{nameof(ImRenderActionQueue<TContext>)}.{nameof(AskToQueue)} exception : {ex}");
                 tcs.TrySetException(ex);
             }
-
-            ctr.Dispose();
         });
 
         return tcs.Task;
     }
 
-    protected void Invoke(Action<ImInternalContext> action)
+    protected void Invoke(Action<TContext> action)
     {
-        action(_imInternalContext);
+        action(_context);
     }
 
     /// <summary>
@@ -94,21 +90,21 @@ public class ImRenderActionQueue
             throw new InvalidOperationException($"{nameof(Flush)} must be called from the ImGui render thread.");
         }
 
-        while (_queue.TryDequeue(out var item))
+        while (_queue.TryDequeue(out var action))
         {
             try 
             {
-                Invoke(item);
+                Invoke(action);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"{nameof(Flush)} item: {item}, exception : {ex}");
+                Logger.Error(ex, $"{nameof(Flush)} Action: {action}, exception : {ex}");
             }
         }
 
-        while (_nextFrameQueue.TryDequeue(out var work))
+        while (_nextFrameQueue.TryDequeue(out var action))
         {
-            _queue.Enqueue(work);
+            _queue.Enqueue(action);
         }
     }
 }
