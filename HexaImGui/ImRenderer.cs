@@ -67,12 +67,15 @@ public class ImRenderer
     private bool _isShowImGuiCSharpDemo = false;
     private bool _isShowHexaDemo = false;
 
-    private ImInternalContext _internalContext = new();
+    // ImGui Render 스레드 내부에서 사용되는 컨텍스트
+    private readonly ImInternalContext _internalContext = new();
     private bool _isInitInternalContext = false;
 
-    public bool IsWindowShouldClose = false;
-    public ImRenderActionQueue<ImInternalContext> RenderActionQueue { get; } = new ();
+    // ImGui Render 스레드 외부에서 컨텍스트 데이터 수정을 요청할 때 사용
+    public readonly ImRenderActionQueue<ImInternalContext> RenderActionQueue = new();
 
+    public bool IsWindowShouldClose = false;
+    
     public bool Initialize(string windowTitle)
     {
         GLFW.Init();
@@ -152,11 +155,13 @@ public class ImRenderer
         return true;
     }
 
+    //// TODO:yoway030 ActionQueue로 변경
     public void SetWindowTitle(string title)
     {
         GLFW.SetWindowTitle(_window, title);
     }
 
+    //// TODO:yoway030 ActionQueue로 변경
     public void InitializeMainWindows(IEnumerable<BaseWindow> windows)
     {
         foreach (var window in windows)
@@ -165,6 +170,7 @@ public class ImRenderer
         }
     }
 
+    //// TODO:yoway030 ActionQueue로 변경
     public void RegisterMainMenu(IEnumerable<IImMenu> menus)
     {
         foreach (var menu in menus)
