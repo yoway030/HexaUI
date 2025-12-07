@@ -147,7 +147,7 @@ public class ImVisualizer
 
         _gl = new(new BindingsContext(_window));
 
-        RenderActionQueue.Initialize(Environment.CurrentManagedThreadId);
+        RenderActionQueue.Initialize(Environment.CurrentManagedThreadId, _internalContext);
 
         return true;
     }

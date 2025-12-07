@@ -127,13 +127,7 @@ internal class Program
                     new TimeSpan(0, 0, 0),
                     new TimeSpan(5500000),
                     new string[] { "EL", "Server", "On", "Your", "Mark" },
-                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)),
-                new HexagonOverlayEffect(
-                    DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
-                    new TimeSpan(3000000),
-                    new TimeSpan(2000000),
-                    new string[] { "Error", "Err" },
-                    new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1))
+                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1))
             });
 
 
@@ -155,9 +149,19 @@ internal class Program
         thread.Start();
 
         ////////////////////////////
-        ///Log
 
-        
+        visualizer.RenderActionQueue.Post(
+            (context) =>
+            {
+                context.ForegroundEffects.Add(new HexagonOverlayEffect(
+                    DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
+                    new TimeSpan(3000000),
+                    new TimeSpan(2000000),
+                    new string[] { "!!!!", "!!!" },
+                    new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
+            });
+
+
         Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)

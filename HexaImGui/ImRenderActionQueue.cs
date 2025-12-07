@@ -9,13 +9,15 @@ public class ImRenderActionQueue
 {
     protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    protected readonly ConcurrentQueue<Action> _queue = new();
-    protected readonly ConcurrentQueue<Action> _nextFrameQueue = new();
+    protected readonly ConcurrentQueue<Action<ImInternalContext>> _queue = new();
+    protected readonly ConcurrentQueue<Action<ImInternalContext>> _nextFrameQueue = new();
     protected int _renderThreadId = -1;
+    protected ImInternalContext _imInternalContext = null!;
 
-    public void Initialize(int renderThreadId)
+    public void Initialize(int renderThreadId, ImInternalContext imInternalContext)
     {
         _renderThreadId = renderThreadId;
+        _imInternalContext = imInternalContext;
     }
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
@@ -23,27 +25,27 @@ public class ImRenderActionQueue
     /// <summary>
     /// Fire-and-forget
     /// </summary>
-    public void Post(Action item)
+    public void Post(Action<ImInternalContext> item)
     {
         _queue.Enqueue(item);
     }
 
-    public void NextFramePost(Action item)
+    public void NextFramePost(Action<ImInternalContext> item)
     {
         _nextFrameQueue.Enqueue(item);
     }
 
-    public Task<TResult> Ask<TResult>(Func<TResult> func, CancellationToken cancellationToken = default)
+    public Task<TResult> Ask<TResult>(Func<ImInternalContext, TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_queue, func, cancellationToken);
     }
 
-    public Task<TResult> NextFrameAsk<TResult>(Func<TResult> func, CancellationToken cancellationToken = default)
+    public Task<TResult> NextFrameAsk<TResult>(Func<ImInternalContext, TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_nextFrameQueue, func, cancellationToken);
     }
 
-    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<Action> queue, Func<TResult> func, CancellationToken cancellationToken)
+    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<Action<ImInternalContext>> queue, Func<ImInternalContext, TResult> func, CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         var ctr = cancellationToken.Register(() =>
@@ -51,7 +53,7 @@ public class ImRenderActionQueue
             tcs.TrySetCanceled(cancellationToken);
         });
 
-        queue.Enqueue(() =>
+        queue.Enqueue((imInternalContext) =>
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -62,7 +64,7 @@ public class ImRenderActionQueue
 
             try
             {
-                tcs.TrySetResult(func());
+                tcs.TrySetResult(func(imInternalContext));
             }
             catch (Exception ex)
             {
@@ -76,9 +78,9 @@ public class ImRenderActionQueue
         return tcs.Task;
     }
 
-    protected void Work(Action item)
+    protected void Invoke(Action<ImInternalContext> action)
     {
-        item();
+        action(_imInternalContext);
     }
 
     /// <summary>
@@ -96,7 +98,7 @@ public class ImRenderActionQueue
         {
             try 
             {
-                Work(item);
+                Invoke(item);
             }
             catch (Exception ex)
             {
