@@ -32,17 +32,17 @@ public abstract class ImRenderDataStructureActorBase<TMessage>
         _nextFrameQueue.Enqueue(message);
     }
 
-    public Task<TResult> Ask<TResult>(Func<TMessage, TResult> func, CancellationToken cancellationToken = default)
+    public Task<TResult> Ask<TResult>(Func<TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_queue, func, cancellationToken);
     }
 
-    public Task<TResult> NextFrameAsk<TResult>(Func<TMessage, TResult> func, CancellationToken cancellationToken = default)
+    public Task<TResult> NextFrameAsk<TResult>(Func<TResult> func, CancellationToken cancellationToken = default)
     {
         return AskToQueue(_nextFrameQueue, func, cancellationToken);
     }
 
-    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<TMessage> queue, Func<TMessage, TResult> func, CancellationToken cancellationToken)
+    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<TMessage> queue, Func<TResult> func, CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -101,6 +101,12 @@ public abstract class ImRenderDataStructureActorBase<TMessage>
 public interface IImRenderDataStructureActorMessage<TSelf>
     where TSelf : struct, IImRenderDataStructureActorMessage<TSelf>
 {
+    public TSelf CreateAskMessage<TResult>(Func<TResult> func, TaskCompletionSource<TResult> tcs);
+}
+
+public interface IImRenderDataStructureActorAskPayload
+{
+    void Invoke();
 }
 
 public readonly record struct ListActorMessage<TData> : IImRenderDataStructureActorMessage<ListActorMessage<TData>>
@@ -111,24 +117,42 @@ public readonly record struct ListActorMessage<TData> : IImRenderDataStructureAc
         Ask
     }
 
-    public readonly record struct AskPayload<TResult>(
-        Func<List<TData>, TResult> Func,
-        TaskCompletionSource<TResult> Tcs);
+    public readonly record struct ImRenderListActorAskPayload<TResult> : IImRenderDataStructureActorAskPayload
+    {
+        public Func<TResult> Func { get; }
+        public TaskCompletionSource<TResult> Tcs { get; }
 
-    public ListActorMessage(MessageType type, TData? item, int? index = null)
+        public ImRenderListActorAskPayload(Func<TResult> func, TaskCompletionSource<TResult> tcs)
+        {
+            Func = func;
+            Tcs = tcs;
+        }
+
+        public void Invoke()
+        {
+            Func();
+        }
+    }
+
+    public ListActorMessage(MessageType type, TData? item = default, int? index = null, IImRenderDataStructureActorAskPayload? askPayload = default)
     {
         Type = type;
         Item = item;
         Index = index;
+        AskPayload = askPayload;
     }
 
     public MessageType Type { get; }
     public TData? Item { get; }
     public int? Index { get; }
+    public IImRenderDataStructureActorAskPayload? AskPayload { get; }
+
+    public ListActorMessage<TData> CreateAskMessage<TResult>(Func<TResult> func, TaskCompletionSource<TResult> tcs)
+        => new ListActorMessage<TData>(MessageType.Ask, askPayload: new ImRenderListActorAskPayload<TResult>(func, tcs));
 }
 
 
-public class ImRenderListActor<TData> : ImRenderDataStructureActorBase<ListActorMessage<TData>>
+    public class ImRenderListActor<TData> : ImRenderDataStructureActorBase<ListActorMessage<TData>>
 {
     public ImRenderListActor()
     {
