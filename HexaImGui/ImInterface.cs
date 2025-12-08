@@ -1,4 +1,4 @@
-﻿namespace ELImGui;
+namespace ELImGui;
 
 public interface IImRenderable
 {
@@ -7,7 +7,7 @@ public interface IImRenderable
 
 public interface IImUpdatable
 {
-    void UpdateImObject(DateTime utcNow, double deltaSec);
+    void UpdateImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 }
 
 public interface IImVisible

@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using ELImGui.Widget;
 using Hexa.NET.ImGui;
@@ -15,7 +15,7 @@ public class CommandConsole : SingleWidgetWindow<CommandConsoleWidget>
             ImGuiWindowFlags.NoCollapse;
     }
 
-    public override void OnPrevRender(DateTime utcNow, double deltaSec)
+    public override void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         // '`' 입력시 창 오픈
         if (ImGui.IsKeyPressed(ImGuiKey.GraveAccent))

@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using ELImGui.Window;
 
@@ -25,19 +25,19 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
             return;
         }
 
-        OnPrevRender(utcNow, deltaSec);
+        OnPrevRender(utcNow, deltaSec, imInternalContext);
         OnRender(utcNow, deltaSec, imInternalContext);
-        OnAfterRender(utcNow, deltaSec);
+        OnAfterRender(utcNow, deltaSec, imInternalContext);
     }
 
-    public void UpdateImObject(DateTime utcNow, double deltaSec)
+    public void UpdateImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        OnUpdate(utcNow, deltaSec);
+        OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
     public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
-    public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
-    public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
-    public abstract void OnUpdate(DateTime utcNow, double deltaSec);
+    public virtual void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
+    public virtual void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
+    public abstract void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
     public virtual void OnWindowFocused(BaseWindow ownerWindow) { }
 }

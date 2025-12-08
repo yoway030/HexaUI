@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Window;
+namespace ELImGui.Window;
 
 using System.Runtime.InteropServices;
 using System.Diagnostics;
@@ -49,14 +49,14 @@ public class ProcessMonitor : BaseWindow
     // style
     private Vector2 _oldWindowPadding = new(0, 0);
 
-    public override void OnPrevRender(DateTime utcNow, double deltaSec)
+    public override void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         var windowStyle = ImGui.GetStyle();
         _oldWindowPadding = windowStyle.WindowPadding;
         windowStyle.WindowPadding = new Vector2(1, 1); // 창 내부 여백 제거
     }
 
-    public override void OnAfterRender(DateTime utcNow, double deltaSec)
+    public override void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         var windowStyle = ImGui.GetStyle();
         windowStyle.WindowPadding = _oldWindowPadding;
@@ -113,7 +113,7 @@ public class ProcessMonitor : BaseWindow
         plotStyle.LegendPadding = oldLegendPadding;
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         var timeSpan = utcNow - _lastSampleTime;
         if (timeSpan.TotalSeconds < IntervalSec)

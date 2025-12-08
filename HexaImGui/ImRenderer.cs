@@ -1,9 +1,7 @@
 namespace ELImGui;
 
 using ELImGui.demo;
-using ELImGui.Effect;
 using ELImGui.Utils;
-using ELImGui.Window;
 using Hexa.NET.GLFW;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Backends.GLFW;
@@ -18,10 +16,14 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
 public class ImRenderer
 {
+    [DllImport("glfw3.dll", CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr glfwGetWin32Window(IntPtr window);
+
     private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
     public static ImRenderer Instance => _instance;
@@ -58,24 +60,24 @@ public class ImRenderer
     private ImNodesContextPtr _nodesContext;
     private ImGuiIOPtr _io;
     private ImGuiFontBuilder _builder = null!;
-    private GLFWwindowPtr _window = null!;
+    private GLFWwindowPtr _glfwWindowPtr = null!;
     private GL _gl = null!;
 
     private HexaDemo _hexaImGuiDemo = new();
     private ImGuiDemo _imGuiDemo = new();
+
     private bool _isShowImGuiCppDemo = false;
     private bool _isShowImGuiCSharpDemo = false;
     private bool _isShowHexaDemo = false;
 
     // ImGui Render 스레드 내부에서 사용되는 컨텍스트
     private readonly ImInternalContext _internalContext = new();
-    private bool _isInitInternalContext = false;
 
     // ImGui Render 스레드 외부에서 컨텍스트 데이터 수정을 요청할 때 사용
     public readonly ImRenderActionQueue<ImInternalContext> RenderActionQueue = new();
 
     public bool IsWindowShouldClose = false;
-    
+
     public bool Initialize(string windowTitle)
     {
         GLFW.Init();
@@ -88,15 +90,15 @@ public class ImRenderer
         GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
         GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
 
-        _window = GLFW.CreateWindow(1600, 1000, windowTitle, null, null);
-        if (_window.IsNull)
+        _glfwWindowPtr = GLFW.CreateWindow(1600, 1000, windowTitle, null, null);
+        if (_glfwWindowPtr.IsNull)
         {
             Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to create GLFW window.");
             GLFW.Terminate();
             return false;
         }
 
-        GLFW.MakeContextCurrent(_window);
+        GLFW.MakeContextCurrent(_glfwWindowPtr);
 
         _guiContext = ImGui.CreateContext();
         ImGui.SetCurrentContext(_guiContext);
@@ -133,7 +135,7 @@ public class ImRenderer
 
         ImGuiImplGLFW.SetCurrentContext(_guiContext);
 
-        if (!ImGuiImplGLFW.InitForOpenGL(Unsafe.BitCast<GLFWwindowPtr, Hexa.NET.ImGui.Backends.GLFW.GLFWwindowPtr>(_window), true))
+        if (!ImGuiImplGLFW.InitForOpenGL(Unsafe.BitCast<GLFWwindowPtr, Hexa.NET.ImGui.Backends.GLFW.GLFWwindowPtr>(_glfwWindowPtr), true))
         {
             Logger.ForDebugEvent().Log(LogLevel.Error, "Failed to init ImGui Impl GLFW");
             GLFW.Terminate();
@@ -148,63 +150,17 @@ public class ImRenderer
             return false;
         }
 
-        _gl = new(new BindingsContext(_window));
+        _gl = new(new BindingsContext(_glfwWindowPtr));
 
+        _internalContext.Initialize(_glfwWindowPtr);
         RenderActionQueue.Initialize(Environment.CurrentManagedThreadId, _internalContext);
 
         return true;
     }
 
-    //// TODO:yoway030 ActionQueue로 변경
-    public void SetWindowTitle(string title)
+    public unsafe IntPtr GetHandle()
     {
-        GLFW.SetWindowTitle(_window, title);
-    }
-
-    //// TODO:yoway030 ActionQueue로 변경
-    public void InitializeMainWindows(IEnumerable<BaseWindow> windows)
-    {
-        foreach (var window in windows)
-        {
-            _internalContext.MainWindows.Add(window.WindowName, window);
-        }
-    }
-
-    //// TODO:yoway030 ActionQueue로 변경
-    public void RegisterMainMenu(IEnumerable<IImMenu> menus)
-    {
-        foreach (var menu in menus)
-        {
-            _internalContext.MainMenus.Add(menu);
-        }
-    }
-
-    public void InitializeInternalContext(
-        IEnumerable<BaseWindow> windows,
-        IEnumerable<IImMenu> menus,
-        IEnumerable<ForegroundEffect> foregroundEffects)
-    {
-        if (_isInitInternalContext == true)
-        {
-            throw new InvalidOperationException("ImVisualizer InternalContext is already initialized.");
-        }
-
-        _isInitInternalContext = true;
-
-        foreach (var window in windows)
-        {
-            _internalContext.MainWindows.Add(window.WindowName, window);
-        }
-
-        foreach (var menu in menus)
-        {
-            _internalContext.MainMenus.Add(menu);
-        }
-
-        foreach (var effect in foregroundEffects)
-        {
-            _internalContext.ForegroundEffects.Add(effect);
-        }
+        return glfwGetWin32Window((IntPtr)_glfwWindowPtr.Handle);
     }
 
     public void Loop()
@@ -222,9 +178,9 @@ public class ImRenderer
 
         // Poll for and process events
         GLFW.PollEvents();
-        IsWindowShouldClose = GLFW.WindowShouldClose(_window) != 0;
+        IsWindowShouldClose = GLFW.WindowShouldClose(_glfwWindowPtr) != 0;
 
-        if (GLFW.GetWindowAttrib(_window, GLFW.GLFW_ICONIFIED) != 0)
+        if (GLFW.GetWindowAttrib(_glfwWindowPtr, GLFW.GLFW_ICONIFIED) != 0)
         {
             ImGuiImplGLFW.Sleep(10);
             return;
@@ -232,7 +188,7 @@ public class ImRenderer
 
         RenderActionQueue.Flush();
 
-        GLFW.MakeContextCurrent(_window);
+        GLFW.MakeContextCurrent(_glfwWindowPtr);
         _gl.ClearColor(1, 0.8f, 0.75f, 1);
         _gl.Clear(GLClearBufferMask.ColorBufferBit);
 
@@ -254,7 +210,7 @@ public class ImRenderer
         ImGui.Render();
         ImGui.EndFrame();
 
-        GLFW.MakeContextCurrent(_window);
+        GLFW.MakeContextCurrent(_glfwWindowPtr);
         ImGuiImplOpenGL3.RenderDrawData(ImGui.GetDrawData());
 
         if ((_io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
@@ -263,10 +219,10 @@ public class ImRenderer
             ImGui.RenderPlatformWindowsDefault();
         }
 
-        GLFW.MakeContextCurrent(_window);
+        GLFW.MakeContextCurrent(_glfwWindowPtr);
 
         // Swap front and back buffers (double buffering)
-        GLFW.SwapBuffers(_window);
+        GLFW.SwapBuffers(_glfwWindowPtr);
 
         _loopCount++;
         Thread.Sleep(10);
@@ -292,7 +248,7 @@ public class ImRenderer
         _gl.Dispose();
 
         // Clean up and terminate GLFW
-        GLFW.DestroyWindow(_window);
+        GLFW.DestroyWindow(_glfwWindowPtr);
         GLFW.Terminate();
     }
 
@@ -317,19 +273,30 @@ public class ImRenderer
     private void RenderWindows(DateTime utcNow, double deltaSec)
     {
         var mainWindows = _internalContext.MainWindows.Values;
+        var infoWindows = _internalContext.InfoWindows.Values;
         var subWindows = _internalContext.SubWindows.Values;
 
         foreach (var window in mainWindows)
-        { 
-            window.UpdateImObject(utcNow, deltaSec);
+        {
+            window.UpdateImObject(utcNow, deltaSec, _internalContext);
+        }
+
+        foreach (var window in infoWindows)
+        {
+            window.UpdateImObject(utcNow, deltaSec, _internalContext);
         }
 
         foreach (var window in subWindows)
         {
-            window.UpdateImObject(utcNow, deltaSec);
+            window.UpdateImObject(utcNow, deltaSec, _internalContext);
         }
 
         foreach (var window in mainWindows)
+        {
+            window.RenderImObject(utcNow, deltaSec, _internalContext);
+        }
+
+        foreach (var window in infoWindows)
         {
             window.RenderImObject(utcNow, deltaSec, _internalContext);
         }
@@ -372,7 +339,7 @@ public class ImRenderer
                     if (uiWindow is IImVisible { } visibleWindow)
                     {
                         bool isVisible = visibleWindow.IsVisibleImObject;
-                        if (ImGui.Checkbox($"{uiWindow.WindowName}##MainMenu", ref isVisible))
+                        if (ImGui.Checkbox(uiWindow.WindowName, ref isVisible))
                         {
                             visibleWindow.IsVisibleImObject = isVisible;
                         }
@@ -394,7 +361,7 @@ public class ImRenderer
                     continue;
                 }
 
-                UiMenu.UpdateImObject(utcNow, deltaSec);
+                UiMenu.UpdateImObject(utcNow, deltaSec, _internalContext);
             }
 
             foreach (var UiMenu in uiMenus.Select(w => w as IImRenderable))
@@ -425,10 +392,15 @@ public class ImRenderer
 
     private void RenderForegroundEffect(DateTime utcNow, double deltaSec)
     {
+        if (_internalContext.ForegroundEffects.Any() == false)
+        {
+            return;
+        }
+
         var foregroundEffects = _internalContext.ForegroundEffects.ToArray();
         foreach (var effect in foregroundEffects)
         {
-            effect.UpdateImObject(utcNow, deltaSec);
+            effect.UpdateImObject(utcNow, deltaSec, _internalContext);
 
             if (effect.IsEnd == true)
             {

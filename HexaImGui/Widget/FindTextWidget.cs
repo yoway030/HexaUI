@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using System.Text.RegularExpressions;
 using Hexa.NET.ImGui;
@@ -87,7 +87,7 @@ class FindTextWidget<TData> : BaseWidget
         ImGuiHelper.HelpMarkerSameLine("현재 포커스 / 찾은 수");
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
     }
 

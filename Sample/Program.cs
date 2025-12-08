@@ -103,8 +103,9 @@ internal class Program
 
         NodeViewer nodeView = new NodeViewer("NodeViewer");
 
-        visualizer.InitializeInternalContext(
-            new BaseWindow[]
+        visualizer.RenderActionQueue.Post((context) =>
+        {
+            var windows = new BaseWindow[]
             {
                 dataTable,
                 processMonitor,
@@ -115,19 +116,25 @@ internal class Program
                 simpleTableWindow,
                 ConsoleWindow,
                 multiWidgetWindow,
-            },
-            new IImMenu[] { },
-            new ForegroundEffect[]
+            };
+
+            foreach (var window in windows)
             {
+                context.MainWindows.Add(window.WindowName, window);
+            }
+        });
+
+        visualizer.RenderActionQueue.Post((context) =>
+        {
+            context.ForegroundEffects.Add(
                 new HexagonOverlayEffect(
                     DateTime.UtcNow,
                     DateTime.UtcNow.AddSeconds(1.5),
                     new TimeSpan(0, 0, 0),
                     new TimeSpan(5500000),
                     new string[] { "EL", "Server", "On", "Your", "Mark" },
-                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1))
-            });
-
+                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)));
+        });
 
         ////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////

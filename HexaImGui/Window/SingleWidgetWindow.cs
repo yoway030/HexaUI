@@ -1,4 +1,4 @@
-﻿
+
 namespace ELImGui.Window;
 
 using ELImGui.Widget;
@@ -20,10 +20,10 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
         Widget = widget;
     }
 
-    public override void OnPrevRender(DateTime utcNow, double deltaSec)
+    public override void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        base.OnPrevRender(utcNow, deltaSec);
-        Widget.OnPrevRender(utcNow, deltaSec);
+        base.OnPrevRender(utcNow, deltaSec, imInternalContext);
+        Widget.OnPrevRender(utcNow, deltaSec, imInternalContext);
     }
 
     public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
@@ -31,15 +31,15 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
         Widget.OnRender(utcNow, deltaSec, imInternalContext);
     }
 
-    public override void OnAfterRender(DateTime utcNow, double deltaSec)
+    public override void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        base.OnAfterRender(utcNow, deltaSec);
-        Widget.OnAfterRender(utcNow, deltaSec);
+        base.OnAfterRender(utcNow, deltaSec, imInternalContext);
+        Widget.OnAfterRender(utcNow, deltaSec, imInternalContext);
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        Widget.OnUpdate(utcNow, deltaSec);
+        Widget.OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
     public override void OnWindowFocused()

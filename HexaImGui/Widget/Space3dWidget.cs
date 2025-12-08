@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using ELImGui.Window;
 using Hexa.NET.ImGui;
@@ -359,5 +359,5 @@ public unsafe class Space3dWidget : BaseWidget
 
     public override void OnWindowFocused(BaseWindow baseWindow) { }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec) { }
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
 }

@@ -24,13 +24,13 @@ public class MultiWidgetWindow : BaseWindow
         Widgets.RemoveAll(w => w == widget);
     }
 
-    public override void OnPrevRender(DateTime utcNow, double deltaSec)
+    public override void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        base.OnPrevRender(utcNow, deltaSec);
+        base.OnPrevRender(utcNow, deltaSec, imInternalContext);
 
         foreach (var widget in Widgets)
         {
-            widget.OnPrevRender(utcNow, deltaSec);
+            widget.OnPrevRender(utcNow, deltaSec, imInternalContext);
         }
     }
 
@@ -39,21 +39,21 @@ public class MultiWidgetWindow : BaseWindow
         throw new NotImplementedException();
     }
 
-    public override void OnAfterRender(DateTime utcNow, double deltaSec)
+    public override void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        base.OnAfterRender(utcNow, deltaSec);
+        base.OnAfterRender(utcNow, deltaSec, imInternalContext);
 
         foreach (var widget in Widgets)
         {
-            widget.OnAfterRender(utcNow, deltaSec);
+            widget.OnAfterRender(utcNow, deltaSec, imInternalContext);
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         foreach (var widget in Widgets)
         {
-            widget.OnUpdate(utcNow, deltaSec);
+            widget.OnUpdate(utcNow, deltaSec, imInternalContext);
         }
     }
 

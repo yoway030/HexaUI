@@ -47,7 +47,7 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
 
     public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        OnPrevRender(utcNow, deltaSec);
+        OnPrevRender(utcNow, deltaSec, imInternalContext);
 
         if (IsVisibleImObject == false)
         {
@@ -82,19 +82,19 @@ public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpda
             IsVisibleImObject = imObject.IsVisible;
         }
 
-        OnAfterRender(utcNow, deltaSec);
+        OnAfterRender(utcNow, deltaSec, imInternalContext);
     }
 
     public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
-    public virtual void OnPrevRender(DateTime utcNow, double deltaSec) { }
-    public virtual void OnAfterRender(DateTime utcNow, double deltaSec) { }
+    public virtual void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
+    public virtual void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
 
-    public void UpdateImObject(DateTime utcNow, double deltaSec)
+    public void UpdateImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        OnUpdate(utcNow, deltaSec);
+        OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
-    public abstract void OnUpdate(DateTime utcNow, double deltaSec);
+    public abstract void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 
     public virtual void OnWindowFocused() { }
 }

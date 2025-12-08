@@ -124,7 +124,7 @@ public class HexagonOverlayEffect : ForegroundEffect
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
     }
 }

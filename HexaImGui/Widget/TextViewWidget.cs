@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
@@ -175,7 +175,7 @@ public class TextViewWidget : BaseWidget
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
     }
 }

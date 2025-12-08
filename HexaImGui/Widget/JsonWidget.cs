@@ -80,7 +80,7 @@ public class JsonWidget : BaseWidget
         RenderImpl();
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         UpdateImpl();
     }

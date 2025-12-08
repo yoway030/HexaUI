@@ -65,7 +65,7 @@ public class CommandConsoleWidget : BaseWidget
         _log.Clear();
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
     }
 

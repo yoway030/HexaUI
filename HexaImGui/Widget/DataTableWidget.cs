@@ -249,7 +249,7 @@ public class DataTableWidget<TData> : BaseWidget
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         AdjustData();
 
@@ -307,6 +307,20 @@ public class DataTableWidget<TData> : BaseWidget
         {
             _selection.Clear();
         }
+    }
+
+    public IEnumerable<TData> PeekRecentDatas(int peekCount)
+    {
+        var datas = _localStorage.ToList();
+        ;
+        int dataLength = datas.Count;
+
+        if (peekCount >= dataLength)
+        {
+            return datas.Select(x => x.RowData);
+        }
+
+        return datas.Skip(dataLength - peekCount).Select(x => x.RowData);
     }
 
     private bool ShouldScrollToEndInternal()

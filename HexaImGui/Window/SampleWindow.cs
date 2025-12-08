@@ -1,4 +1,4 @@
-﻿
+
 namespace ELImGui.Window;
 
 using ELImGui.Utils;

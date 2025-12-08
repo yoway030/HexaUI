@@ -22,10 +22,10 @@ public class NodeViewer : BaseWindow
         ChildWindows.ForEach(w => w.RenderImObject(utcNow, deltaSec, imInternalContext));
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         Editor.Update(utcNow, deltaSec);
-        ChildWindows.ForEach(w => w.UpdateImObject(utcNow, deltaSec));
+        ChildWindows.ForEach(w => w.UpdateImObject(utcNow, deltaSec, imInternalContext));
     }
 
     public void InitSample()

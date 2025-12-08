@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Widget;
+namespace ELImGui.Widget;
 
 using System;
 
@@ -18,7 +18,7 @@ public class RenderActionWidget<T> : BaseWidget
         _renderAction.Invoke(_model);
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec)
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
     }
 }

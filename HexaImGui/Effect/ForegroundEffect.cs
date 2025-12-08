@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Effect;
+namespace ELImGui.Effect;
 
 using System;
 
@@ -30,7 +30,7 @@ public abstract class ForegroundEffect : IImRenderable, IImUpdatable
         OnRender(utcNow, deltaSec, imInternalContext);
     }
 
-    public void UpdateImObject(DateTime utcNow, double deltaSec)
+    public void UpdateImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         if (IsStart == false && utcNow >= StartDateTime)
         {
@@ -42,10 +42,10 @@ public abstract class ForegroundEffect : IImRenderable, IImUpdatable
             IsEnd = true;
         }
 
-        OnUpdate(utcNow, deltaSec);
+        OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
     public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 
-    public abstract void OnUpdate(DateTime utcNow, double deltaSec);
+    public abstract void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
 }
