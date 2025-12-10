@@ -31,6 +31,7 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
         public int? Index { get; }
         public IActorAskPayLoad? AskPayload { get; }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAskMessage()
         {
             return AskPayload != null;
@@ -51,10 +52,18 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
             _actor = actor;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddPost(in TData item) => _actor.Post(new Message(MessageType.Add, item));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemovePost(in TData item) => _actor.Post(new Message(MessageType.Remove, item));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdatePost(in TData item) => _actor.Post(new Message(MessageType.Update, item));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearPost() => _actor.Post(new Message(MessageType.Clear));
+
         public Task<List<TData>> SnapshotAsk()
         {
             return _actor.Ask(() =>
@@ -77,6 +86,8 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
     }
 
     private List<TData> _items = new();
+    private OuterAdapter? _outer;
+    private InnerAdapter? _inner;
 
     protected override void HandleMessage(in Message message)
     {
@@ -115,7 +126,7 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
         [CallerLineNumber] int lineNumber = 0)
     {
         CheckOuterRenderThread(memberName, filePath, lineNumber);
-        return new OuterAdapter(this);
+        return _outer ??= new OuterAdapter(this);
     }
 
     public InnerAdapter GetInnerAdapter(
@@ -124,6 +135,6 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
         [CallerLineNumber] int lineNumber = 0)
     {
         CheckInnerRenderThread(memberName, filePath, lineNumber);
-        return new InnerAdapter(this);
+        return _inner ??= new InnerAdapter(this);
     }
 }

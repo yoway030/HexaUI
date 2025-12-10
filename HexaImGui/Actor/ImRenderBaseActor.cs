@@ -2,6 +2,7 @@
 
 using NLog;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 public abstract class ImRenderBaseActor<TMessage>
@@ -20,6 +21,7 @@ public abstract class ImRenderBaseActor<TMessage>
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
 
+    [Conditional("DEBUG")]
     public void CheckInnerRenderThread(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
@@ -27,10 +29,13 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (!IsRenderThread)
         {
-            throw new InvalidOperationException($"must be called from the ImGui render thread. {memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+            throw new InvalidOperationException($"must be called from the ImGui render thread. " +
+                $"thread:{Environment.CurrentManagedThreadId} != {_renderThreadId}," +
+                $"source:{memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
     }
 
+    [Conditional("DEBUG")]
     public void CheckOuterRenderThread(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
@@ -38,28 +43,34 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (IsRenderThread)
         {
-            throw new InvalidOperationException($"do not call from the ImGui render thread. {memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+            throw new InvalidOperationException($"do not call from the ImGui render thread." +
+                $"thread:{Environment.CurrentManagedThreadId} != {_renderThreadId}," +
+                $"source:{memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
     }
 
     /// <summary>
     /// Fire-and-forget
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Post(in TMessage message)
     {
         _queue.Enqueue(message);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void NextFramePost(in TMessage message)
     {
         _nextFrameQueue.Enqueue(message);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Task<TResult> Ask<TResult>(Func<TResult> func)
     {
         return AskToQueue(_queue, func);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Task<TResult> NextFrameAsk<TResult>(Func<TResult> func)
     {
         return AskToQueue(_nextFrameQueue, func);

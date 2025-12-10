@@ -32,6 +32,7 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         public TValue? Value { get; }
         public IActorAskPayLoad? AskPayload { get; }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAskMessage()
         {
             return AskPayload != null;
@@ -52,10 +53,19 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
             _actor = actor;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddPost(in TKey key, in TValue value) => _actor.Post(new Message(MessageType.Add, key, value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemovePost(in TKey key) => _actor.Post(new Message(MessageType.Remove, key));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdatePost(in TKey key, in TValue value) => _actor.Post(new Message(MessageType.Update, key, value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearPost() => _actor.Post(new Message(MessageType.Clear));
+
+
         public Task<Dictionary<TKey, TValue>> SnapshotAsk()
         {
             return _actor.Ask(() =>
@@ -78,6 +88,8 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
     }
 
     private Dictionary<TKey, TValue> _items = new();
+    private OuterAdapter? _outer;
+    private InnerAdapter? _inner;
 
     protected override void HandleMessage(in Message message)
     {
@@ -110,7 +122,7 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         [CallerLineNumber] int lineNumber = 0)
     {
         CheckOuterRenderThread(memberName, filePath, lineNumber);
-        return new OuterAdapter(this);
+        return _outer ??= new OuterAdapter(this);
     }
 
     public InnerAdapter GetInnerAdapter(
@@ -119,6 +131,6 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         [CallerLineNumber] int lineNumber = 0)
     {
         CheckInnerRenderThread(memberName, filePath, lineNumber);
-        return new InnerAdapter(this);
+        return _inner = new InnerAdapter(this);
     }
 }
