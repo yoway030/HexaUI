@@ -1,10 +1,13 @@
-﻿using ELImGui;
-using Hexa.NET.ImGui;
-using System.Numerics;
-using ELImGui.Window;
-using ELImGui.Widget;
-using ELImGui.Utils;
+﻿using System.Numerics;
+
+using ELImGui;
+using ELImGui.Actor;
 using ELImGui.Effect;
+using ELImGui.Utils;
+using ELImGui.Widget;
+using ELImGui.Window;
+
+using Hexa.NET.ImGui;
 
 namespace Sample;
 
@@ -138,14 +141,20 @@ internal class Program
 
         ////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////
+        ///
+
+        ImRenderListActor<string> renderListActor = new();
+        var list = renderListActor.GetOuterAdapter();
 
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
+            renderListActor.Initialize(Environment.CurrentManagedThreadId);
             visualizer.Initialize("Sample");
 
             while (visualizer.IsWindowShouldClose == false)
             {
+                renderListActor.Work();
                 visualizer.Loop();
             }
 
@@ -157,20 +166,26 @@ internal class Program
 
         var result0 = Task.Run(async () =>
         {
-            var resultCount = await visualizer.RenderActionQueue.Ask(
-                (context) =>
+            int logIndex = 0;
+
+            while (visualizer.IsWindowShouldClose == false)
+            {
+                list.AddPost($"{logIndex}AA");
+                if (logIndex % 5 == 0)
                 {
-                    context.ForegroundEffects.Add(new HexagonOverlayEffect(
-                        DateTime.UtcNow.AddSeconds(3), DateTime.UtcNow.AddSeconds(4),
-                        new TimeSpan(3000000),
-                        new TimeSpan(2000000),
-                        new string[] { "!!!!", "!!!" },
-                        new Vector4(0.7f, 0, 0, 1), new Vector4(0, 0, 0, 1)));
+                    var snapshot = await list.SnapshotAsk();
+                    dataTable.PushData(new PlayerRow
+                    {
+                        Name = String.Join(", ", snapshot.Take(100)),
+                        Level = logIndex,
+                        Class = "SNAP",
+                        DPS = 20,
+                    });
+                }
 
-                    return context.ForegroundEffects.Count;
-                });
-
-            dataTable.PushData(new PlayerRow { Name = $"{resultCount}!!!!!!!!!!!!!!!!!!!!!!", Level = 0, Class = "0", DPS = 0 });
+                Thread.Sleep(100);
+                logIndex++;
+            }
         });
 
 

@@ -1,0 +1,145 @@
+﻿namespace ELImGui.Actor;
+
+using NLog;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+
+public abstract class ImRenderActorBase<TMessage>
+    where TMessage : struct, IRenderActorMessage<TMessage>
+{
+    protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    protected readonly ConcurrentQueue<TMessage> _queue = new();
+    protected readonly ConcurrentQueue<TMessage> _nextFrameQueue = new();
+    protected int _renderThreadId = -1;
+
+    public void Initialize(int renderThreadId)
+    {
+        _renderThreadId = renderThreadId;
+    }
+
+    public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
+
+    public void CheckInnerRenderThread(
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        if (!IsRenderThread)
+        {
+            throw new InvalidOperationException($"must be called from the ImGui render thread. {memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+        }
+    }
+
+    public void CheckOuterRenderThread(
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        if (IsRenderThread)
+        {
+            throw new InvalidOperationException($"do not call from the ImGui render thread. {memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+        }
+    }
+
+    /// <summary>
+    /// Fire-and-forget
+    /// </summary>
+    internal void Post(in TMessage message)
+    {
+        _queue.Enqueue(message);
+    }
+
+    internal void NextFramePost(in TMessage message)
+    {
+        _nextFrameQueue.Enqueue(message);
+    }
+
+    internal Task<TResult> Ask<TResult>(Func<TResult> func)
+    {
+        return AskToQueue(_queue, func);
+    }
+
+    internal Task<TResult> NextFrameAsk<TResult>(Func<TResult> func)
+    {
+        return AskToQueue(_nextFrameQueue, func);
+    }
+
+    private Task<TResult> AskToQueue<TResult>(ConcurrentQueue<TMessage> queue, Func<TResult> func)
+    {
+        var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        queue.Enqueue(TMessage.CreateAskMessage(func, tcs));
+        return tcs.Task;
+    }
+
+    protected abstract void HandleMessage(in TMessage message);
+
+    public void Work()
+    {
+        CheckInnerRenderThread();
+
+        while (_queue.TryDequeue(out var message))
+        {
+            try
+            {
+                if (message.IsAskMessage())
+                {
+                    message.InvokeAsk();
+                }
+                else
+                {
+                    HandleMessage(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"{nameof(Work)} Action: {message}, exception : {ex}");
+            }
+        }
+
+        while (_nextFrameQueue.TryDequeue(out var message))
+        {
+            _queue.Enqueue(message);
+        }
+    }
+}
+
+public interface IRenderActorMessage<TSelf>
+    where TSelf : struct, IRenderActorMessage<TSelf>
+{
+    public static abstract TSelf CreateAskMessage<TResult>(Func<TResult> func, TaskCompletionSource<TResult> tcs);
+
+    public bool IsAskMessage();
+
+    public void InvokeAsk();
+}
+
+public interface IActorAskPayLoad
+{
+    public void InvokeAsk();
+}
+
+public class ActorAskPayload<TResult> : IActorAskPayLoad
+{
+    public ActorAskPayload(Func<TResult> func, TaskCompletionSource<TResult> tcs)
+    {
+        _func = func;
+        _tcs = tcs;
+    }
+
+    private Func<TResult> _func { get; }
+    private TaskCompletionSource<TResult> _tcs { get; }
+
+    public void InvokeAsk()
+    {
+        try
+        {
+            var result = _func();
+            _tcs.SetResult(result);
+        }
+        catch (Exception ex)
+        {
+            _tcs.SetException(ex);
+        }
+    }
+}
