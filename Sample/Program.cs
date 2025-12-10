@@ -146,15 +146,21 @@ internal class Program
         ImRenderListActor<string> renderListActor = new();
         var list = renderListActor.GetOuterAdapter();
 
+        ImRenderDictionaryActor<int, string> renderDictActor = new();
+        var dict = renderDictActor.GetOuterAdapter();
+
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
             renderListActor.Initialize(Environment.CurrentManagedThreadId);
+            renderDictActor.Initialize(Environment.CurrentManagedThreadId);
+
             visualizer.Initialize("Sample");
 
             while (visualizer.IsWindowShouldClose == false)
             {
                 renderListActor.Work();
+                renderDictActor.Work();
                 visualizer.Loop();
             }
 
@@ -171,12 +177,19 @@ internal class Program
             while (visualizer.IsWindowShouldClose == false)
             {
                 list.AddPost($"{logIndex}AA");
+                dict.AddPost(logIndex, $"Value_{logIndex}");
+
                 if (logIndex % 5 == 0)
                 {
                     var snapshot = await list.SnapshotAsk();
+                    var snapshotDict = await dict.SnapshotAsk();
+
+                    var name = String.Join(", ", snapshot.Take(5));
+                    name += string.Join(", ", snapshotDict.Values.Take(5));
+
                     dataTable.PushData(new PlayerRow
                     {
-                        Name = String.Join(", ", snapshot.Take(100)),
+                        Name = name,
                         Level = logIndex,
                         Class = "SNAP",
                         DPS = 20,

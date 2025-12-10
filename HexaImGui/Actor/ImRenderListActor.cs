@@ -1,6 +1,8 @@
-﻿namespace ELImGui.Actor;
+﻿using System.Runtime.CompilerServices;
 
-public class ImRenderListActor<TData> : ImRenderActorBase<ImRenderListActor<TData>.Message>
+namespace ELImGui.Actor;
+
+public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TData>.Message>
 {
     public enum MessageType
     {
@@ -107,15 +109,21 @@ public class ImRenderListActor<TData> : ImRenderActorBase<ImRenderListActor<TDat
         }
     }
 
-    public OuterAdapter GetOuterAdapter()
+    public OuterAdapter GetOuterAdapter(
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
-        CheckOuterRenderThread();
+        CheckOuterRenderThread(memberName, filePath, lineNumber);
         return new OuterAdapter(this);
     }
 
-    public InnerAdapter GetInnerAdapter()
+    public InnerAdapter GetInnerAdapter(
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
-        CheckInnerRenderThread();
+        CheckInnerRenderThread(memberName, filePath, lineNumber);
         return new InnerAdapter(this);
     }
 }

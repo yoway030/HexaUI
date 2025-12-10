@@ -4,7 +4,7 @@ using NLog;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
-public abstract class ImRenderActorBase<TMessage>
+public abstract class ImRenderBaseActor<TMessage>
     where TMessage : struct, IRenderActorMessage<TMessage>
 {
     protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
