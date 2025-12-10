@@ -25,7 +25,7 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderActorBase<ImRenderD
         }
 
         public MessageType Type { get; }
-        public TData? Item { get; }
+        public T? Item { get; }
         public int? Index { get; }
         public IActorAskPayLoad? AskPayload { get; }
 
