@@ -10,6 +10,7 @@ using Hexa.NET.GLFW;
 public class ImInternalContext
 {
     private GLFWwindowPtr _glfwWindowPtr = null!;
+    private int _renderThreadId = -1;
 
     public readonly Dictionary<string /*windowName*/, BaseWindow> MainWindows = new();
     public readonly Dictionary<string /*windowName*/, BaseWindow> InfoWindows = new();
@@ -20,8 +21,9 @@ public class ImInternalContext
 
     public bool IsInitialized = false;
 
-    public void Initialize(GLFWwindowPtr glfwWindowPtr)
+    public void Initialize(GLFWwindowPtr glfwWindowPtr, int renderThreadId)
     {
+        _renderThreadId = renderThreadId;
         _glfwWindowPtr = glfwWindowPtr;
         IsInitialized = true;
     }
@@ -30,4 +32,6 @@ public class ImInternalContext
     {
         GLFW.SetWindowTitle(_glfwWindowPtr, title);
     }
+
+    public int RenderThreadId => _renderThreadId;
 }

@@ -13,13 +13,16 @@ public abstract class ImRenderBaseActor<TMessage>
     protected readonly ConcurrentQueue<TMessage> _queue = new();
     protected readonly ConcurrentQueue<TMessage> _nextFrameQueue = new();
     protected int _renderThreadId = -1;
+    protected bool _isInitialized = false;
 
     public void Initialize(int renderThreadId)
     {
         _renderThreadId = renderThreadId;
+        _isInitialized = true;
     }
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
+    public bool IsInitialized => _isInitialized;
 
     [Conditional("DEBUG")]
     public void CheckInnerRenderThread(

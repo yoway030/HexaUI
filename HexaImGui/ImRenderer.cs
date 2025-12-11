@@ -152,8 +152,8 @@ public class ImRenderer
 
         _gl = new(new BindingsContext(_glfwWindowPtr));
 
-        _internalContext.Initialize(_glfwWindowPtr);
-        RenderActionQueue.Initialize(Environment.CurrentManagedThreadId, _internalContext);
+        _internalContext.Initialize(_glfwWindowPtr, Environment.CurrentManagedThreadId);
+        RenderActionQueue.Initialize(_internalContext.RenderThreadId, _internalContext);
 
         return true;
     }
