@@ -1,10 +1,10 @@
 namespace ELImGui.Window;
 
+using ELImGui.Actor;
 using ELImGui.Utils;
 using ELImGui.Widget;
 using Hexa.NET.ImGui;
 using System;
-using System.Collections.Concurrent;
 using System.Data;
 using System.Numerics;
 using System.Text;
@@ -21,7 +21,6 @@ public class DataTableWidget<TData> : BaseWidget
     {
         Rule = rule;
         MaxLocalStorage = maxLocalStorage;
-        DataIdx = 1;
         ShouldScrollToEnd = ShouldScrollToEndInternal;
 
         _findWidget = new("Find", OwnerWindowName);
@@ -29,7 +28,10 @@ public class DataTableWidget<TData> : BaseWidget
         _findWidget.FoundedFocusMovedFunc += OnFoundedFocusMoved;
     }
 
-    private List<IndexedRow<TData>> _localStorage = new();
+    private ImRenderListActor<IndexedRow<TData>> _dataActor = new();
+    private uint _lastDataIdx = 0;
+    private uint _headDataIdx = 1;
+    private InComparerAdapter<IndexedRow<TData>> _indexedRowComparer = new(new IndexedRowComparer<TData>());
     private List<IndexedRow<TData>> _showStorage = null!;
 
     private ImGuiSelectionBasicStorage _selection = new();
@@ -44,20 +46,26 @@ public class DataTableWidget<TData> : BaseWidget
     public Func<bool> ShouldScrollToEnd { get; set; }
 
     public int MaxLocalStorage { get; init; }
-    public ConcurrentQueue<TData> DataQueue = new();
-    public uint DataIdx { get; private set; }
     public float RowHeightWithSpacing { get; private set; }
 
     public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
+        var actorItems = _dataActor.GetInnerAdapter().Items;
+
         // header
         if (UseHeader)
         {
+            bool prevAutoScroll = AutoScroll;
             ImGui.Checkbox($"AutoScroll##{OwnerWindowName}", ref AutoScroll);
+            if (AutoScroll == true && prevAutoScroll == false)
+            {
+                // AutoScroll가 활성화 된 경우
+                _selection.Clear();
+            }
 
             // Selection info
             ImGuiHelper.SpacingSameLine();
-            ImGui.Text($"Select:{_selection.Size}/{_localStorage.Count}");
+            ImGui.Text($"Select:{_selection.Size}/{actorItems.Count}");
             ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
 
             // Filter
@@ -72,7 +80,7 @@ public class DataTableWidget<TData> : BaseWidget
             return;
         }
 
-        var initData = _showStorage[0];
+        var initData = _showStorage.FirstOrDefault();
 
         if (ImGui.BeginTable("Datas", Rule.Columns.Length + 1, Rule.TableFlags))
         {
@@ -98,7 +106,7 @@ public class DataTableWidget<TData> : BaseWidget
                     {
                         return unchecked((uint)-1);
                     }
-
+                 
                     return _showStorage[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
@@ -215,9 +223,10 @@ public class DataTableWidget<TData> : BaseWidget
                     {
                         posY = _findWidget.FoundedFocusIndex * RowHeightWithSpacing;
                     }
-                    else if (IndexKeyToLocalStorageIdx(_focusedRow?.Index ?? 0) is int localStorageIdx && localStorageIdx > 0)
+                    else if (_focusedRow.HasValue == true)
                     {
-                        posY = localStorageIdx * RowHeightWithSpacing;
+                        int index = _showStorage.BinarySearch(_focusedRow.Value, _indexedRowComparer);
+                        posY = index * RowHeightWithSpacing;
                     }
 
                     if (posY.HasValue == true)
@@ -251,50 +260,32 @@ public class DataTableWidget<TData> : BaseWidget
 
     public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        AdjustData();
-
-        _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null
-            ? _findWidget.FoundedList
-            : _localStorage;
-    }
-
-    public void PushData(TData data)
-    {
-        DataQueue.Enqueue(data);
-    }
-
-    public void ClearData()
-    {
-        DataQueue.Clear();
-        _localStorage.Clear();
-        _selection.Clear();
-        DataIdx = 1;
-        _findWidget.FindingTargetChange();
-    }
-
-    private void AdjustData()
-    {
-        while (DataQueue.TryDequeue(out var data) == true)
+        if (_dataActor.IsInitialized == false)
         {
-            uint index = DataIdx++;
-            var indexedRow = new IndexedRow<TData>(index, data);
-            _localStorage.Add(indexedRow);
+            _dataActor.Initialize(Environment.CurrentManagedThreadId);
+            _dataActor.OnAdded += OnActorAdded;
+        }
 
-            string rowToString = Rule.RowToString(indexedRow.RowData);
-            if (_findWidget.IsMachted(rowToString) == true)
-            {
-                _findWidget.FoundedList?.Add(indexedRow);
-            }
+        _dataActor.Work();
+        var actorItems = _dataActor.GetInnerAdapter().Items;
+
+        // 선택한 데이터가 있는 경우 삭제를 유예한다.
+        // 하지만 현재 데이터의 범위가 MaxLocalStorage * 2를 초과하면 선택된 데이터를 초기화시키고, 삭제될수 있도록 처리
+        int currentCount = actorItems.Count;
+        if (currentCount > MaxLocalStorage * 2)
+        {
+            _selection.Clear();
         }
 
         // 선택한 데이터가 없는 경우 MaxLocalStorage 적용
         if (_selection.Size == 0)
         {
-            // 로컬스토리지는 MaxLocalStorage 만큼만 데이터 저장
-            int removeCount = _localStorage.Count - MaxLocalStorage;
+            int dataCount = actorItems.Count;
+            int removeCount = dataCount - MaxLocalStorage;
             if (removeCount > 0)
             {
-                _localStorage.RemoveRange(0, removeCount);
+                actorItems.RemoveRange(0, removeCount);
+                _headDataIdx += (uint)removeCount;
             }
 
             // 선택한 데이터가 있는 경우 MaxLocalStorage 적용을 유예시키는 이유는 MultiSelect중 앞의 데이터가 삭제될때,
@@ -302,25 +293,47 @@ public class DataTableWidget<TData> : BaseWidget
             // 선택이 정상적으로 유지되지 않는 버그 스러운 문제 때문.
         }
 
-        // 선택한 데이터가 있는 경우라도, 현재 데이터의 범위가 MaxLocalStorage * 2를 초과하면 선택된 데이터를 초기화시키고, 삭제될수 있도록 처리
-        if (_localStorage.Count > MaxLocalStorage * 2)
+        // 상황에 맞는 출력용 스토리지 선택
+        _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null
+            ? _findWidget.FoundedList
+            : _dataActor.GetInnerAdapter().Items;
+    }
+
+    public uint PushData(TData data)
+    {
+        uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
+        var indexedRow = new IndexedRow<TData>(dataIdx, data);
+
+        _dataActor.GetOuterAdapter().AddPost(indexedRow);
+        return dataIdx;
+    }
+
+    private void OnActorAdded(in ImRenderListActor<IndexedRow<TData>>.Message msg)
+    {
+        string rowToString = Rule.RowToString(msg.Item.RowData);
+        if (_findWidget.IsMachted(rowToString) == true)
         {
-            _selection.Clear();
+            _findWidget.FoundedList?.Add(msg.Item);
         }
     }
 
-    public IEnumerable<TData> PeekRecentDatas(int peekCount)
+    public void ClearData()
     {
-        var datas = _localStorage.ToList();
-        ;
-        int dataLength = datas.Count;
+        _lastDataIdx = 0;
+        _selection.Clear();
+        _findWidget.FindingTargetChange();
+    }
 
-        if (peekCount >= dataLength)
+    public async Task<List<TData>> PeekRecentDatas(int peekCount)
+    {
+        return await _dataActor.GetOuterAdapter().Ask((items) =>
         {
-            return datas.Select(x => x.RowData);
-        }
-
-        return datas.Skip(dataLength - peekCount).Select(x => x.RowData);
+            return items.OrderByDescending(r => r.Index)
+            .Take(peekCount)
+            .OrderBy(r => r.Index)
+            .Select(r => r.RowData)
+            .ToList();
+        });
     }
 
     private bool ShouldScrollToEndInternal()
@@ -339,18 +352,18 @@ public class DataTableWidget<TData> : BaseWidget
     }
 
     /// <summary>
-    /// IndexKey를 로컬 스토리지의 인덱스로 변환. LocalStorage 가 중간에 삭제되지 않는 다는 가정. 삭제되는 구조로 변경시 수정 필요.
+    /// IndexKey를 로컬 스토리지의 인덱스로 변환. 삭제되지 않는 다는 가정. 삭제되는 구조로 변경시 수정 필요.
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
     private int IndexKeyToLocalStorageIdx(uint index)
     {
-        if (index < _localStorage.First().Index || index > _localStorage.Last().Index)
+        if (index < _headDataIdx || index >= _lastDataIdx)
         {
             return -1;
         }
 
-        return (int)(index - _localStorage.First().Index);
+        return (int)(index - _headDataIdx);
     }
 
     private void OnFindingTargetChanged()
@@ -358,7 +371,7 @@ public class DataTableWidget<TData> : BaseWidget
         _focusedRow = null;
 
         _findWidget.FoundedList =
-            [ .. _localStorage
+            [ .. _dataActor.GetInnerAdapter().Items
                 .Where(indexedRow => _findWidget.IsMachted(Rule.RowToString(indexedRow.RowData)))
                 .ToList(), ];
     }
@@ -386,6 +399,7 @@ public class DataTableWidget<TData> : BaseWidget
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
+            var actorItems = _dataActor.GetInnerAdapter().Items;
             var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
@@ -397,7 +411,7 @@ public class DataTableWidget<TData> : BaseWidget
                     continue;
                 }
 
-                string rowToString = Rule.RowToString(_localStorage[targetIdx].RowData);
+                string rowToString = Rule.RowToString(actorItems[targetIdx].RowData);
                 sb.AppendLine(rowToString);
             }
 

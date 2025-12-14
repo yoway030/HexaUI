@@ -170,43 +170,45 @@ internal class Program
 
         ////////////////////////////
 
-        var result0 = Task.Run(async () =>
-        {
-            int logIndex = 0;
+        //var result0 = Task.Run(async () =>
+        //{
+        //    int logIndex = 0;
 
-            while (visualizer.IsWindowShouldClose == false)
-            {
-                list.AddPost($"{logIndex}AA");
-                dict.AddPost(logIndex, $"Value_{logIndex}");
+        //    while (visualizer.IsWindowShouldClose == false)
+        //    {
+        //        list.AddPost($"{logIndex}AA");
+        //        dict.AddPost(logIndex, $"Value_{logIndex}");
 
-                if (logIndex % 5 == 0)
-                {
-                    var snapshot = await list.SnapshotAsk();
-                    var snapshotDict = await dict.SnapshotAsk();
+        //        if (logIndex % 5 == 0)
+        //        {
+        //            var snapshot = await list.SnapshotAsk();
+        //            var snapshotDict = await dict.SnapshotAsk();
 
-                    var name = String.Join(", ", snapshot.Take(5));
-                    name += string.Join(", ", snapshotDict.Values.Take(5));
+        //            var name = String.Join(", ", snapshot.Take(5));
+        //            name += string.Join(", ", snapshotDict.Values.Take(5));
 
-                    dataTable.PushData(new PlayerRow
-                    {
-                        Name = name,
-                        Level = logIndex,
-                        Class = "SNAP",
-                        DPS = 20,
-                    });
-                }
+        //            dataTable.PushData(new PlayerRow
+        //            {
+        //                Name = name,
+        //                Level = logIndex,
+        //                Class = "SNAP",
+        //                DPS = 20,
+        //            });
+        //        }
 
-                Thread.Sleep(100);
-                logIndex++;
-            }
-        });
+        //        Thread.Sleep(100);
+        //        logIndex++;
+        //    }
+        //});
+
+        //////////////////////////
 
 
         Random random = new Random();
         int logIndex = 0;
         while (visualizer.IsWindowShouldClose == false)
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀\n\rAAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
+            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
 
             Thread.Sleep(100);
             logIndex++;

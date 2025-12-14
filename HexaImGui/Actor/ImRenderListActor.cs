@@ -71,6 +71,14 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
                 return new List<TData>(_actor._items);
             });
         }
+
+        public Task<TResult> Ask<TResult>(Func<List<TData>, TResult> func)
+        {
+            return _actor.Ask(() =>
+            {
+                return func(_actor._items);
+            });
+        }
     }
 
     public class InnerAdapter
@@ -89,16 +97,25 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
     private OuterAdapter? _outer;
     private InnerAdapter? _inner;
 
+    public event InAction<Message>? OnAdded;
+    public event InAction<Message>? OnRemoved;
+    public event InAction<Message>? OnUpdated;
+    public event InAction<Message>? OnCleared;
+
     protected override void HandleMessage(in Message message)
     {
         switch (message.Type)
         {
             case MessageType.Add:
                 _items.Add(message.Item!);
+                OnAdded?.Invoke(message);
                 break;
 
             case MessageType.Remove:
-                _items.Remove(message.Item!);
+                if (_items.Remove(message.Item!) == true)
+                {
+                    OnRemoved?.Invoke(message);
+                }
                 break;
 
             case MessageType.Update:
@@ -107,12 +124,14 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
                     if (index >= 0)
                     {
                         _items[index] = message.Item!;
+                        OnUpdated?.Invoke(message);
                     }
                 }
                 break;
 
             case MessageType.Clear:
                 _items.Clear();
+                OnCleared?.Invoke(message);
                 break;
 
             default:

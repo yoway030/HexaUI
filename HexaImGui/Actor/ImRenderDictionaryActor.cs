@@ -91,24 +91,38 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
     private OuterAdapter? _outer;
     private InnerAdapter? _inner;
 
+    public event InAction<Message>? OnAdded;
+    public event InAction<Message>? OnRemoved;
+    public event InAction<Message>? OnUpdated;
+    public event InAction<Message>? OnCleared;
+
     protected override void HandleMessage(in Message message)
     {
         switch (message.Type)
         {
             case MessageType.Add:
                 _items.Add(message.Key!, message.Value!);
+                OnAdded?.Invoke(message);
                 break;
 
             case MessageType.Remove:
-                _items.Remove(message.Key!);
+                if (_items.Remove(message.Key!) == true)
+                {
+                    OnRemoved?.Invoke(message);
+                }
                 break;
 
             case MessageType.Update:
-                _items[message.Key!] = message.Value!;
+                if (_items.ContainsKey(message.Key!) == true)
+                {
+                    _items[message.Key!] = message.Value!;
+                    OnUpdated?.Invoke(message);
+                }
                 break;
 
             case MessageType.Clear:
                 _items.Clear();
+                OnCleared?.Invoke(message);
                 break;
 
             default:
@@ -131,6 +145,6 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         [CallerLineNumber] int lineNumber = 0)
     {
         CheckInnerRenderThread(memberName, filePath, lineNumber);
-        return _inner = new InnerAdapter(this);
+        return _inner ??= new InnerAdapter(this);
     }
 }

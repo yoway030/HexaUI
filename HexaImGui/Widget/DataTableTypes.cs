@@ -150,3 +150,53 @@ public sealed class DataTableRule<T>
 }
 
 public readonly record struct IndexedRow<TRow>(uint Index, TRow RowData);
+
+public interface IInComparer<T>
+{
+    int Compare(in T x, in T y);
+}
+
+public readonly struct IndexedRowComparer<TRow> : IInComparer<IndexedRow<TRow>>
+{
+    public int Compare(in IndexedRow<TRow> x, in IndexedRow<TRow> y)
+    {
+        if (x.Index == y.Index)
+        {
+            return 0;
+        }
+        else if (x.Index < y.Index)
+        {
+            return -1;
+        }
+
+        return 1;
+    }
+}
+
+public sealed class InComparerAdapter<T> : IComparer<T>
+{
+    private readonly IInComparer<T> _comparer;
+
+    public InComparerAdapter(IInComparer<T> comparer)
+    {
+        _comparer = comparer;
+    }
+
+    public int Compare(T? x, T? y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return 0;
+        }
+        else if (x is null)
+        {
+            return -1;
+        }
+        else if (y is null)
+        {
+            return 1;
+        }
+
+        return _comparer.Compare(in x, in y);
+    }
+}
