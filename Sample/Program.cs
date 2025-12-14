@@ -75,6 +75,8 @@ internal class Program
                 });
         DataTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
 
+        EdiTableWindow<PlayerRow> ediTable = new(tableRole, "EdiTableWidget");
+
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
         jsonWidgetWindow.Widget.JsonText = jsonString;
@@ -111,6 +113,7 @@ internal class Program
             var windows = new BaseWindow[]
             {
                 dataTable,
+                ediTable,
                 processMonitor,
                 console,
                 nodeView,
@@ -152,6 +155,7 @@ internal class Program
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
         {
+            ediTable.Widget.InitializeActor(Environment.CurrentManagedThreadId);
             renderListActor.Initialize(Environment.CurrentManagedThreadId);
             renderDictActor.Initialize(Environment.CurrentManagedThreadId);
 
@@ -204,15 +208,44 @@ internal class Program
         //////////////////////////
 
 
-        Random random = new Random();
-        int logIndex = 0;
-        while (visualizer.IsWindowShouldClose == false)
+        var taskAddData = Task.Run(async () =>
         {
-            dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
 
-            Thread.Sleep(100);
-            logIndex++;
-        }
+            Random random = new Random();
+            int logIndex = 0;
+            while (visualizer.IsWindowShouldClose == false)
+            {
+                dataTable.PushData(new PlayerRow { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
+
+                if (logIndex % 5 == 0)
+                {
+                    ediTable.AddData(new PlayerRow
+                    {
+                        Name = $"Player_{logIndex}",
+                        Level = random.Next(1, 100),
+                        Class = "Warrior",
+                        DPS = (float)(random.NextDouble() * 1000),
+                    });
+                }
+                else if (logIndex % 7 == 0)
+                {
+                    await ediTable.UpdateData((uint)(logIndex / 7), new PlayerRow
+                    {
+                        Name = $"UpdatedPlayer_{logIndex}",
+                        Level = random.Next(1, 100),
+                        Class = "Mage",
+                        DPS = (float)(random.NextDouble() * 1000),
+                    });
+                }
+                else if (logIndex % 11 == 0)
+                {
+                    await ediTable.RemoveIndex((uint)(logIndex / 5));
+                }
+
+                await Task.Delay(100);
+                logIndex++;
+            }
+        });
 
 
         thread.Join();
