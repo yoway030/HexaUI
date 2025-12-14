@@ -322,6 +322,7 @@ public class DataTableWidget<TData> : BaseWidget
         _lastDataIdx = 0;
         _selection.Clear();
         _findWidget.FindingTargetChange();
+        _dataActor.GetOuterAdapter().ClearPost();
     }
 
     public async Task<List<TData>> PeekRecentDatas(int peekCount)
