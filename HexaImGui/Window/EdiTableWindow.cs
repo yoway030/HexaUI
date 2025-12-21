@@ -22,7 +22,7 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
 
     public async Task<bool> UpdateData(uint index, TData data)
     {
-        return await Widget.UpdateIndexedData(index, data);
+        return await Widget.UpdateDataByIndex(index, data);
     }
 
     public void ClearData()

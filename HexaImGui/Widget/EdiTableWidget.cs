@@ -278,7 +278,7 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public async Task<bool> UpdateIndexedData(uint index, TData newData)
+    public async Task<bool> UpdateDataByIndex(uint index, TData newData)
     {
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
