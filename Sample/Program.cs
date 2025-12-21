@@ -74,7 +74,6 @@ internal class Program
                     return $"{row.Name} {row.Level} {row.DPS} {row.Class}";
                 });
         DataTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
-
         EdiTableWindow<PlayerRow> ediTable = new(tableRole, "EdiTableWidget");
 
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
@@ -229,7 +228,7 @@ internal class Program
                 }
                 else if (logIndex % 7 == 0)
                 {
-                    await ediTable.UpdateDataByIndex((logIndex / 7), new PlayerRow
+                    await ediTable.UpdateDataByIndex((logIndex / 10), new PlayerRow
                     {
                         Name = $"UpdatedPlayer_{logIndex}",
                         Level = random.Next(1, 100),

@@ -47,9 +47,6 @@ public class EdiTableWidget<TData> : BaseWidget
             ImGuiHelper.SpacingSameLine();
             ImGui.Text($"Select:{_selection.Size}/{actorItems.Count}");
             ImGuiHelper.HelpMarkerSameLine("선택된 데이터수 / 출력 중인 데이터수");
-
-            // Filter
-            ImGuiHelper.SpacingSameLine();
         }
 
         // body data
