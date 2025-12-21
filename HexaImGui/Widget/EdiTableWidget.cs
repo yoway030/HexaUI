@@ -21,9 +21,7 @@ public class EdiTableWidget<TData> : BaseWidget
         Rule = rule;
     }
 
-    private ImRenderListActor<IndexedRow<TData>> _dataActor = new();
-    private uint _lastDataIdx = 0;
-    private InComparerAdapter<IndexedRow<TData>> _indexedRowComparer = new(new IndexedRowComparer<TData>());
+    private ImRenderListActor<TData> _dataActor = new();
     private ImGuiSelectionBasicStorage _selection = new();
 
     public DataTableRule<TData> Rule;
@@ -87,8 +85,8 @@ public class EdiTableWidget<TData> : BaseWidget
                     {
                         return unchecked((uint)-1);
                     }
-                 
-                    return actorItems[index].Index;
+
+                    return (uint)index;
                 });
             _selection.ApplyRequests(ms_io);
 
@@ -109,8 +107,8 @@ public class EdiTableWidget<TData> : BaseWidget
                 for (int scrollIndex = clipper.DisplayStart; scrollIndex < clipper.DisplayEnd; scrollIndex++)
                 {
                     var colorEffect = Vector4.Zero;
-                    var indexedRow = actorItems[scrollIndex];
-                    string fieldsToString = Rule.RowToString(indexedRow.RowData);
+                    var containedData = actorItems[scrollIndex];
+                    string fieldsToString = Rule.RowToString(containedData);
                     bool isRowHovered = false;
                     beforeDrawPosY = ImGui.GetCursorPosY();
 
@@ -122,17 +120,17 @@ public class EdiTableWidget<TData> : BaseWidget
                         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(colorEffect));
                     }
 
-                    Rule.RenderRowHead(indexedRow.RowData);
+                    Rule.RenderRowHead(containedData);
 
                     // 데이터 필드 출력
-                    Rule.RenderRow(indexedRow.RowData);
+                    Rule.RenderRow(containedData);
 
                     ImGui.TableNextColumn();
                     {
                         // 선택기능 컬럼
-                        bool item_is_selected = _selection.Contains(indexedRow.Index);
+                        bool item_is_selected = _selection.Contains((uint) scrollIndex);
                         ImGui.SetNextItemSelectionUserData(scrollIndex);
-                        ImGui.Selectable($"##{indexedRow.Index}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
+                        ImGui.Selectable($"##{scrollIndex}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
 
                         if (ImGui.IsItemHovered())
                         {
@@ -140,7 +138,7 @@ public class EdiTableWidget<TData> : BaseWidget
                         }
                     }
 
-                    Rule.RenderRowFoot(indexedRow.RowData);
+                    Rule.RenderRowFoot(containedData);
 
                     afterDrawPosY = ImGui.GetCursorPosY();
 
@@ -148,7 +146,7 @@ public class EdiTableWidget<TData> : BaseWidget
                     {
                         if (ImGui.Button("floating Tooltip"))
                         {
-                            string windowName = $"{WidgetName}:{indexedRow.Index}";
+                            string windowName = $"{WidgetName}:{scrollIndex}";
 
                             imInternalContext.SubWindows.TryGetValue(windowName, out var subWindow);
 
@@ -158,7 +156,7 @@ public class EdiTableWidget<TData> : BaseWidget
                             }
                             else
                             {
-                                var widget = new RenderActionWidget<TData>(indexedRow.RowData, Rule.TooltipRender);
+                                var widget = new RenderActionWidget<TData>(containedData, Rule.TooltipRender);
                                 var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
@@ -169,7 +167,7 @@ public class EdiTableWidget<TData> : BaseWidget
                             ImGui.CloseCurrentPopup();
                         }
 
-                        Rule.RenderTooltip(indexedRow.RowData);
+                        Rule.RenderTooltip(containedData);
                         ImGui.EndPopup();
                     }
 
@@ -177,7 +175,7 @@ public class EdiTableWidget<TData> : BaseWidget
                     {
                         if (Rule.TooltipRender != null && ImGui.BeginTooltip())
                         {
-                            Rule.RenderTooltip(indexedRow.RowData);
+                            Rule.RenderTooltip(containedData);
                             ImGui.EndTooltip();
                         }
                     }
@@ -211,17 +209,12 @@ public class EdiTableWidget<TData> : BaseWidget
         _dataActor.Work();
     }
 
-    public uint AddData(TData data)
+    public void AddData(TData data)
     {
-        // IndexedRow 생성. 해당 값을 기준으로 값이 정렬된 것을 가정하므로, 삭제는 상관없지만 중간에 값을 삽입 할 수는 없다.
-        uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
-        var indexedRow = new IndexedRow<TData>(dataIdx, data);
-
-        _dataActor.GetOuterAdapter().AddPost(indexedRow);
-        return dataIdx;
+        _dataActor.GetOuterAdapter().AddPost(data);
     }
 
-    public async Task<uint> FindIndex(TData data, IInComparer<TData>? comparer = null)
+    public async Task<int> FindData(TData data, IInComparer<TData>? comparer = null)
     { 
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
@@ -230,22 +223,22 @@ public class EdiTableWidget<TData> : BaseWidget
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
-                if (comparer != null && comparer.Compare(items[i].RowData, data) == 0)
+                if (comparer != null && comparer.Compare(items[i], data) == 0)
                 {
                     founded = true;
                 }
-                else if (EqualityComparer<TData>.Default.Equals(items[i].RowData, data))
+                else if (EqualityComparer<TData>.Default.Equals(items[i], data))
                 {
                     founded = true;
                 }
 
                 if (founded)
                 {
-                    return items[i].Index;
+                    return i;
                 }
             }
 
-            return uint.MaxValue;
+            return -1;
         });
     }
 
@@ -258,18 +251,18 @@ public class EdiTableWidget<TData> : BaseWidget
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
-                if (comparer != null && comparer.Compare(items[i].RowData, data) == 0)
+                if (comparer != null && comparer.Compare(items[i], data) == 0)
                 {
                     founded = true;
                 }
-                else if (EqualityComparer<TData>.Default.Equals(items[i].RowData, data))
+                else if (EqualityComparer<TData>.Default.Equals(items[i], data))
                 {
                     founded = true;
                 }
 
                 if (founded)
                 {
-                    items[i] = new IndexedRow<TData>(items[i].Index, data);
+                    items[i] = data;
                     return true;
                 }
             }
@@ -278,59 +271,40 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public async Task<bool> UpdateDataByIndex(uint index, TData newData)
+    public async Task<bool> UpdateDataByIndex(int index, TData newData)
     {
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
-            int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
-            if (idx < 0)
+            if (index < 0 || index >= items.Count)
             {
                 return false;
             }
 
-            items[idx] = new IndexedRow<TData>(index, newData);
+            items[index] = newData;
             return true;
         });
     }
 
-    public async Task<bool> RemoveIndex(uint index)
+    public async Task<bool> RemoveIndex(int index)
     {
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
-            int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
-            if (idx < 0)
+            if (index < 0 || index >= items.Count)
             {
                 return false;
             }
 
-            items.RemoveAt(idx);
+            items.RemoveAt(index);
             return true;
         });
     }
 
     public void ClearData()
     {
-        _lastDataIdx = 0;
         _selection.Clear();
         _dataActor.GetOuterAdapter().ClearPost();
-    }
-
-    /// <summary>
-    /// IndexKey를 로컬 스토리지의 인덱스로 변환. 삭제되지 않는 다는 가정. 삭제되는 구조로 변경시 수정 필요.
-    /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    private int IndexKeyToLocalStorageIdx(uint index)
-    {
-        if (index < 0 || index >= _lastDataIdx)
-        {
-            return -1;
-        }
-
-        var actorItems = _dataActor.GetInnerAdapter().Items;
-        return actorItems.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
     }
 
     public override void OnWindowFocused(BaseWindow ownerWindow)
@@ -343,14 +317,8 @@ public class EdiTableWidget<TData> : BaseWidget
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                uint selectedIndexKey = _selection.Storage.Data[i].Key;
-                int targetIdx = IndexKeyToLocalStorageIdx(selectedIndexKey);
-                if (targetIdx == -1)
-                {
-                    continue;
-                }
-
-                string rowToString = Rule.RowToString(actorItems[targetIdx].RowData);
+                int selectedIndexKey = (int) _selection.Storage.Data[i].Key;
+                string rowToString = Rule.RowToString(actorItems[selectedIndexKey]);
                 sb.AppendLine(rowToString);
             }
 

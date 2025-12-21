@@ -10,17 +10,22 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
         Widget = new EdiTableWidget<TData>(rule, $"{windowName}#{nameof(EdiTableWindow<TData>)}", windowName);
     }
 
-    public uint AddData(TData data)
+    public void AddData(TData data)
     {
-        return Widget.AddData(data);
+        Widget.AddData(data);
     }
 
-    public async Task<uint> FindData(TData data)
+    public async Task<int> FindData(TData data, IInComparer<TData>? comparer = null)
     {
-        return await Widget.FindIndex(data);
+        return await Widget.FindData(data, comparer);
     }
 
-    public async Task<bool> UpdateData(uint index, TData data)
+    public async Task<bool> UpdateData(TData data, IInComparer<TData>? comparer = null)
+    {
+        return await Widget.UpdateData(data, comparer);
+    }
+
+    public async Task<bool> UpdateDataByIndex(int index, TData data)
     {
         return await Widget.UpdateDataByIndex(index, data);
     }
@@ -30,8 +35,8 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
         Widget.ClearData();
     }
 
-    public async Task RemoveIndex(uint index)
+    public async Task<bool> RemoveIndex(int index)
     {
-        await Widget.RemoveIndex(index);
+        return await Widget.RemoveIndex(index);
     }
 }

@@ -229,7 +229,7 @@ internal class Program
                 }
                 else if (logIndex % 7 == 0)
                 {
-                    await ediTable.UpdateData((uint)(logIndex / 7), new PlayerRow
+                    await ediTable.UpdateDataByIndex((logIndex / 7), new PlayerRow
                     {
                         Name = $"UpdatedPlayer_{logIndex}",
                         Level = random.Next(1, 100),
@@ -239,7 +239,7 @@ internal class Program
                 }
                 else if (logIndex % 11 == 0)
                 {
-                    await ediTable.RemoveIndex((uint)(logIndex / 5));
+                    await ediTable.RemoveIndex(0);
                 }
 
                 await Task.Delay(100);
