@@ -17,7 +17,7 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
 
     public async Task<uint> FindData(TData data)
     {
-        return await Widget.FindData(data);
+        return await Widget.FindIndex(data);
     }
 
     public async Task<bool> UpdateData(uint index, TData data)

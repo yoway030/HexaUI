@@ -213,6 +213,7 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public uint AddData(TData data)
     {
+        // IndexedRow 생성. 해당 값을 기준으로 값이 정렬된 것을 가정하므로, 삭제는 상관없지만 중간에 값을 삽입 할 수는 없다.
         uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
         var indexedRow = new IndexedRow<TData>(dataIdx, data);
 
@@ -220,11 +221,12 @@ public class EdiTableWidget<TData> : BaseWidget
         return dataIdx;
     }
 
-    public async Task<uint> FindData(TData data, IInComparer<TData>? comparer = null)
+    public async Task<uint> FindIndex(TData data, IInComparer<TData>? comparer = null)
     { 
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
+
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
@@ -242,6 +244,7 @@ public class EdiTableWidget<TData> : BaseWidget
                     return items[i].Index;
                 }
             }
+
             return uint.MaxValue;
         });
     }
@@ -251,6 +254,7 @@ public class EdiTableWidget<TData> : BaseWidget
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
+
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
