@@ -5,7 +5,6 @@ using ELImGui.Utils;
 using ELImGui.Widget;
 using Hexa.NET.ImGui;
 using System;
-using System.Data;
 using System.Numerics;
 using System.Text;
 
@@ -221,35 +220,85 @@ public class EdiTableWidget<TData> : BaseWidget
         return dataIdx;
     }
 
-    // Insert가 들어가면 BianrySearch가 틀어지므로 대응이 필요.
-    public async Task UpdateData(uint index, TData newData)
-    {
-        await _dataActor.GetOuterAdapter().Ask((items) =>
+    public async Task<uint> FindData(TData data, IInComparer<TData>? comparer = null)
+    { 
+        return await _dataActor.GetOuterAdapter().Ask((items) =>
         {
-            int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
-            if (idx < 0)
+            for (int i = 0; items.Count < i; i++)
             {
-                // 익셉션 방지. 익셉션 처리가 안되는것 대응이 필요함.
-                return Task.CompletedTask;
-            }
+                bool founded = false;
+                if (comparer != null && comparer.Compare(items[i].RowData, data) == 0)
+                {
+                    founded = true;
+                }
+                else if (EqualityComparer<TData>.Default.Equals(items[i].RowData, data))
+                {
+                    founded = true;
+                }
 
-            items[idx] = new IndexedRow<TData>(index, newData);
-            return Task.CompletedTask;
+                if (founded)
+                {
+                    return items[i].Index;
+                }
+            }
+            return uint.MaxValue;
         });
     }
 
-    public async Task RemoveIndex(uint index)
+    public async Task<bool> UpdateData(TData data, IInComparer<TData>? comparer = null)
     {
-        await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        {
+            for (int i = 0; items.Count < i; i++)
+            {
+                bool founded = false;
+                if (comparer != null && comparer.Compare(items[i].RowData, data) == 0)
+                {
+                    founded = true;
+                }
+                else if (EqualityComparer<TData>.Default.Equals(items[i].RowData, data))
+                {
+                    founded = true;
+                }
+
+                if (founded)
+                {
+                    items[i] = new IndexedRow<TData>(items[i].Index, data);
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
+    public async Task<bool> UpdateIndexedData(uint index, TData newData)
+    {
+        return await _dataActor.GetOuterAdapter().Ask((items) =>
         {
             int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
             if (idx < 0)
             {
-                return Task.CompletedTask;
+                return false;
+            }
+
+            items[idx] = new IndexedRow<TData>(index, newData);
+            return true;
+        });
+    }
+
+    public async Task<bool> RemoveIndex(uint index)
+    {
+        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        {
+            int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
+            if (idx < 0)
+            {
+                return false;
             }
 
             items.RemoveAt(idx);
-            return Task.CompletedTask;
+            return true;
         });
     }
 

@@ -10,14 +10,19 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
         Widget = new EdiTableWidget<TData>(rule, $"{windowName}#{nameof(EdiTableWindow<TData>)}", windowName);
     }
 
-    public void AddData(TData data)
+    public uint AddData(TData data)
     {
-        Widget.AddData(data);
+        return Widget.AddData(data);
     }
 
-    public async Task UpdateData(uint index, TData data)
+    public async Task<uint> FindData(TData data)
     {
-        await Widget.UpdateData(index, data);
+        return await Widget.FindData(data);
+    }
+
+    public async Task<bool> UpdateData(uint index, TData data)
+    {
+        return await Widget.UpdateIndexedData(index, data);
     }
 
     public void ClearData()
