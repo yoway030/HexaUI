@@ -32,7 +32,7 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (!IsRenderThread)
         {
-            throw new InvalidOperationException($"must be called from the ImGui render thread. " +
+            throw new InvalidOperationException($"{nameof(CheckInnerRenderThread)} check failed" +
                 $"thread:{Environment.CurrentManagedThreadId} != {_renderThreadId}," +
                 $"source:{memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
@@ -46,7 +46,7 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (IsRenderThread)
         {
-            throw new InvalidOperationException($"do not call from the ImGui render thread." +
+            throw new InvalidOperationException($"{nameof(CheckOuterRenderThread)} check failed" +
                 $"thread:{Environment.CurrentManagedThreadId} != {_renderThreadId}," +
                 $"source:{memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
