@@ -72,11 +72,16 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
             });
         }
 
-        public Task<TResult> Ask<TResult>(Func<List<TData>, TResult> func)
+        public Task<TResult> Ask<TResult>(
+            Func<InnerAdapter, TResult> func,
+            [CallerMemberName] string memberName = "",
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
         {
             return _actor.Ask(() =>
             {
-                return func(_actor._items);
+                var innderAdapter = _actor.GetInnerAdapter(memberName, filePath, lineNumber);
+                return func(innderAdapter);
             });
         }
     }

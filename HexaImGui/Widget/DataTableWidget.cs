@@ -327,8 +327,9 @@ public class DataTableWidget<TData> : BaseWidget
 
     public async Task<List<TData>> PeekRecentDatas(int peekCount)
     {
-        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
+            var items = innerAdapter.Items;
             return items.OrderByDescending(r => r.Index)
             .Take(peekCount)
             .OrderBy(r => r.Index)

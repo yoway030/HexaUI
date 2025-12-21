@@ -222,8 +222,9 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public async Task<uint> FindData(TData data, IInComparer<TData>? comparer = null)
     { 
-        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
+            var items = innerAdapter.Items;
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
@@ -247,8 +248,9 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public async Task<bool> UpdateData(TData data, IInComparer<TData>? comparer = null)
     {
-        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
+            var items = innerAdapter.Items;
             for (int i = 0; items.Count < i; i++)
             {
                 bool founded = false;
@@ -274,8 +276,9 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public async Task<bool> UpdateIndexedData(uint index, TData newData)
     {
-        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
+            var items = innerAdapter.Items;
             int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
             if (idx < 0)
             {
@@ -289,8 +292,9 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public async Task<bool> RemoveIndex(uint index)
     {
-        return await _dataActor.GetOuterAdapter().Ask((items) =>
+        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
+            var items = innerAdapter.Items;
             int idx = items.BinarySearch(new IndexedRow<TData>(index, default!), _indexedRowComparer);
             if (idx < 0)
             {
