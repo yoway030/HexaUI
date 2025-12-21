@@ -73,6 +73,19 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
                 return new Dictionary<TKey, TValue>(_actor._items);
             });
         }
+
+        public Task<TResult> Ask<TResult>(
+            Func<InnerAdapter, TResult> func,
+            [CallerMemberName] string memberName = "",
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
+        {
+            return _actor.Ask(() =>
+            {
+                var innderAdapter = _actor.GetInnerAdapter(memberName, filePath, lineNumber);
+                return func(innderAdapter);
+            });
+        }
     }
 
     public class InnerAdapter
