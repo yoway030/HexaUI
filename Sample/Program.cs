@@ -147,10 +147,10 @@ internal class Program
         ///
 
         ImRenderListActor<string> renderListActor = new();
-        var list = renderListActor.GetOuterAdapter();
+        var list = renderListActor.GetPostAdapter();
 
         ImRenderDictionaryActor<int, string> renderDictActor = new();
-        var dict = renderDictActor.GetOuterAdapter();
+        var dict = renderDictActor.GetPostAdapter();
 
         // 스레드 생성 및 시작
         Thread thread = new Thread(() =>
@@ -219,7 +219,7 @@ internal class Program
 
                 if (logIndex % 5 == 0)
                 {
-                    ediTable.AddData(new PlayerRow
+                    ediTable.AddPost(new PlayerRow
                     {
                         Name = $"Player_{logIndex}",
                         Level = random.Next(1, 100),
@@ -229,7 +229,7 @@ internal class Program
                 }
                 else if (logIndex % 7 == 0)
                 {
-                    await ediTable.UpdateDataByIndex((logIndex / 10), new PlayerRow
+                    ediTable.UpdateAtPost((logIndex / 10), new PlayerRow
                     {
                         Name = $"UpdatedPlayer_{logIndex}",
                         Level = random.Next(1, 100),
@@ -239,7 +239,7 @@ internal class Program
                 }
                 else if (logIndex % 11 == 0)
                 {
-                    await ediTable.RemoveIndex(0);
+                    ediTable.RemoveAtPost(0);
                 }
 
                 await Task.Delay(100);

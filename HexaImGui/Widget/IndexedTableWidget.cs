@@ -50,7 +50,7 @@ public class IndexedTableWidget<TData> : BaseWidget
 
     public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        var actorItems = _dataActor.GetInnerAdapter().Items;
+        var actorItems = _dataActor.GetDirectAdapter().Items;
 
         // header
         if (UseHeader)
@@ -267,7 +267,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         }
 
         _dataActor.Work();
-        var actorItems = _dataActor.GetInnerAdapter().Items;
+        var actorItems = _dataActor.GetDirectAdapter().Items;
 
         // 선택한 데이터가 있는 경우 삭제를 유예한다.
         // 하지만 현재 데이터의 범위가 MaxLocalStorage * 2를 초과하면 선택된 데이터를 초기화시키고, 삭제될수 있도록 처리
@@ -296,7 +296,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         // 상황에 맞는 출력용 스토리지 선택
         _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null
             ? _findWidget.FoundedList
-            : _dataActor.GetInnerAdapter().Items;
+            : _dataActor.GetDirectAdapter().Items;
     }
 
     public uint PushData(TData data)
@@ -304,7 +304,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
         var indexedRow = new IndexedRow<TData>(dataIdx, data);
 
-        _dataActor.GetOuterAdapter().AddPost(indexedRow);
+        _dataActor.GetPostAdapter().AddPost(indexedRow);
         return dataIdx;
     }
 
@@ -313,16 +313,16 @@ public class IndexedTableWidget<TData> : BaseWidget
         uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
         var indexedRow = new IndexedRow<TData>(dataIdx, data);
 
-        _dataActor.GetInnerAdapter().Add(indexedRow);
+        _dataActor.GetDirectAdapter().AddDirect(indexedRow);
         return dataIdx;
     }
 
-    private void OnActorAdded(in ImRenderListActor<IndexedRow<TData>>.Message msg)
+    private void OnActorAdded(in IndexedRow<TData> added)
     {
-        string rowToString = Rule.RowToString(msg.Item.RowData);
+        string rowToString = Rule.RowToString(added.RowData);
         if (_findWidget.IsMachted(rowToString) == true)
         {
-            _findWidget.FoundedList?.Add(msg.Item);
+            _findWidget.FoundedList?.Add(added);
         }
     }
 
@@ -331,12 +331,12 @@ public class IndexedTableWidget<TData> : BaseWidget
         _lastDataIdx = 0;
         _selection.Clear();
         _findWidget.FindingTargetChange();
-        _dataActor.GetInnerAdapter().Items.Clear();
+        _dataActor.GetDirectAdapter().ClearDirect();
     }
 
     public async Task<List<TData>> PeekRecentDatas(int peekCount)
     {
-        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
+        return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
             return items.OrderByDescending(r => r.Index)
@@ -382,7 +382,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         _focusedRow = null;
 
         _findWidget.FoundedList =
-            [ .. _dataActor.GetInnerAdapter().Items
+            [ .. _dataActor.GetDirectAdapter().Items
                 .Where(indexedRow => _findWidget.IsMachted(Rule.RowToString(indexedRow.RowData)))
                 .ToList(), ];
     }
@@ -410,7 +410,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
-            var actorItems = _dataActor.GetInnerAdapter().Items;
+            var actorItems = _dataActor.GetDirectAdapter().Items;
             var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)

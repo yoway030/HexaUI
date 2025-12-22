@@ -10,33 +10,33 @@ public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
         Widget = new EdiTableWidget<TData>(rule, $"{windowName}#{nameof(EdiTableWindow<TData>)}", windowName);
     }
 
-    public void AddData(TData data)
+    public void AddPost(TData data)
     {
-        Widget.AddData(data);
+        Widget.AddPost(data);
     }
 
-    public async Task<int> FindData(TData data, IInComparer<TData>? comparer = null)
+    public async Task<int> FindAsk(TData data, IInComparer<TData>? comparer = null)
     {
-        return await Widget.FindData(data, comparer);
+        return await Widget.FindAsk(data, comparer);
     }
 
-    public async Task<bool> UpdateData(TData data, IInComparer<TData>? comparer = null)
+    public async Task<bool> UpdateAsk(TData data, IInComparer<TData>? comparer = null)
     {
-        return await Widget.UpdateData(data, comparer);
+        return await Widget.UpdateAsk(data, comparer);
     }
 
-    public async Task<bool> UpdateDataByIndex(int index, TData data)
+    public void UpdateAtPost(int index, TData data)
     {
-        return await Widget.UpdateDataByIndex(index, data);
+        Widget.UpdateAtPost(index, data);
     }
 
-    public void ClearData()
+    public void ClearDirect()
     {
-        Widget.ClearData();
+        Widget.ClearDirect();
     }
 
-    public async Task<bool> RemoveIndex(int index)
+    public void RemoveAtPost(int index)
     {
-        return await Widget.RemoveIndex(index);
+        Widget.RemoveAtPost(index);
     }
 }

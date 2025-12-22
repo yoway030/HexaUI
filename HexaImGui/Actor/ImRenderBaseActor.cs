@@ -25,28 +25,28 @@ public abstract class ImRenderBaseActor<TMessage>
     public bool IsInitialized => _isInitialized;
 
     [Conditional("DEBUG")]
-    public void CheckInnerRenderThread(
+    public void CheckDirectableThread(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         if (!IsRenderThread)
         {
-            throw new InvalidOperationException($"{nameof(CheckInnerRenderThread)} check failed" +
+            throw new InvalidOperationException($"{nameof(CheckDirectableThread)} check failed" +
                 $"thread={Environment.CurrentManagedThreadId} != {_renderThreadId}," +
                 $"source={memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
     }
 
     [Conditional("DEBUG")]
-    public void CheckOuterRenderThread(
+    public void CheckPostableThread(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         if (IsRenderThread)
         {
-            throw new InvalidOperationException($"{nameof(CheckOuterRenderThread)} check failed" +
+            throw new InvalidOperationException($"{nameof(CheckPostableThread)} check failed" +
                 $"thread={Environment.CurrentManagedThreadId} != {_renderThreadId}," +
                 $"source={memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
         }
@@ -90,7 +90,7 @@ public abstract class ImRenderBaseActor<TMessage>
 
     public void Work()
     {
-        CheckInnerRenderThread();
+        CheckDirectableThread();
 
         while (_queue.TryDequeue(out var message))
         {

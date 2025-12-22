@@ -38,7 +38,7 @@ public class EdiTableWidget<TData> : BaseWidget
 
     public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        var actorItems = _dataActor.GetInnerAdapter().Items;
+        var actorItems = _dataActor.GetDirectAdapter().Items;
 
         // header
         if (UseHeader)
@@ -206,14 +206,14 @@ public class EdiTableWidget<TData> : BaseWidget
         _dataActor.Work();
     }
 
-    public void AddData(TData data)
+    public void AddPost(TData data)
     {
-        _dataActor.GetOuterAdapter().AddPost(data);
+        _dataActor.GetPostAdapter().AddPost(data);
     }
 
-    public async Task<int> FindData(TData data, IInComparer<TData>? comparer = null)
+    public async Task<int> FindAsk(TData data, IInComparer<TData>? comparer = null)
     { 
-        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
+        return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
 
@@ -239,9 +239,9 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public async Task<bool> UpdateData(TData data, IInComparer<TData>? comparer = null)
+    public async Task<bool> UpdateAsk(TData data, IInComparer<TData>? comparer = null)
     {
-        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
+        return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
 
@@ -268,40 +268,20 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public async Task<bool> UpdateDataByIndex(int index, TData newData)
+    public void UpdateAtPost(int index, TData newData)
     {
-        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
-        {
-            var items = innerAdapter.Items;
-            if (index < 0 || index >= items.Count)
-            {
-                return false;
-            }
-
-            items[index] = newData;
-            return true;
-        });
+        _dataActor.GetPostAdapter().UpdateAtPost(index, newData);
     }
 
-    public async Task<bool> RemoveIndex(int index)
+    public void RemoveAtPost(int index)
     {
-        return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
-        {
-            var items = innerAdapter.Items;
-            if (index < 0 || index >= items.Count)
-            {
-                return false;
-            }
-
-            items.RemoveAt(index);
-            return true;
-        });
+        _dataActor.GetPostAdapter().RemoveAtPost(index);
     }
 
-    public void ClearData()
+    public void ClearDirect()
     {
         _selection.Clear();
-        _dataActor.GetOuterAdapter().ClearPost();
+        _dataActor.GetDirectAdapter().ClearDirect();
     }
 
     public override void OnWindowFocused(BaseWindow ownerWindow)
@@ -309,7 +289,7 @@ public class EdiTableWidget<TData> : BaseWidget
         // Check for copy to clipboard action
         if (ImGui.IsKeyDown(ImGuiKey.ModCtrl) && ImGui.IsKeyDown(ImGuiKey.C))
         {
-            var actorItems = _dataActor.GetInnerAdapter().Items;
+            var actorItems = _dataActor.GetDirectAdapter().Items;
             var sb = new StringBuilder();
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)

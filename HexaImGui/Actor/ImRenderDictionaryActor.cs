@@ -44,11 +44,11 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         }
     }
 
-    public class OuterAdapter
+    public class PostAdapter
     {
         private readonly ImRenderDictionaryActor<TKey, TValue> _actor;
 
-        public OuterAdapter(ImRenderDictionaryActor<TKey, TValue> actor)
+        public PostAdapter(ImRenderDictionaryActor<TKey, TValue> actor)
         {
             _actor = actor;
         }
@@ -75,24 +75,24 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         }
 
         public Task<TResult> Ask<TResult>(
-            Func<InnerAdapter, TResult> func,
+            Func<DirectAdapter, TResult> func,
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "",
             [CallerLineNumber] int lineNumber = 0)
         {
             return _actor.Ask(() =>
             {
-                var innderAdapter = _actor.GetInnerAdapter(memberName, filePath, lineNumber);
-                return func(innderAdapter);
+                var directAdapter = _actor.GetDirectAdapter(memberName, filePath, lineNumber);
+                return func(directAdapter);
             });
         }
     }
 
-    public class InnerAdapter
+    public class DirectAdapter
     {
         private readonly ImRenderDictionaryActor<TKey, TValue> _actor;
 
-        public InnerAdapter(ImRenderDictionaryActor<TKey, TValue> actor)
+        public DirectAdapter(ImRenderDictionaryActor<TKey, TValue> actor)
         {
             _actor = actor;
         }
@@ -101,8 +101,8 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
     }
 
     private Dictionary<TKey, TValue> _items = new();
-    private OuterAdapter? _outer;
-    private InnerAdapter? _inner;
+    private PostAdapter? _postAdapter;
+    private DirectAdapter? _directAdapter;
 
     public event InAction<Message>? OnAdded;
     public event InAction<Message>? OnRemoved;
@@ -143,21 +143,21 @@ public class ImRenderDictionaryActor<TKey, TValue> : ImRenderBaseActor<ImRenderD
         }
     }
 
-    public OuterAdapter GetOuterAdapter(
+    public PostAdapter GetPostAdapter(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        CheckOuterRenderThread(memberName, filePath, lineNumber);
-        return _outer ??= new OuterAdapter(this);
+        CheckPostableThread(memberName, filePath, lineNumber);
+        return _postAdapter ??= new PostAdapter(this);
     }
 
-    public InnerAdapter GetInnerAdapter(
+    public DirectAdapter GetDirectAdapter(
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        CheckInnerRenderThread(memberName, filePath, lineNumber);
-        return _inner ??= new InnerAdapter(this);
+        CheckDirectableThread(memberName, filePath, lineNumber);
+        return _directAdapter ??= new DirectAdapter(this);
     }
 }
