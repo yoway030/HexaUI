@@ -47,17 +47,19 @@ public static class ImGuiHelper
 
     public static void TextUnformattedUntil(string text, byte target)
     {
-        Span<byte> buffer = stackalloc byte[Encoding.UTF8.GetByteCount(text)];
+        Span<byte> buffer = stackalloc byte[Encoding.UTF8.GetByteCount(text) + 1];
         int written = Encoding.UTF8.GetBytes(text, buffer);
+        buffer[written] = 0; // null-terminate
         int index = buffer.IndexOf(target);
 
         if (index >= 0)
         {
-            ImGui.TextUnformatted(buffer, ref buffer[index]);
+            var begin = buffer[..index];
+            ImGui.TextUnformatted(begin);
         }
         else
         {
-            ImGui.TextUnformatted(buffer);
+            ImGui.TextUnformatted(buffer[..written]); // written만큼만 출력
         }
     }
 

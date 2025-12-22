@@ -1,6 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿namespace ELImGui.Actor;
 
-namespace ELImGui.Actor;
+using System.Runtime.CompilerServices;
 
 public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TData>.Message>
 {
@@ -16,7 +16,7 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
     public readonly record struct Message : IRenderActorMessage<Message>
     {
         public static Message CreateAskMessage<TResult>(Func<TResult> func, TaskCompletionSource<TResult> tcs)
-            => new Message(MessageType.Ask, askPayload: new ActorAskPayload<TResult>(func, tcs));
+            => new(MessageType.Ask, askPayload: new ActorAskPayload<TResult>(func, tcs));
 
         public Message(MessageType type, TData? item = default, int? index = null, IActorAskPayLoad? askPayload = default)
         {
@@ -96,6 +96,9 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
         }
 
         public List<TData> Items => _actor._items;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Add(in TData item) => Items.Add(item);
     }
 
     private List<TData> _items = new();
@@ -121,18 +124,20 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
                 {
                     OnRemoved?.Invoke(message);
                 }
+
                 break;
 
             case MessageType.Update:
+            {
+                int index = _items.IndexOf(message.Item!);
+                if (index >= 0)
                 {
-                    var index = _items.IndexOf(message.Item!);
-                    if (index >= 0)
-                    {
-                        _items[index] = message.Item!;
-                        OnUpdated?.Invoke(message);
-                    }
+                    _items[index] = message.Item!;
+                    OnUpdated?.Invoke(message);
                 }
-                break;
+            }
+
+            break;
 
             case MessageType.Clear:
                 _items.Clear();

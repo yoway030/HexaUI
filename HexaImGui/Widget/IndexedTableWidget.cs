@@ -9,14 +9,14 @@ using System.Data;
 using System.Numerics;
 using System.Text;
 
-public class DataTableWidget<TData> : BaseWidget
+public class IndexedTableWidget<TData> : BaseWidget
 {
-    public DataTableWidget(DataTableRule<TData> rule, string widgetName)
+    public IndexedTableWidget(DataTableRule<TData> rule, string widgetName)
         : this(rule, widgetName, String.Empty)
     {
     }
 
-    public DataTableWidget(DataTableRule<TData> rule, string widgetName, string ownerWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
+    public IndexedTableWidget(DataTableRule<TData> rule, string widgetName, string ownerWindowName, int maxLocalStorage = 10_000, int windowDepth = 0)
         : base(widgetName, ownerWindowName)
     {
         Rule = rule;
@@ -106,7 +106,7 @@ public class DataTableWidget<TData> : BaseWidget
                     {
                         return unchecked((uint)-1);
                     }
-                 
+
                     return _showStorage[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
@@ -308,6 +308,15 @@ public class DataTableWidget<TData> : BaseWidget
         return dataIdx;
     }
 
+    public uint PushDataInner(TData data)
+    {
+        uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
+        var indexedRow = new IndexedRow<TData>(dataIdx, data);
+
+        _dataActor.GetInnerAdapter().Add(indexedRow);
+        return dataIdx;
+    }
+
     private void OnActorAdded(in ImRenderListActor<IndexedRow<TData>>.Message msg)
     {
         string rowToString = Rule.RowToString(msg.Item.RowData);
@@ -322,7 +331,7 @@ public class DataTableWidget<TData> : BaseWidget
         _lastDataIdx = 0;
         _selection.Clear();
         _findWidget.FindingTargetChange();
-        _dataActor.GetOuterAdapter().ClearPost();
+        _dataActor.GetInnerAdapter().Items.Clear();
     }
 
     public async Task<List<TData>> PeekRecentDatas(int peekCount)

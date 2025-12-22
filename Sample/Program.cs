@@ -73,7 +73,7 @@ internal class Program
                 {
                     return $"{row.Name} {row.Level} {row.DPS} {row.Class}";
                 });
-        DataTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
+        IndexedTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
 
         EdiTableWindow<PlayerRow> ediTable = new(tableRole, "EdiTableWidget");
 

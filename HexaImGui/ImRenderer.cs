@@ -1,4 +1,4 @@
-namespace ELImGui;
+﻿namespace ELImGui;
 
 using ELImGui.demo;
 using ELImGui.Utils;
@@ -186,7 +186,7 @@ public class ImRenderer
             return;
         }
 
-        RenderActionQueue.Flush();
+        RenderActionQueue.Work();
 
         GLFW.MakeContextCurrent(_glfwWindowPtr);
         _gl.ClearColor(1, 0.8f, 0.75f, 1);

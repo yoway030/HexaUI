@@ -87,7 +87,7 @@ public class EdiTableWidget<TData> : BaseWidget
                     {
                         return unchecked((uint)-1);
                     }
-                 
+
                     return actorItems[index].Index;
                 });
             _selection.ApplyRequests(ms_io);
@@ -222,7 +222,7 @@ public class EdiTableWidget<TData> : BaseWidget
     }
 
     public async Task<uint> FindIndex(TData data, IInComparer<TData>? comparer = null)
-    { 
+    {
         return await _dataActor.GetOuterAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
@@ -245,7 +245,7 @@ public class EdiTableWidget<TData> : BaseWidget
                 }
             }
 
-            return uint.MaxValue;
+            return UInt32.MaxValue;
         });
     }
 
