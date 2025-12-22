@@ -219,7 +219,7 @@ internal class Program
 
                 if (logIndex % 5 == 0)
                 {
-                    ediTable.AddPost(new PlayerRow
+                    ediTable.AddDataPost(new PlayerRow
                     {
                         Name = $"Player_{logIndex}",
                         Level = random.Next(1, 100),
@@ -229,7 +229,7 @@ internal class Program
                 }
                 else if (logIndex % 7 == 0)
                 {
-                    ediTable.UpdateAtPost((logIndex / 10), new PlayerRow
+                    ediTable.UpdateDataAtPost((logIndex / 10), new PlayerRow
                     {
                         Name = $"UpdatedPlayer_{logIndex}",
                         Level = random.Next(1, 100),
@@ -239,7 +239,7 @@ internal class Program
                 }
                 else if (logIndex % 11 == 0)
                 {
-                    ediTable.RemoveAtPost(0);
+                    ediTable.RemoveDataAtPost(0);
                 }
 
                 await Task.Delay(100);

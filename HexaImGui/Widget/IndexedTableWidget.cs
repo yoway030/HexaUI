@@ -308,7 +308,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         return dataIdx;
     }
 
-    public uint PushDataInner(TData data)
+    public uint PushDataDirect(TData data)
     {
         uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
         var indexedRow = new IndexedRow<TData>(dataIdx, data);

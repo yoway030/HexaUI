@@ -206,16 +206,16 @@ public class EdiTableWidget<TData> : BaseWidget
         _dataActor.Work();
     }
 
-    public void AddPost(TData data)
+    public void AddDataPost(TData data)
     {
         _dataActor.GetPostAdapter().AddPost(data);
     }
 
-    public async Task<int> FindAsk(TData data, IInComparer<TData>? comparer = null)
+    public async Task<int> FindDataAsk(TData data, IInComparer<TData>? comparer = null)
     { 
-        return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
+        return await _dataActor.GetPostAdapter().Ask((directAdaption) =>
         {
-            var items = innerAdapter.Items;
+            var items = directAdaption.Items;
 
             for (int i = 0; items.Count < i; i++)
             {
@@ -239,11 +239,11 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public async Task<bool> UpdateAsk(TData data, IInComparer<TData>? comparer = null)
+    public async Task<bool> UpdateDataAsk(TData data, IInComparer<TData>? comparer = null)
     {
-        return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
+        return await _dataActor.GetPostAdapter().Ask((directAdapter) =>
         {
-            var items = innerAdapter.Items;
+            var items = directAdapter.Items;
 
             for (int i = 0; items.Count < i; i++)
             {
@@ -268,17 +268,17 @@ public class EdiTableWidget<TData> : BaseWidget
         });
     }
 
-    public void UpdateAtPost(int index, TData newData)
+    public void UpdateDataAtPost(int index, TData newData)
     {
         _dataActor.GetPostAdapter().UpdateAtPost(index, newData);
     }
 
-    public void RemoveAtPost(int index)
+    public void RemoveDataAtPost(int index)
     {
         _dataActor.GetPostAdapter().RemoveAtPost(index);
     }
 
-    public void ClearDirect()
+    public void ClearDataDirect()
     {
         _selection.Clear();
         _dataActor.GetDirectAdapter().ClearDirect();
