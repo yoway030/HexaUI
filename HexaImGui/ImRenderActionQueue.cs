@@ -12,15 +12,18 @@ public class ImRenderActionQueue<TContext>
     protected readonly ConcurrentQueue<Action<TContext>> _queue = new();
     protected readonly ConcurrentQueue<Action<TContext>> _nextFrameQueue = new();
     protected int _renderThreadId = -1;
+    protected bool _isInitialized = false;
     protected TContext _context = default!;
 
     public void Initialize(int renderThreadId, TContext context)
     {
         _renderThreadId = renderThreadId;
         _context = context;
+        _isInitialized = true;
     }
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
+    public bool IsInitialized => _isInitialized;
 
     /// <summary>
     /// Fire-and-forget
@@ -83,22 +86,22 @@ public class ImRenderActionQueue<TContext>
     /// ImGui 렌더 스레드에서 호출되어야 함
     /// </summary>
     /// <exception cref="InvalidOperationException"></exception>
-    public void Flush()
+    public void Work()
     {
         if (!IsRenderThread)
         {
-            throw new InvalidOperationException($"{nameof(Flush)} must be called from the ImGui render thread.");
+            throw new InvalidOperationException($"{nameof(Work)} must be called from the ImGui render thread.");
         }
 
         while (_queue.TryDequeue(out var action))
         {
-            try 
+            try
             {
                 Invoke(action);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"{nameof(Flush)} Action: {action}, exception : {ex}");
+                Logger.Error(ex, $"{nameof(Work)} Action: {action}, exception : {ex}");
             }
         }
 
