@@ -8,14 +8,14 @@ using System;
 using System.Numerics;
 using System.Text;
 
-public class EdiTableWidget<TData> : BaseWidget
+public class DataTableWidget<TData> : BaseWidget
 {
-    public EdiTableWidget(DataTableRule<TData> rule, string widgetName)
+    public DataTableWidget(DataTableRule<TData> rule, string widgetName)
         : this(rule, widgetName, String.Empty)
     {
     }
 
-    public EdiTableWidget(DataTableRule<TData> rule, string widgetName, string ownerWindowName, int windowDepth = 0)
+    public DataTableWidget(DataTableRule<TData> rule, string widgetName, string ownerWindowName, int windowDepth = 0)
         : base(widgetName, ownerWindowName)
     {
         Rule = rule;
@@ -125,7 +125,7 @@ public class EdiTableWidget<TData> : BaseWidget
                     ImGui.TableNextColumn();
                     {
                         // 선택기능 컬럼
-                        bool item_is_selected = _selection.Contains((uint) scrollIndex);
+                        bool item_is_selected = _selection.Contains((uint)scrollIndex);
                         ImGui.SetNextItemSelectionUserData(scrollIndex);
                         ImGui.Selectable($"##{scrollIndex}#{OwnerWindowName}", item_is_selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap);
 
@@ -196,13 +196,18 @@ public class EdiTableWidget<TData> : BaseWidget
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    public override void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
+        base.OnPrevUpdate(utcNow, deltaSec, imInternalContext);
+
         if (_dataActor.IsInitialized == false)
         {
             _dataActor.Initialize(Environment.CurrentManagedThreadId);
         }
+    }
 
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    {
         _dataActor.Work();
     }
 
@@ -211,8 +216,13 @@ public class EdiTableWidget<TData> : BaseWidget
         _dataActor.GetPostAdapter().AddPost(data);
     }
 
+    public void AddDataDirect(TData data)
+    {
+        _dataActor.GetDirectAdapter().AddDirect(data);
+    }
+
     public async Task<int> FindDataAsk(TData data, IInComparer<TData>? comparer = null)
-    { 
+    {
         return await _dataActor.GetPostAdapter().Ask((directAdaption) =>
         {
             var items = directAdaption.Items;
@@ -294,7 +304,7 @@ public class EdiTableWidget<TData> : BaseWidget
 
             for (int i = 0; i < _selection.Storage.Data.Size; i++)
             {
-                int selectedIndexKey = (int) _selection.Storage.Data[i].Key;
+                int selectedIndexKey = (int)_selection.Storage.Data[i].Key;
                 string rowToString = Rule.RowToString(actorItems[selectedIndexKey]);
                 sb.AppendLine(rowToString);
             }

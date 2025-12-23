@@ -1,13 +1,13 @@
-﻿
+
 namespace ELImGui.Window;
 
 using System.Numerics;
 
-public class EdiTableWindow<TData> : SingleWidgetWindow<EdiTableWidget<TData>>
+public class DataTableWindow<TData> : SingleWidgetWindow<DataTableWidget<TData>>
 {
-    public EdiTableWindow(DataTableRule<TData> rule, string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
+    public DataTableWindow(DataTableRule<TData> rule, string windowName, Vector2? parentPosition = null) : base(windowName, parentPosition)
     {
-        Widget = new EdiTableWidget<TData>(rule, $"{windowName}#{nameof(EdiTableWindow<TData>)}", windowName);
+        Widget = new DataTableWidget<TData>(rule, $"{windowName}#{nameof(DataTableWindow<TData>)}", windowName);
     }
 
     public void AddDataPost(TData data)
