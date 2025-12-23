@@ -258,15 +258,19 @@ public class IndexedTableWidget<TData> : BaseWidget
         }
     }
 
-    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    public override void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
         if (_dataActor.IsInitialized == false)
         {
             _dataActor.Initialize(Environment.CurrentManagedThreadId);
             _dataActor.OnAdded += OnActorAdded;
         }
+    }
 
+    public override void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    {
         _dataActor.Work();
+
         var actorItems = _dataActor.GetDirectAdapter().Items;
 
         // 선택한 데이터가 있는 경우 삭제를 유예한다.
@@ -299,7 +303,7 @@ public class IndexedTableWidget<TData> : BaseWidget
             : _dataActor.GetDirectAdapter().Items;
     }
 
-    public uint PushData(TData data)
+    public uint PushDataPost(TData data)
     {
         uint dataIdx = Interlocked.Increment(ref _lastDataIdx);
         var indexedRow = new IndexedRow<TData>(dataIdx, data);
@@ -326,7 +330,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         }
     }
 
-    public void ClearData()
+    public void ClearDataDirect()
     {
         _lastDataIdx = 0;
         _selection.Clear();

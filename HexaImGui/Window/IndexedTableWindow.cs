@@ -12,6 +12,6 @@ public class IndexedTableWindow<TData> : SingleWidgetWindow<IndexedTableWidget<T
 
     public void PushData(TData data)
     {
-        Widget.PushData(data);
+        Widget.PushDataPost(data);
     }
 }

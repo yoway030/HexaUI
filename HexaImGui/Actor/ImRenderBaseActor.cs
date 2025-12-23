@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Actor;
+namespace ELImGui.Actor;
 
 using NLog;
 using System.Collections.Concurrent;
@@ -32,9 +32,9 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (!IsRenderThread)
         {
-            throw new InvalidOperationException($"{nameof(CheckDirectableThread)} check failed" +
-                $"thread={Environment.CurrentManagedThreadId} != {_renderThreadId}," +
-                $"source={memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+            throw new InvalidOperationException($"{nameof(CheckDirectableThread)} check failed. " +
+                $"thread:{{{Environment.CurrentManagedThreadId} != {_renderThreadId}}}," +
+                $"source:{{{memberName}:{Path.GetFileName(filePath)}:{lineNumber}}}");
         }
     }
 
@@ -46,9 +46,9 @@ public abstract class ImRenderBaseActor<TMessage>
     {
         if (IsRenderThread)
         {
-            throw new InvalidOperationException($"{nameof(CheckPostableThread)} check failed" +
-                $"thread={Environment.CurrentManagedThreadId} != {_renderThreadId}," +
-                $"source={memberName}:{Path.GetFileName(filePath)}:{lineNumber}");
+            throw new InvalidOperationException($"{nameof(CheckPostableThread)} check failed. " +
+                $"thread:{{{Environment.CurrentManagedThreadId} != {_renderThreadId}}}," +
+                $"source:{{{memberName}:{Path.GetFileName(filePath)}:{lineNumber}}}");
         }
     }
 

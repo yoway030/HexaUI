@@ -57,6 +57,14 @@ public class MultiWidgetWindow : BaseWindow
         }
     }
 
+    public override void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    {
+        foreach (var widget in Widgets)
+        {
+            widget.OnPrevUpdate(utcNow, deltaSec, imInternalContext);
+        }
+    }
+
     public override void OnWindowFocused()
     {
         base.OnWindowFocused();

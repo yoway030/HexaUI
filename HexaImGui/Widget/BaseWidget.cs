@@ -32,6 +32,7 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
 
     public void UpdateImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
+        OnPrevUpdate(utcNow, deltaSec, imInternalContext);
         OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
@@ -39,5 +40,6 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
     public virtual void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
     public abstract void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
+    public virtual void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
     public virtual void OnWindowFocused(BaseWindow ownerWindow) { }
 }

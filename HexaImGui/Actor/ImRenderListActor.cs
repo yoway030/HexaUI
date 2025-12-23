@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Actor;
+namespace ELImGui.Actor;
 
 using System;
 using System.Runtime.CompilerServices;
@@ -152,12 +152,12 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
 
     private bool RemoveAtInternal(int index)
     {
-        if (index < 0 && index >= _items.Count)
+        if (index < 0 || index >= _items.Count)
         {
             return false;
         }
 
-        TData item = _items[index];
+        var item = _items[index];
         _items.RemoveAt(index);
         OnRemoved?.Invoke(item);
         return true;
@@ -171,7 +171,7 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
 
     private bool UpdateAtInternal(in TData item, int index)
     {
-        if (index < 0 && index >= _items.Count)
+        if (index < 0 || index >= _items.Count)
         {
             return false;
         }
@@ -217,6 +217,7 @@ public class ImRenderListActor<TData> : ImRenderBaseActor<ImRenderListActor<TDat
                 {
                     UpdateInternal(message.Item!);
                 }
+
                 break;
 
             case MessageType.Clear:

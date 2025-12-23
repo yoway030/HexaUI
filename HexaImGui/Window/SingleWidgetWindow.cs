@@ -42,6 +42,11 @@ public class SingleWidgetWindow<TWidget> : BaseWindow
         Widget.OnUpdate(utcNow, deltaSec, imInternalContext);
     }
 
+    public override void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    {
+        Widget.OnPrevUpdate(utcNow, deltaSec, imInternalContext);
+    }
+
     public override void OnWindowFocused()
     {
         base.OnWindowFocused();
