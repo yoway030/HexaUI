@@ -75,7 +75,7 @@ internal class Program
                 });
         IndexedTableWindow<PlayerRow> dataTable = new(tableRole, $"{"\U0001F3C4"}LogSurfer");
 
-        EdiTableWindow<PlayerRow> ediTable = new(tableRole, "EdiTableWidget");
+        DataTableWindow<PlayerRow> ediTable = new(tableRole, "EdiTableWidget");
 
         SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
