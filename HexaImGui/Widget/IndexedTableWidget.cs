@@ -138,8 +138,8 @@ public class IndexedTableWidget<TData> : BaseWidget
                     beforeDrawPosY = ImGui.GetCursorPosY();
 
                     // color 조정
-                    colorEffect = _findWidget.IsMachted(fieldsToString) ? HighlightHelper.HighLightColor : Vector4.Zero;
-                    colorEffect = _focusedRow?.Index == indexedRow.Index ? HighlightHelper.FoucusColor : colorEffect;
+                    colorEffect = _findWidget.IsMachted(fieldsToString) ? ImGuiStyleSet.Green : Vector4.Zero;
+                    colorEffect = _focusedRow?.Index == indexedRow.Index ? ImGuiStyleSet.Values.Focus : colorEffect;
 
                     // row시작
                     ImGui.TableNextRow();

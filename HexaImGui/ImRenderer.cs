@@ -1,5 +1,6 @@
 ﻿namespace ELImGui;
 
+using NLog;
 using ELImGui.demo;
 using ELImGui.Utils;
 using Hexa.NET.GLFW;
@@ -11,7 +12,6 @@ using Hexa.NET.ImGuizmo;
 using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Hexa.NET.OpenGL;
-using NLog;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -78,7 +78,7 @@ public class ImRenderer
 
     public bool IsWindowShouldClose = false;
 
-    public bool Initialize(string windowTitle)
+    public bool Initialize(string windowTitle, ImGuiStyleSetValues? styleSetValues = null)
     {
         GLFW.Init();
 
@@ -113,6 +113,8 @@ public class ImRenderer
         _nodesContext = ImNodes.CreateContext();
         ImNodes.SetCurrentContext(_nodesContext);
         ImNodes.StyleColorsDark(ImNodes.GetStyle());
+
+        ImGuiStyleSet.Initialize(styleSetValues);
 
         // Setup ImGui config.
         _io = ImGui.GetIO();
@@ -189,7 +191,7 @@ public class ImRenderer
         RenderActionQueue.Work();
 
         GLFW.MakeContextCurrent(_glfwWindowPtr);
-        _gl.ClearColor(1, 0.8f, 0.75f, 1);
+        _gl.ClearColor(1, 1, 1, 1);
         _gl.Clear(GLClearBufferMask.ColorBufferBit);
 
         ImGuiImplOpenGL3.NewFrame();
@@ -426,7 +428,7 @@ public class ImRenderer
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.25f, 0.25f, 0.25f, 1.0f)); // 짙은 회색 배경
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiStyleSet.BlackGray);
 
         using var background = new ImGuiScopedWindow(labelBackground,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
@@ -443,7 +445,7 @@ public class ImRenderer
     private void DrawGridBackground(ImDrawListPtr drawList, Vector2 origin, Vector2 size)
     {
         const float gridSpacing = 32.0f;
-        var gridColor = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+        var gridColor = ImGuiStyleSet.Gray;
         uint gridColorU32 = ImGui.ColorConvertFloat4ToU32(gridColor);
 
         for (float x = origin.X; x < origin.X + size.X; x += gridSpacing)

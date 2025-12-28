@@ -89,7 +89,7 @@ public class TextViewWidget : BaseWidget
 
         if (ErrorText != null)
         {
-            ImGui.TextColored(new Vector4(1, 0, 0, 1), $"Error : {ErrorText}");
+            ImGui.TextColored(ImGuiStyleSet.TextError, $"Error : {ErrorText}");
         }
         else if (lineCount == 0)
         {

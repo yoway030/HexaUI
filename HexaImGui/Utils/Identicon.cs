@@ -42,7 +42,7 @@ public static class Identicon
 
     public static void RenderIdenticonRect(ImDrawListPtr dl, uint h32, float size, float left, float top)
     {
-        var rgb = ColorUtil.HslToRgb(h32, 0.65f, 0.55f);
+        var rgb = ImGuiColorHelper.HslToRgb(h32, 0.65f, 0.55f);
         uint fg = ImGui.ColorConvertFloat4ToU32(new(rgb.X, rgb.Y, rgb.Z, 1f));
 
         // 패딩/셀

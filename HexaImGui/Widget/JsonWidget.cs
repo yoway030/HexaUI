@@ -9,8 +9,6 @@ using System.Numerics;
 
 public class JsonWidget : BaseWidget
 {
-    public static readonly Vector4 HighLightColor = new(0.0f, 1.0f, 0.0f, 0.5f);
-
     public JsonWidget(string widgetName, string ownerWindowName) : base(widgetName, ownerWindowName)
     {
     }
@@ -89,7 +87,7 @@ public class JsonWidget : BaseWidget
     {
         if (_exception != null)
         {
-            ImGui.TextColored(new Vector4(1f, 0f, 0f, 1f), _exception);
+            ImGui.TextColored(ImGuiStyleSet.TextError, _exception);
             ImGui.Separator();
             ImGui.TextUnformatted(JsonText);
             return;
@@ -219,12 +217,12 @@ public class JsonWidget : BaseWidget
 
     Vector4 GetColorForToken(JTokenType type) => type switch
     {
-        JTokenType.String => new Vector4(0.4f, 0.4f, 1f, 1f),
-        JTokenType.Integer or JTokenType.Float => new Vector4(0.4f, 1f, 0.4f, 1f),
-        JTokenType.Boolean => new Vector4(0.4f, 1f, 0.4f, 1f),
-        JTokenType.Null => new Vector4(1f, 0f, 0f, 1f),
-        JTokenType.Date => new Vector4(1f, 0.7f, 0.2f, 1f),
-        JTokenType.Array => new Vector4(1f, 1f, 1f, 0.5f),
-        _ => new Vector4(1f, 1f, 1f, 1f)
+        JTokenType.String => ImGuiStyleSet.TextString,
+        JTokenType.Integer or JTokenType.Float => ImGuiStyleSet.TextString,
+        JTokenType.Boolean => ImGuiStyleSet.TextString,
+        JTokenType.Null => ImGuiStyleSet.TextNull,
+        JTokenType.Date => ImGuiStyleSet.TextDate,
+        JTokenType.Array => ImGuiStyleSet.TextGray,
+        _ => ImGuiStyleSet.TextNoraml
     };
 }

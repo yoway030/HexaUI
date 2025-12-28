@@ -139,7 +139,7 @@ internal class Program
                     new TimeSpan(0, 0, 0),
                     new TimeSpan(5500000),
                     new string[] { "EL", "Server", "On", "Your", "Mark" },
-                    new Vector4(1f, 1f, 0.9f, 1), new Vector4(0.3f, 0.3f, 1, 1)));
+                    ImGuiStyleSet.White, ImGuiColorHelper.BrightenClamped(ImGuiStyleSet.Blue, 0.3f)));
         });
 
         ////////////////////////////////////////////////////////////////////////////////////

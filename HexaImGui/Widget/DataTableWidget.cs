@@ -103,7 +103,6 @@ public class DataTableWidget<TData> : BaseWidget
                 // 클리핑 처리
                 for (int scrollIndex = clipper.DisplayStart; scrollIndex < clipper.DisplayEnd; scrollIndex++)
                 {
-                    var colorEffect = Vector4.Zero;
                     var containedData = actorItems[scrollIndex];
                     string fieldsToString = Rule.RowToString(containedData);
                     bool isRowHovered = false;
@@ -111,11 +110,6 @@ public class DataTableWidget<TData> : BaseWidget
 
                     // row시작
                     ImGui.TableNextRow();
-
-                    if (colorEffect != Vector4.Zero)
-                    {
-                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(colorEffect));
-                    }
 
                     Rule.RenderRowHead(containedData);
 
