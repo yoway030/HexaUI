@@ -1,4 +1,4 @@
-﻿namespace ELImGui;
+namespace ELImGui;
 
 using NLog;
 using ELImGui.demo;
@@ -78,7 +78,7 @@ public class ImRenderer
 
     public bool IsWindowShouldClose = false;
 
-    public bool Initialize(string windowTitle, ImGuiStyleSetValues? styleSetValues = null)
+    public bool Initialize(string windowTitle, ImGuiThemeValues? themeValues = null)
     {
         GLFW.Init();
 
@@ -114,7 +114,7 @@ public class ImRenderer
         ImNodes.SetCurrentContext(_nodesContext);
         ImNodes.StyleColorsDark(ImNodes.GetStyle());
 
-        ImGuiStyleSet.Initialize(styleSetValues);
+        ImGuiTheme.Initialize(themeValues);
 
         // Setup ImGui config.
         _io = ImGui.GetIO();
@@ -428,7 +428,7 @@ public class ImRenderer
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiStyleSet.BlackGray);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiColorHelper.DarkGray);
 
         using var background = new ImGuiScopedWindow(labelBackground,
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
@@ -445,7 +445,7 @@ public class ImRenderer
     private void DrawGridBackground(ImDrawListPtr drawList, Vector2 origin, Vector2 size)
     {
         const float gridSpacing = 32.0f;
-        var gridColor = ImGuiStyleSet.Gray;
+        var gridColor = ImGuiColorHelper.Gray;
         uint gridColorU32 = ImGui.ColorConvertFloat4ToU32(gridColor);
 
         for (float x = origin.X; x < origin.X + size.X; x += gridSpacing)

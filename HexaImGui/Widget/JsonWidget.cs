@@ -87,7 +87,7 @@ public class JsonWidget : BaseWidget
     {
         if (_exception != null)
         {
-            ImGui.TextColored(ImGuiStyleSet.TextError, _exception);
+            ImGui.TextColored(ImGuiColorHelper.TextError, _exception);
             ImGui.Separator();
             ImGui.TextUnformatted(JsonText);
             return;
@@ -217,12 +217,12 @@ public class JsonWidget : BaseWidget
 
     Vector4 GetColorForToken(JTokenType type) => type switch
     {
-        JTokenType.String => ImGuiStyleSet.TextString,
-        JTokenType.Integer or JTokenType.Float => ImGuiStyleSet.TextString,
-        JTokenType.Boolean => ImGuiStyleSet.TextString,
-        JTokenType.Null => ImGuiStyleSet.TextNull,
-        JTokenType.Date => ImGuiStyleSet.TextDate,
-        JTokenType.Array => ImGuiStyleSet.TextGray,
-        _ => ImGuiStyleSet.TextNoraml
+        JTokenType.String => ImGuiColorHelper.TextString,
+        JTokenType.Integer or JTokenType.Float => ImGuiColorHelper.TextNumber,
+        JTokenType.Boolean => ImGuiColorHelper.TextBool,
+        JTokenType.Null => ImGuiColorHelper.TextNull,
+        JTokenType.Date => ImGuiColorHelper.TextDate,
+        JTokenType.Array => ImGuiColorHelper.TextGray,
+        _ => ImGuiColorHelper.TextNoraml
     };
 }

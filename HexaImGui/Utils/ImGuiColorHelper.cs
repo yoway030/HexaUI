@@ -1,4 +1,4 @@
-﻿namespace ELImGui.Utils;
+namespace ELImGui.Utils;
 
 using Hexa.NET.ImGui;
 using System.Numerics;
@@ -6,6 +6,43 @@ using System.Runtime.CompilerServices;
 
 public static class ImGuiColorHelper
 {
+    public static Vector4 White => new(1f, 1f, 1f, 1f);
+    public static Vector4 Black => new(0f, 0f, 0f, 1f);
+    public static Vector4 ABlack => new(0.08f, 0.08f, 0.08f, 1f);
+    public static Vector4 Gray => new(0.5f, 0.5f, 0.5f, 1f);
+    public static Vector4 LightGray => new(0.8f, 0.8f, 0.8f, 1f);
+    public static Vector4 DarkGray => new(0.15f, 0.15f, 0.15f, 1f);
+    public static Vector4 Red => new(1f, 0f, 0f, 1f);
+    public static Vector4 LightRed => new(1f, 0.2f, 0.2f, 1f);
+    public static Vector4 Green => new(0f, 1f, 0f, 1f);
+    public static Vector4 Blue => new(0f, 0f, 1f, 1f);
+    public static Vector4 LightBlue => new(0.2f, 0.6f, 1f, 1f);
+    public static Vector4 DarkBlue => new(0.2f, 0.4f, 0.6f, 1f);
+    public static Vector4 Yellow => new(1f, 1f, 0f, 1f);
+    public static Vector4 Magenta => new(1f, 0f, 1f, 1f);
+    public static Vector4 Cyan => new(0f, 1f, 1f, 1f);
+    public static Vector4 Mint => new(0.4f, 1f, 0.8f, 1f);
+
+    //////////////////////////////////////////
+
+    public static Vector4 DefaultPrimary => new(0.2f, 0.4f, 0.6f, 1f);
+    public static Vector4 DefaultSecondary => new(0.2f, 0.6f, 1f, 1f);
+    public static Vector4 DefaultFocus => new(1f, 0.2f, 0.2f, 1f);
+    public static Vector4 DefaultBackground => new(0.08f, 0.08f, 0.08f, 1f);
+
+    //////////////////////////////////////////
+
+    public static Vector4 TextError => new(1f, 0.2f, 0.2f, 1f);
+    public static Vector4 TextNoraml => new(0.8f, 0.8f, 0.8f, 1f);
+    public static Vector4 TextWhite => White;
+    public static Vector4 TextBlue => Blue;
+    public static Vector4 TextGray => Gray;
+    public static Vector4 TextString => new(0.4f, 0.6f, 1f, 1f);
+    public static Vector4 TextNumber => new(0.7f, 0.7f, 0.4f, 1f);
+    public static Vector4 TextBool => new(0.4f, 0.7f, 0.4f, 1f);
+    public static Vector4 TextNull => TextError;
+    public static Vector4 TextDate => new(1f, 0.7f, 0.2f, 1f);
+
     /// <summary>
     /// 색상을 어둡게 만듭니다. factor는 0~1 범위로, 0은 원래 색상, 1은 검정색이 됩니다.
     /// </summary>
@@ -21,18 +58,18 @@ public static class ImGuiColorHelper
 
     public static uint DarkenU32(uint color, float factor)
     {
-        Vector4 v = DarkenClamped(ImGui.ColorConvertU32ToFloat4(color), factor);
+        var v = DarkenClamped(ImGui.ColorConvertU32ToFloat4(color), factor);
         return ImGui.ColorConvertFloat4ToU32(v);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Vector4 TintClamped(Vector4 c, Vector4 target, float factor)
+    public static Vector4 TintClamped(Vector4 c, Vector4 target, float factor)
     {
         return new Vector4(
-            Clamp01(c.X + (target.X - c.X) * factor),
-            Clamp01(c.Y + (target.Y - c.Y) * factor),
-            Clamp01(c.Z + (target.Z - c.Z) * factor),
-            c.W
+            Clamp01(c.X + ((target.X - c.X) * factor)),
+            Clamp01(c.Y + ((target.Y - c.Y) * factor)),
+            Clamp01(c.Z + ((target.Z - c.Z) * factor)),
+            Clamp01(c.W + ((target.W - c.W) * factor))
         );
     }
 
@@ -46,7 +83,7 @@ public static class ImGuiColorHelper
 
     public static uint BrightenU32(uint color, float factor)
     {
-        Vector4 v = BrightenClamped(ImGui.ColorConvertU32ToFloat4(color), factor);
+        var v = BrightenClamped(ImGui.ColorConvertU32ToFloat4(color), factor);
         return ImGui.ColorConvertFloat4ToU32(v);
     }
 
@@ -68,6 +105,14 @@ public static class ImGuiColorHelper
     public static Vector4 YellowClamped(Vector4 c, float factor)
     {
         return TintClamped(c, new Vector4(1f, 1f, 0f, c.W), factor);
+    }
+
+    /// <summary>
+    /// 알파 값을 투명하게 만듭니다. factor는 0~1 범위로, 0은 원래 알파, 1은 완전 투명(0)이 됩니다.
+    /// </summary>
+    public static Vector4 AlphaBlendClamped(Vector4 c, float factor)
+    {
+        return TintClamped(c, new Vector4(c.X, c.Y, c.Z, 0f), factor);
     }
 
     // hue: 0~360 (도), sat: 0~1, light: 0~1

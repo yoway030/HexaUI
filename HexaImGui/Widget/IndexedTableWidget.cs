@@ -138,8 +138,8 @@ public class IndexedTableWidget<TData> : BaseWidget
                     beforeDrawPosY = ImGui.GetCursorPosY();
 
                     // color 조정
-                    colorEffect = _findWidget.IsMachted(fieldsToString) ? ImGuiStyleSet.Green : Vector4.Zero;
-                    colorEffect = _focusedRow?.Index == indexedRow.Index ? ImGuiStyleSet.Values.Focus : colorEffect;
+                    colorEffect = _findWidget.IsMachted(fieldsToString) ? ImGuiColorHelper.AlphaBlendClamped(ImGuiTheme.Values.Focus, 0.8f) : Vector4.Zero;
+                    colorEffect = _focusedRow?.Index == indexedRow.Index ? ImGuiTheme.Values.Focus : colorEffect;
 
                     // row시작
                     ImGui.TableNextRow();
@@ -338,17 +338,27 @@ public class IndexedTableWidget<TData> : BaseWidget
         _dataActor.GetDirectAdapter().ClearDirect();
     }
 
-    public async Task<List<TData>> PeekRecentDatas(int peekCount)
+    public async Task<List<TData>> PeekRecentDatasPost(int peekCount)
     {
         return await _dataActor.GetPostAdapter().Ask((innerAdapter) =>
         {
             var items = innerAdapter.Items;
             return items.OrderByDescending(r => r.Index)
+                .Take(peekCount)
+                .OrderBy(r => r.Index)
+                .Select(r => r.RowData)
+                .ToList();
+        });
+    }
+
+    public List<TData> PeekRecentDatasDirect(int peekCount)
+    {
+        var items = _dataActor.GetDirectAdapter().Items;
+        return items.OrderByDescending(r => r.Index)
             .Take(peekCount)
             .OrderBy(r => r.Index)
             .Select(r => r.RowData)
             .ToList();
-        });
     }
 
     private bool ShouldScrollToEndInternal()

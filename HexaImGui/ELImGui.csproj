@@ -9,7 +9,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
-		<Platforms>x64</Platforms>
+		<Platforms>AnyCPU</Platforms>
 		<WarningLevel>4</WarningLevel>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<OutputPath>$(SolutionDir)Build\$(Configuration)\Lib\$(Name)\</OutputPath>

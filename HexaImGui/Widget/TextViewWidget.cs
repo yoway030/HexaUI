@@ -1,7 +1,6 @@
 namespace ELImGui.Widget;
 
 using Hexa.NET.ImGui;
-using System.Numerics;
 using System.Text;
 using ELImGui.Utils;
 using System.IO;
@@ -89,7 +88,7 @@ public class TextViewWidget : BaseWidget
 
         if (ErrorText != null)
         {
-            ImGui.TextColored(ImGuiStyleSet.TextError, $"Error : {ErrorText}");
+            ImGui.TextColored(ImGuiColorHelper.TextError, $"Error : {ErrorText}");
         }
         else if (lineCount == 0)
         {
