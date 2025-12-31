@@ -12,4 +12,10 @@
     <ProjectReference Include="..\HexaImGui\ELImGui.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="data.Text.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
