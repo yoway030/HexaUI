@@ -196,7 +196,7 @@ internal class Program
             {
                 try
                 {
-                    var lines = File.ReadAllLines("data.Text");
+                    var lines = File.ReadAllLines("data.Text.txt");
                     for (int i = 0; i < lines.Length; i++)
                     {
                         indexedTable.PushData(new TextRow
