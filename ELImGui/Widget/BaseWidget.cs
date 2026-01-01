@@ -2,6 +2,9 @@ namespace ELImGui.Widget;
 
 using ELImGui.Window;
 
+/// <summary>
+/// ImGui의 버튼 등 Widget을 사용하여 쓰기 편리하게 래핑된 Widget들의 기본 클래스
+/// </summary>
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
     public BaseWidget() : this($"{nameof(BaseWidget)}", String.Empty)

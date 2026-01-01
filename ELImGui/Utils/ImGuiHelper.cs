@@ -3,6 +3,9 @@
 using Hexa.NET.ImGui;
 using System.Text;
 
+/// <summary>
+/// ImGui 메소드들에 대한 추가 헬퍼
+/// </summary>
 public static class ImGuiHelper
 {
     public const byte NewLineByte = (byte)'\n';

@@ -19,6 +19,9 @@ public readonly struct ImGuiThemeValues
     public readonly Vector4 Background;
 }
 
+/// <summary>
+/// 테마 정보 및 테마 정보 관리 싱글톤
+/// </summary>
 public sealed class ImGuiTheme
 {
     private static ImGuiTheme? _instance;

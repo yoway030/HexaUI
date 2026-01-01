@@ -15,6 +15,9 @@ public abstract class ImRenderBaseActor<TMessage>
     protected int _renderThreadId = -1;
     protected bool _isInitialized = false;
 
+    protected long _totalMessagesProcessed;
+    protected long _totalExceptions;
+
     public void Initialize(int renderThreadId)
     {
         _renderThreadId = renderThreadId;
@@ -23,6 +26,11 @@ public abstract class ImRenderBaseActor<TMessage>
 
     public bool IsRenderThread => Environment.CurrentManagedThreadId == _renderThreadId;
     public bool IsInitialized => _isInitialized;
+
+    public long TotalMessagesProcessed => _totalMessagesProcessed;
+    public long TotalExceptions => _totalExceptions;
+    public int QueueCount => _queue.Count;
+    public int NextFrameQueueCount => _nextFrameQueue.Count;
 
     [Conditional("DEBUG")]
     public void CheckDirectableThread(
@@ -88,11 +96,12 @@ public abstract class ImRenderBaseActor<TMessage>
 
     protected abstract void HandleMessage(in TMessage message);
 
-    public void Work()
+    public void Work(int maxMessagesPerFrame = 1000)
     {
         CheckDirectableThread();
 
-        while (_queue.TryDequeue(out var message))
+        int processedCount = 0;
+        while (processedCount < maxMessagesPerFrame && _queue.TryDequeue(out var message))
         {
             try
             {
@@ -104,16 +113,22 @@ public abstract class ImRenderBaseActor<TMessage>
                 {
                     HandleMessage(message);
                 }
+
+                _totalMessagesProcessed++;
+                processedCount++;
             }
             catch (Exception ex)
             {
+                _totalExceptions++;
                 Logger.Error(ex, $"{nameof(Work)} Action: {message}, exception : {ex}");
             }
         }
 
-        while (_nextFrameQueue.TryDequeue(out var message))
+        int movedCount = 0;
+        while (movedCount < maxMessagesPerFrame && _nextFrameQueue.TryDequeue(out var message))
         {
             _queue.Enqueue(message);
+            movedCount++;
         }
     }
 }
@@ -133,7 +148,7 @@ public interface IActorAskPayLoad
     public void InvokeAsk();
 }
 
-public class ActorAskPayload<TResult> : IActorAskPayLoad
+public readonly struct ActorAskPayload<TResult> : IActorAskPayLoad
 {
     public ActorAskPayload(Func<TResult> func, TaskCompletionSource<TResult> tcs)
     {

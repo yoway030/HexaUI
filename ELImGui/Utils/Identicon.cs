@@ -3,6 +3,9 @@ namespace ELImGui.Utils;
 using Hexa.NET.ImGui;
 using System.Numerics;
 
+/// <summary>
+/// 데이터 기반 식별 아이콘 렌더러
+/// </summary>
 public static class Identicon
 {
     public static void RenderIdenticonRect(string input)

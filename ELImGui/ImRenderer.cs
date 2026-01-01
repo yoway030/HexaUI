@@ -19,6 +19,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using GLFWwindowPtr = Hexa.NET.GLFW.GLFWwindowPtr;
 
+/// <summary>
+/// ImGui 백앤드 처리 및 렌더링 관리 싱글톤
+/// </summary>
 public class ImRenderer
 {
     [DllImport("glfw3.dll", CallingConvention = CallingConvention.Cdecl)]

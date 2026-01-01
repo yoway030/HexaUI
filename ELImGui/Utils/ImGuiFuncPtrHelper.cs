@@ -9,6 +9,9 @@ public unsafe delegate uint AdapterIndexToStorageIdDelegateUnsafed(ImGuiSelectio
 public delegate object AdapterObjectToStorageIdDelegate(ImGuiSelectionBasicStoragePtr self, object obj);
 public unsafe delegate object AdapterObjectToStorageIdDelegateUnsafed(ImGuiSelectionBasicStorage* self, object obj);
 
+/// <summary>
+/// ImGuiSelectionBasicStorage의 함수 포인터 설정 헬퍼
+/// </summary>
 public static class ImGuiFuncPtrHelper
 {
     public static void SetAdapterIndexToStorageId(
