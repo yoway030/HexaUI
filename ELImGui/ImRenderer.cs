@@ -72,6 +72,7 @@ public class ImRenderer
     private bool _isShowImGuiCppDemo = false;
     private bool _isShowImGuiCSharpDemo = false;
     private bool _isShowHexaDemo = false;
+    private bool _isShowImPlotDemo = false;
 
     // ImGui Render 스레드 내부에서 사용되는 컨텍스트
     private readonly ImInternalContext _internalContext = new();
@@ -273,6 +274,11 @@ public class ImRenderer
         {
             _hexaImGuiDemo.Draw();
         }
+
+        if (_isShowImPlotDemo == true)
+        {
+            ImPlot.ShowDemoWindow();
+        }
     }
 
     private void RenderWindows(DateTime utcNow, double deltaSec)
@@ -387,6 +393,8 @@ public class ImRenderer
                 ImGui.Checkbox("Show ImGuiDemo CSharp", ref _isShowImGuiCSharpDemo);
                 ImGui.Spacing();
                 ImGui.Checkbox("Show ImGuiDemo Cpp", ref _isShowImGuiCppDemo);
+                ImGui.Spacing();
+                ImGui.Checkbox("Show ImPlotDemo Cpp", ref _isShowImPlotDemo);
                 ImGui.Spacing();
                 ImGui.EndMenu();
             }
