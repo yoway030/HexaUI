@@ -19,7 +19,7 @@ class FindTextWidget<TData> : BaseWidget
     public bool IsOnlyFiltered => IsFinding && _onlyFiltered == true;
     public Action? FindingTargetChangedFunc = null;
 
-    public List<TData>? FoundedList = null;
+    public List<TData> FoundedList = new();
     public int FoundedFocusIndex = 0;   // 0은 포커스 없음. 1부터 FoundedList.Count까지
     public Action? FoundedFocusMovedFunc = null;
 
@@ -94,14 +94,13 @@ class FindTextWidget<TData> : BaseWidget
     public void FindingTargetChange()
     {
         FoundedList?.Clear();
-        FoundedList = null;
         FoundedFocusIndex = 0;
         FindingTargetChangedFunc?.Invoke();
     }
 
     public void FoundedRowFocusMove(int moveFocusIndex)
     {
-        if (FoundedList == null || FoundedList.Count == 0)
+        if (FoundedList.Count == 0)
         {
             FoundedFocusIndex = 0;
             return;
@@ -144,6 +143,18 @@ class FindTextWidget<TData> : BaseWidget
         {
             return text.Contains(Target, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    public bool TryGetFocusedData(out TData data)
+    {
+        if (FoundedFocusIndex < 1 || FoundedFocusIndex > FoundedList.Count)
+        {
+            data = default!;
+            return false;
+        }
+
+        data = FoundedList[FoundedFocusIndex - 1];
+        return true;
     }
 }
 

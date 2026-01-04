@@ -87,7 +87,7 @@ internal class Program
         jsonWidgetWindow.Widget.Initialize("data.Json.json", isPath: true);
 
         SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
-        textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
+        textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName, true, true));
         textViewerWindow.Widget.Initialize("data.Text.txt", true);
 
         //VerticalMultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");

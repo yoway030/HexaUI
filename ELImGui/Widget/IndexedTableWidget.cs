@@ -298,7 +298,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         }
 
         // 상황에 맞는 출력용 스토리지 선택
-        _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered && _findWidget.FoundedList != null
+        _showStorage = _findWidget.IsFinding && _findWidget.IsOnlyFiltered
             ? _findWidget.FoundedList
             : _dataActor.GetDirectAdapter().Items;
     }
@@ -326,7 +326,7 @@ public class IndexedTableWidget<TData> : BaseWidget
         string rowToString = Rule.RowToString(added.RowData);
         if (_findWidget.IsMachted(rowToString) == true)
         {
-            _findWidget.FoundedList?.Add(added);
+            _findWidget.FoundedList.Add(added);
         }
     }
 
@@ -410,8 +410,12 @@ public class IndexedTableWidget<TData> : BaseWidget
 
         _selection.Clear();
 
-        var foundedFocusedRow = _findWidget.FoundedList?[_findWidget.FoundedFocusIndex - 1];
-        int showStorageIndex = _showStorage.FindIndex(r => r.Index == foundedFocusedRow?.Index);
+        if (_findWidget!.TryGetFocusedData(out var foundedFocusedRow) == false)
+        {
+            return;
+        }
+
+        int showStorageIndex = _showStorage.FindIndex(r => r.Index == foundedFocusedRow.Index);
         if (showStorageIndex != -1)
         {
             _focusedRow = _showStorage[showStorageIndex];
