@@ -108,6 +108,8 @@ public class ProcessMonitor : BaseWindow
         ImPlot.SetNextAxesToFit();
         if (ImPlot.BeginPlot($"##{WindowName}#{plotName}", windowSize))
         {
+            ImPlot.SetupAxis(ImAxis.Y1, ImPlotAxisFlags.Opposite);
+
             if (showXAxis == false)
             {
                 ImPlot.SetupAxis(ImAxis.X1, ImPlotAxisFlags.NoTickLabels);
