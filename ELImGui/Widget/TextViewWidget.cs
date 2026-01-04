@@ -120,8 +120,8 @@ public class TextViewWidget : BaseWidget
 
                 ImGui.TextColored(
                     _highlightedLines?.Contains(i) == true
-                        ? BaseWindow.ColorTextHighLight
-                        : ImGui.GetStyle().Colors[(int)ImGuiCol.Text], // Default text color
+                        ? ImGuiColorHelper.DefaultFocus
+                        : ImGuiColorHelper.StyleColor(ImGuiCol.Text),
                     line);
             }
 

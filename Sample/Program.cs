@@ -86,9 +86,9 @@ internal class Program
         jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
         jsonWidgetWindow.Widget.Initialize("data.Json.json", isPath: true);
 
-        //SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
-        //textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
-        //textViewerWindow.Widget.Initialize(jsonString, false);
+        SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
+        textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
+        textViewerWindow.Widget.Initialize("data.Text.txt", true);
 
         //VerticalMultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
         //var mmjson = new JsonWidget("JsonWidget1", multiWidgetWindow.WindowName);
@@ -114,7 +114,7 @@ internal class Program
                 console,
                 nodeView,
                 jsonWidgetWindow,
-                //textViewerWindow,
+                textViewerWindow,
                 //multiWidgetWindow,
             };
 

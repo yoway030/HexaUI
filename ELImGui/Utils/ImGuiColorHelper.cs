@@ -43,6 +43,13 @@ public static class ImGuiColorHelper
     public static Vector4 TextNull => TextError;
     public static Vector4 TextDate => new(1f, 0.7f, 0.2f, 1f);
 
+    ////////////////////////////////////////////
+
+    public static Vector4 StyleColor(ImGuiCol idx)
+    {
+        return ImGui.GetStyle().Colors[(int) idx];
+    }
+
     /// <summary>
     /// 색상을 어둡게 만듭니다. factor는 0~1 범위로, 0은 원래 색상, 1은 검정색이 됩니다.
     /// </summary>

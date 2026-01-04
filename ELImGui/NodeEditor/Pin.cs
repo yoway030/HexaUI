@@ -1,5 +1,6 @@
 namespace ELImGui.NodeEditor;
 
+using ELImGui.Utils;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImNodes;
 using System.Numerics;
@@ -68,7 +69,7 @@ public class Pin
         if (String.IsNullOrEmpty(DisplayInfo) == false)
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled], $"[{DisplayInfo}]");
+            ImGui.TextColored(ImGuiColorHelper.StyleColor(ImGuiCol.TextDisabled), $"[{DisplayInfo}]");
         }
 
         UpdateCenterPos();

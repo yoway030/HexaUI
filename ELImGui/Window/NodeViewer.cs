@@ -29,36 +29,39 @@ public class NodeViewer : BaseWindow
 
     public void InitSample()
     {
-        var node1 = Editor.CreateNode("Node 1", 0, 0xff0000ff);
+        var node1 = Editor.CreateNode("Node 1", -1, 0xff0000ff);
         if (node1 == null)
         {
             return;
         }
 
         node1.CreatePin("In", PinKind.Input, ImNodesPinShape.Circle);
-        node1.CreatePin("Out", PinKind.Output, ImNodesPinShape.Circle);
+        var node1Out = node1.CreatePin("Out", PinKind.Output, ImNodesPinShape.Circle);
 
-        var node2 = Editor.CreateNode("Node 2", 1);
+        var node2 = Editor.CreateNode("Node 2", 0);
         if (node2 == null)
         {
             return;
         }
 
-        node2.CreatePin("In", PinKind.Input, ImNodesPinShape.Circle);
-        node2.CreatePin("Out", PinKind.Output, ImNodesPinShape.Circle);
+        var node2In = node2.CreatePin("In", PinKind.Input, ImNodesPinShape.Circle);
+        var node2Out = node2.CreatePin("Out", PinKind.Output, ImNodesPinShape.Circle);
 
-        if (node1.TryGetPin("Out", out var out1) == false)
+        var node3 = Editor.CreateNode("Node 3", 1);
+        if (node3 == null)
         {
             return;
         }
 
-        if (node2.TryGetPin("In", out var in2) == false)
-        {
-            return;
-        }
+        var node3In = node3.CreatePin("In", PinKind.Input, ImNodesPinShape.QuadFilled);
+        node3.CreatePin("Out", PinKind.Output, ImNodesPinShape.TriangleFilled);
 
-        var link = Editor.CreateLink(out1, in2);
-        link?.Dots.Add(new() { DurationMSec = 10000, Color = 0xff00ff00, Destination = PinKind.Output });
-        link?.Dots.Add(new() { DurationMSec = 20000, Color = 0xff00ffff, Destination = PinKind.Input });
+        var link1to2 = Editor.CreateLink(node1Out!, node2In!);
+        link1to2?.Dots.Add(new() { DurationMSec = 10000, Color = 0xff00ff00, Destination = PinKind.Output });
+        link1to2?.Dots.Add(new() { DurationMSec = 20000, Color = 0xff00ffff, Destination = PinKind.Input });
+
+        var link2to3 = Editor.CreateLink(node2Out!, node3In!);
+        link2to3?.Dots.Add(new() { DurationMSec = 15000, Color = 0xf0f0f000, Destination = PinKind.Output });
+        link2to3?.Dots.Add(new() { DurationMSec = 25000, Color = 0xffff00ff, Destination = PinKind.Input });
     }
 }
