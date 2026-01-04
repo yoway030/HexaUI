@@ -100,7 +100,7 @@ public class JsonWidget : BaseWidget
         }
 
         using var child = new ImGuiScopedId(WidgetName);
-        DrawJsonTokenWithPath(ParsedJson, "$");
+        DrawJsonTokenWithPath(ParsedJson);
     }
 
     public void UpdateImpl()
@@ -122,14 +122,14 @@ public class JsonWidget : BaseWidget
         }
     }
 
-    void DrawJsonTokenWithPath(JToken token, string path)
+    void DrawJsonTokenWithPath(JToken token)
     {
         switch (token.Type)
         {
             case JTokenType.Object:
                 foreach (var prop in (JObject)token)
                 {
-                    string childPath = path + "." + prop.Key;
+                    string childPath = token.Path;
                     using var child = new ImGuiScopedId(childPath);
 
                     if (ImGui.TreeNodeEx(prop.Key, ImGuiTreeNodeFlags.DefaultOpen))
@@ -143,7 +143,7 @@ public class JsonWidget : BaseWidget
                             ImGui.SameLine();
                         }
 
-                        DrawJsonTokenWithPath(prop.Value!, childPath);
+                        DrawJsonTokenWithPath(prop.Value!);
                         ImGui.TreePop();
                     }
                 }
@@ -154,11 +154,9 @@ public class JsonWidget : BaseWidget
                 var array = (JArray)token;
                 for (int i = 0; i < array.Count; i++)
                 {
-                    var color = GetColorForToken(token.Type);
-                    string childPath = $"{path}[{i}]";
-
+                    string childPath = token.Path;
                     using var child = new ImGuiScopedId(childPath);
-                    ImGui.PushStyleColor(ImGuiCol.Text, color);
+                    ImGui.PushStyleColor(ImGuiCol.Text, GetColorForToken(token.Type));
                     ImGui.TextUnformatted($"[{i}]");
                     ImGui.PopStyleColor();
 
@@ -171,21 +169,20 @@ public class JsonWidget : BaseWidget
                         ImGui.SameLine();
                     }
 
-                    DrawJsonTokenWithPath(array[i], childPath);
+                    DrawJsonTokenWithPath(array[i]);
                 }
 
                 break;
 
             default:
                 {
-                    string childPath = $"{path}.value";
+                    string childPath = token.Path;
                     string display = GetValueString(token);
-                    var color = GetColorForToken(token.Type);
                     using var child = new ImGuiScopedId(childPath);
 
                     bool isSelected = _selectedPath == childPath;
 
-                    ImGui.PushStyleColor(ImGuiCol.Text, color);
+                    ImGui.PushStyleColor(ImGuiCol.Text, GetColorForToken(token.Type));
                     if (ImGui.Selectable(display, isSelected))
                     {
                         _selectedPath = childPath;
