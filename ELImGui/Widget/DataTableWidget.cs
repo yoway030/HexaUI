@@ -5,7 +5,6 @@ using ELImGui.Utils;
 using ELImGui.Widget;
 using Hexa.NET.ImGui;
 using System;
-using System.Numerics;
 using System.Text;
 
 public class DataTableWidget<TData> : BaseWidget
@@ -147,8 +146,9 @@ public class DataTableWidget<TData> : BaseWidget
                             }
                             else
                             {
-                                var widget = new RenderActionWidget<TData>(containedData, Rule.TooltipRender);
                                 var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
+                                var widget = new RenderActionWidget<TData>(windowName, window.WindowName, containedData, Rule.TooltipRender);
+                                
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
 

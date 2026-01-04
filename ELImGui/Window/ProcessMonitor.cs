@@ -1,9 +1,7 @@
 namespace ELImGui.Window;
 
-using ELImGui.Base;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImPlot;
-using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 
@@ -86,7 +84,7 @@ public class ProcessMonitor : BaseWindow
                 var monitorValue = _monitorValues[i];
                 monitorValue.UpdatePlotValues(DisplayCount);
 
-                ImPlot.PushStyleVar(ImPlotStyleVar.FillAlpha, 0.1f);
+                ImPlot.PushStyleVar(ImPlotStyleVar.FillAlpha, 0.2f);
                 RenderPlot(monitorValue.Name, windowSize, monitorValue.PlotValues, timeValues, showXAxis: i == plotCount);
                 ImPlot.PopStyleVar();
             }

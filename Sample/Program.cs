@@ -90,14 +90,9 @@ internal class Program
         textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName, true, true));
         textViewerWindow.Widget.Initialize("data.Text.txt", true);
 
-        //VerticalMultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
-        //var mmjson = new JsonWidget("JsonWidget1", multiWidgetWindow.WindowName);
-        //mmjson.JsonText = jsonString;
-        //multiWidgetWindow.AddWidget(mmjson, 0.5f);
-
-        //var mmtext = new TextViewWidget("TextViewWidget", multiWidgetWindow.WindowName);
-        //mmtext.Initialize(jsonString, false);
-        //multiWidgetWindow.AddWidget(mmtext, 0.5f);
+        VerticalMultiWidgetWindow multiWidgetWindow = new("MultiWidgetWindow");
+        multiWidgetWindow.AddWidget(new RenderActionWidget<string>("M1", multiWidgetWindow.WindowName, "Multi", (in string s) => ImGui.Text(s)), 1f);
+        multiWidgetWindow.AddWidget(new RenderActionWidget<string>("M2", multiWidgetWindow.WindowName, "Widget", (in string s) => ImGui.Text(s)), 1f);
 
         NodeViewer nodeView = new NodeViewer("NodeViewer");
         nodeView.InitSample();
@@ -115,7 +110,7 @@ internal class Program
                 nodeView,
                 jsonWidgetWindow,
                 textViewerWindow,
-                //multiWidgetWindow,
+                multiWidgetWindow,
             };
 
             foreach (var window in windows)
@@ -140,8 +135,8 @@ internal class Program
         ////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////
 
-        // 외부 스레드에서 테이블에 데이터 삽입등의 작업을 수행하는 예제
-        var taskDataTable = Task.Run(async () =>
+        // 외부 스레드에서 테이블에 데이터 삽입 작업을 수행하는 예제
+        var taskIndexedTable = Task.Run(async () =>
         {
             while (renderer.IsWindowShouldClose == false)
             {
@@ -172,48 +167,43 @@ internal class Program
             }
         });
 
-        
+        // 외부 스레드에서 테이블에 데이터 삽입/수정 작업을 수행하는 예제
+        var taskDataTable = Task.Run(async () =>
+        {
+            Random random = new Random();
+            int logIndex = 0;
 
+            while (renderer.IsWindowShouldClose == false)
+            {
+                if (logIndex % 5 == 0)
+                {
+                    dataTable.AddDataPost(
+                        new TextRow
+                        {
+                            Timestamp = DateTime.UtcNow,
+                            Index = logIndex,
+                            Text = random.NextInt64().ToString()
+                        });
+                }
+                else if (logIndex % 7 == 0)
+                {
+                    dataTable.UpdateDataAtPost((logIndex % 20),
+                        new TextRow
+                        {
+                            Timestamp = DateTime.UtcNow,
+                            Index = logIndex,
+                            Text = random.NextInt64().ToString()
+                        });
+                }
+                else if (logIndex % 9 == 0)
+                {
+                    dataTable.RemoveDataAtPost(0);
+                }
 
-        //var taskAddData = Task.Run(async () =>
-        //{
-
-        //    Random random = new Random();
-        //    int logIndex = 0;
-        //    while (renderer.IsWindowShouldClose == false)
-        //    {
-        //        dataTable.PushData(new SampleDataType { Name = $"{logIndex}AAAAAAAA😀AAAAAAAAAAAAAAA사나A", Level = logIndex, Class = "EEEE", DPS = 10 });
-
-        //        if (logIndex % 5 == 0)
-        //        {
-        //            ediTable.AddDataPost(new SampleDataType
-        //            {
-        //                Name = $"Player_{logIndex}",
-        //                Level = random.Next(1, 100),
-        //                Class = "Warrior",
-        //                DPS = (float)(random.NextDouble() * 1000),
-        //            });
-        //        }
-        //        else if (logIndex % 7 == 0)
-        //        {
-        //            ediTable.UpdateDataAtPost((logIndex / 10), new SampleDataType
-        //            {
-        //                Name = $"UpdatedPlayer_{logIndex}",
-        //                Level = random.Next(1, 100),
-        //                Class = "Mage",
-        //                DPS = (float)(random.NextDouble() * 1000),
-        //            });
-        //        }
-        //        else if (logIndex % 11 == 0)
-        //        {
-        //            ediTable.RemoveDataAtPost(0);
-        //        }
-
-        //        await Task.Delay(100);
-        //        logIndex++;
-        //    }
-        //});
-
+                await Task.Delay(100);
+                logIndex++;
+            }
+        });
 
         thread.Join();
     }

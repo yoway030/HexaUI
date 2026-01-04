@@ -7,7 +7,8 @@ public class RenderActionWidget<T> : BaseWidget
     private T _model;
     private InAction<T> _renderAction;
 
-    public RenderActionWidget(T model, InAction<T> renderAction)
+    public RenderActionWidget(string widgetName, string ownerWindowName, T model, InAction<T> renderAction)
+        : base(widgetName, ownerWindowName)
     {
         _model = model;
         _renderAction = renderAction;

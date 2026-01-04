@@ -29,21 +29,16 @@ public class VerticalMultiWidgetWindow : MultiWidgetWindow
 
     public override void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
-        ImGui.Separator();
-
         float totalHeight = _heightRatios.Sum(x => x.Value);
+
         foreach (var widget in Widgets)
         {
             float widgetHeightRatio = _heightRatios[widget];
-            float childHeight = ImGui.GetWindowHeight() * widgetHeightRatio / totalHeight * 0.9f;
+            float childHeight = ImGui.GetWindowHeight() * (widgetHeightRatio / totalHeight);
 
-            if (ImGui.BeginChild(widget.WidgetName + "Region", new Vector2(0.0f, childHeight)) == true)
-            {
-                widget.OnRender(utcNow, deltaSec, imInternalContext);
-                ImGui.EndChild();
-            }
-
-            ImGui.Separator();
+            ImGui.BeginChild(widget.WidgetName + "Region", new Vector2(0.0f, childHeight));
+            widget.OnRender(utcNow, deltaSec, imInternalContext);
+            ImGui.EndChild();
         }
     }
 }

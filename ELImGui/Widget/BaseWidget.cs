@@ -7,10 +7,6 @@ using ELImGui.Window;
 /// </summary>
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
-    public BaseWidget() : this($"{nameof(BaseWidget)}", String.Empty)
-    {
-    }
-
     public BaseWidget(string widgetName, string ownerWindowName)
     {
         WidgetName = widgetName;
