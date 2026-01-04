@@ -16,6 +16,7 @@ public class JsonWidget : BaseWidget
     private string? _exception = null;
     private string _jsonText = String.Empty;
     private bool _jsonChanged = false;
+    private string _selectedPath = String.Empty;
 
     public string JsonText
     {
@@ -176,32 +177,46 @@ public class JsonWidget : BaseWidget
                 break;
 
             default:
-            {
-                string childPath = $"{path}.value";
-                string display = GetValueString(token);
-                var color = GetColorForToken(token.Type);
-
-                using var child = new ImGuiScopedId(childPath);
-                ImGui.PushStyleColor(ImGuiCol.Text, color);
-                if (ImGui.Selectable(display, false))
                 {
-                    // Ctrl+C 눌렸으면 복사
-                    if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyDown(ImGuiKey.C))
+                    string childPath = $"{path}.value";
+                    string display = GetValueString(token);
+                    var color = GetColorForToken(token.Type);
+                    using var child = new ImGuiScopedId(childPath);
+
+                    bool isSelected = _selectedPath == childPath;
+
+                    ImGui.PushStyleColor(ImGuiCol.Text, color);
+                    if (ImGui.Selectable(display, isSelected))
                     {
-                        ImGui.SetClipboardText(display);
+                        _selectedPath = childPath;
+
                     }
+
+                    ImGui.PopStyleColor();
+
+                    if (ImGui.IsItemFocused())
+                    {
+                        if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.C))
+                        {
+                            ImGui.SetClipboardText(display);
+                        }
+                    }
+
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.BeginTooltip();
+                        ImGui.TextUnformatted($"{childPath} ({token.Type.ToString()})");
+                        ImGui.EndTooltip();
+                    }
+
+                    //ImGui.SameLine();
+                    //ImGui.TextUnformatted($"({token.Type})");
                 }
-
-                ImGui.PopStyleColor();
-                //ImGui.SameLine();
-                //ImGui.TextUnformatted($"({token.Type})");
-            }
-
-            break;
+                break;
         }
     }
 
-    string GetValueString(JToken token)
+    private string GetValueString(JToken token)
     {
         if (token.Type == JTokenType.Null)
         {
@@ -215,7 +230,7 @@ public class JsonWidget : BaseWidget
         return token.ToString() ?? String.Empty;
     }
 
-    Vector4 GetColorForToken(JTokenType type) => type switch
+    private Vector4 GetColorForToken(JTokenType type) => type switch
     {
         JTokenType.String => ImGuiColorHelper.TextString,
         JTokenType.Integer or JTokenType.Float => ImGuiColorHelper.TextNumber,

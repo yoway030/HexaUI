@@ -33,30 +33,6 @@ internal class Program
         ////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////
 
-
-        //        string jsonString =
-        //"""
-        //{           
-        //    "name": "John \"Johnny\" Smith",
-        //    "age": 32,
-        //    "email": null,
-        //    "isActive": true,
-        //    "roles": ["admin", "editor", "user"],
-        //    "profile": {
-        //    "address": {
-        //        "street": "123 Main St",
-        //        "city": "New York",
-        //        "zipcode": "10001"
-        //    },
-        //    "phone": "+1-800-555-0199"
-        //    },
-        //    "loginHistory": [
-        //    { "date": "2023-12-01T10:00:00Z", "ip": "192.168.1.1" },
-        //    { "date": "2023-12-05T14:22:13Z", "ip": "192.168.1.23" }
-        //    ]
-        //}
-        //""";
-
         // 변경이 적은 간단한 테이블 윈도우
         // ImGui는 별도의 렌더링 스레드에서 초기화와 루프가 실행되어야 하기 때문에 외부 스레드에서 데이터를 추가하려면 동기화가 필요함
         // 동기화가 필요한 경우에는 DataTableWindow<T> 또는 IndexedTableWindow<T>를 사용하는 것을 권장
@@ -106,9 +82,9 @@ internal class Program
         // 프로세스 정보를 모니터링하는 윈도우
         ProcessMonitor processMonitor = new("ProcessMonitor");
 
-        //SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
-        //jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
-        //jsonWidgetWindow.Widget.JsonText = jsonString;
+        SingleWidgetWindow<JsonWidget> jsonWidgetWindow = new("JsonWidgetWindow");
+        jsonWidgetWindow.InitializeWidget(new JsonWidget("JsonWidget", jsonWidgetWindow.WindowName));
+        jsonWidgetWindow.Widget.Initialize("data.Json.json", isPath: true);
 
         //SingleWidgetWindow<TextViewWidget> textViewerWindow = new("TextViewerWindow");
         //textViewerWindow.InitializeWidget(new TextViewWidget("TextViewWidget", textViewerWindow.WindowName));
@@ -137,7 +113,7 @@ internal class Program
                 processMonitor,
                 console,
                 nodeView,
-                //jsonWidgetWindow,
+                jsonWidgetWindow,
                 //textViewerWindow,
                 //multiWidgetWindow,
             };

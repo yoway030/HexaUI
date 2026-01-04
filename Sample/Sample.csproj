@@ -17,6 +17,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="data.Json.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="data.Text.txt">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
