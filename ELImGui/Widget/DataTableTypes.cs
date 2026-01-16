@@ -1,8 +1,8 @@
 ﻿namespace ELImGui.Window;
 
+using Hexa.NET.ImGui;
 using System;
 using System.Runtime.CompilerServices;
-using Hexa.NET.ImGui;
 
 public readonly record struct DataTableColumn(
     string Name,

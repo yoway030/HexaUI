@@ -24,8 +24,8 @@ public class ProcessMonitor : BaseWindow
 
         var timestampValue = new ProcessMonitorTimestamp(intervalSec, displayCount);
         var cpuUsageValue = new ProcessMonitorCpuUsage(intervalSec, displayCount);
-        var memoryUsageValue = new ProcessMonitorMemUsage(intervalSec, displayCount, cpuUsageValue.Process);
-        
+        var memoryUsageValue = new ProcessMonitorMemUsage(intervalSec, displayCount);
+
         _monitorValues = new List<IMonitorValue>
         {
             timestampValue, // Timestamp는 항상 첫번째
@@ -73,7 +73,7 @@ public class ProcessMonitor : BaseWindow
 
         // 시간 축 데이터 준비
         _monitorValues[0].UpdatePlotValues(DisplayCount);
-        var timeValues = _monitorValues[0].PlotValues;
+        double[] timeValues = _monitorValues[0].PlotValues;
 
         int plotCount = _monitorValues.Count - 1;
 
@@ -159,12 +159,12 @@ public class ProcessMonitor : BaseWindow
                 return 0;
             }
 
-            DateTime dt = DateTime.UnixEpoch.AddSeconds(value);
+            var dt = DateTime.UnixEpoch.AddSeconds(value);
             string formatted = dt.ToString("HH:mm:ss");
 
             // UTF8 바이트로 변환
             int maxBytes = Math.Min(size - 1, formatted.Length * 3); // UTF8은 최대 3바이트/문자
-            Span<byte> span = new Span<byte>(buff, maxBytes);
+            var span = new Span<byte>(buff, maxBytes);
             int bytesWritten = Encoding.UTF8.GetBytes(formatted, span);
 
             // Null terminator 추가

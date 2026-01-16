@@ -187,7 +187,7 @@ public class IndexedTableWidget<TData> : BaseWidget
                             {
                                 var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
                                 var widget = new RenderActionWidget<TData>(windowName, window.WindowName, indexedRow.RowData, Rule.TooltipRender);
-                                
+
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
 

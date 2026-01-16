@@ -1,12 +1,14 @@
 namespace ELImGui.Widget;
 
 using ELImGui.Window;
+using System.Collections.Concurrent;
 
-/// <summary>
-/// ImGui의 버튼 등 Widget을 사용하여 쓰기 편리하게 래핑된 Widget들의 기본 클래스
-/// </summary>
 public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpdatable
 {
+    public BaseWidget() : this($"{nameof(BaseWidget)}", String.Empty)
+    {
+    }
+
     public BaseWidget(string widgetName, string ownerWindowName)
     {
         WidgetName = widgetName;
@@ -16,6 +18,10 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
     public string WidgetName { get; set; }
     public string OwnerWindowName { get; set; }
     public bool IsVisibleImObject { get; set; } = true;
+    private ConcurrentQueue<Action> _afterRenderActions = [];
+
+    public void EnqueueAfterRenderAction(Action action) =>
+        _afterRenderActions.Enqueue(action);
 
     public void RenderImObject(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
     {
@@ -37,7 +43,15 @@ public abstract class BaseWidget : IImWidget, IImVisible, IImRenderable, IImUpda
 
     public abstract void OnRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
     public virtual void OnPrevRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
-    public virtual void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
+
+    public virtual void OnAfterRender(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext)
+    {
+        while (_afterRenderActions.TryDequeue(out var action))
+        {
+            action.Invoke();
+        }
+    }
+
     public abstract void OnUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext);
     public virtual void OnPrevUpdate(DateTime utcNow, double deltaSec, ImInternalContext imInternalContext) { }
     public virtual void OnWindowFocused(BaseWindow ownerWindow) { }

@@ -4,10 +4,6 @@ using ELImGui.Utils;
 using Hexa.NET.ImGui;
 using System.Numerics;
 
-/// <summary>
-/// ImGui 윈도우 래핑 기본 클래스.
-/// 간단한 윈도우 생성 및 위치/크기 관리 기능을 제공
-/// </summary>
 public abstract class BaseWindow : IImWindow, IImVisible, IImRenderable, IImUpdatable
 {
     public BaseWindow(string windowName, Vector2? parentPosition = null)

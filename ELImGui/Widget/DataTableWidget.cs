@@ -148,7 +148,7 @@ public class DataTableWidget<TData> : BaseWidget
                             {
                                 var window = new SingleWidgetWindow<RenderActionWidget<TData>>(windowName);
                                 var widget = new RenderActionWidget<TData>(windowName, window.WindowName, containedData, Rule.TooltipRender);
-                                
+
                                 window.InitializeWidget(widget);
                                 window.IsVisibleImObject = true;
 

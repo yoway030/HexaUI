@@ -63,7 +63,7 @@ public class ProcessMonitorTimestamp : MonitorValue<DateTime>
 
         for (int i = 0; i < StoreCount; i++)
         {
-            var oldTimeSpan = (StoreCount - i) * IntervalSec;
+            double oldTimeSpan = (StoreCount - i) * IntervalSec;
             Add(utcNow.AddSeconds(-oldTimeSpan));
         }
     }
@@ -83,7 +83,6 @@ public class ProcessMonitorCpuUsage : MonitorValue<double>
     {
     }
 
-    private readonly Process _process = Process.GetCurrentProcess();
     private readonly int _processorCount = Environment.ProcessorCount;
     private DateTime _lastUpdateDatetime = DateTime.UtcNow;
     private TimeSpan _lastTotalProcessorTime;
@@ -95,30 +94,24 @@ public class ProcessMonitorCpuUsage : MonitorValue<double>
         var timeSpan = utcNow - _lastUpdateDatetime;
 
         // CPU 사용률
-        _process.Refresh();
-        var currentTotalProcessorTime = _process.TotalProcessorTime;
+        var process = Process.GetCurrentProcess();
+        process.Refresh();
+        var currentTotalProcessorTime = process.TotalProcessorTime;
         double cpuUsed = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalSeconds;
-        double cpuPercent = cpuUsed / timeSpan.TotalSeconds * 100 / _processorCount;
+        double cpuPercent = Math.Max(0, cpuUsed / timeSpan.TotalSeconds * 100 / _processorCount);
         Add(cpuPercent);
 
         _lastTotalProcessorTime = currentTotalProcessorTime;
         _lastUpdateDatetime = utcNow;
     }
-
-    // ProcessMonitorMemUsage 에서 사용하기 위해 공개
-    public Process Process => _process;
 }
 
 public class ProcessMonitorMemUsage : MonitorValue<double>
 {
-    public ProcessMonitorMemUsage(double intervalSec, int storeCount, Process process)
+    public ProcessMonitorMemUsage(double intervalSec, int storeCount)
         : base("Mem(MB)", intervalSec, storeCount)
     {
-        _process = process;
     }
-
-    // CPU 사용률을 구하는 쪽의 Process를 참조
-    private readonly Process _process;
 
     public override double[] PlotValues => _plotBuffer;
 
@@ -126,7 +119,8 @@ public class ProcessMonitorMemUsage : MonitorValue<double>
     {
         // 메모리
         // Process를 Refresh하지 않음. CPU 사용률을 구하는 쪽에서 이미 Refresh했기 때문
-        float memMB = _process.WorkingSet64 / (1024f * 1024f);
+        var process = Process.GetCurrentProcess();
+        float memMB = process.WorkingSet64 / (1024f * 1024f);
         Add(memMB);
     }
 }

@@ -5,6 +5,16 @@ using System.Numerics;
 
 public readonly struct ImGuiThemeValues
 {
+    public ImGuiThemeValues(float[] primary, float[] secondary, float[] focus, float[] background)
+        : this(
+            new Vector4(primary[0], primary[1], primary[2], primary[3]),
+            new Vector4(secondary[0], secondary[1], secondary[2], secondary[3]),
+            new Vector4(focus[0], focus[1], focus[2], focus[3]),
+            new Vector4(background[0], background[1], background[2], background[3])
+        )
+    {
+    }
+
     public ImGuiThemeValues(Vector4 primary, Vector4 secondary, Vector4 focus, Vector4 background)
     {
         Primary = primary;
@@ -20,7 +30,7 @@ public readonly struct ImGuiThemeValues
 }
 
 /// <summary>
-/// Å×¸¶ Á¤º¸ ¹× Å×¸¶ Á¤º¸ °ü¸® ½Ì±ÛÅæ
+/// í…Œë§ˆ
 /// </summary>
 public sealed class ImGuiTheme
 {
